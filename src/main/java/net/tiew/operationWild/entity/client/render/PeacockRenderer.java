@@ -31,6 +31,7 @@ public class PeacockRenderer extends OWEntityRenderer<PeacockEntity, PeacockMode
     public PeacockRenderer(EntityRendererProvider.Context context) {
         super(context, new PeacockModel<>(context.bakeLayer(PeacockModel.LAYER_LOCATION)), 0.5f);
         this.addLayer(new PeacockLayer(this));
+        this.addLayer(new net.tiew.operationWild.entity.client.layer.PeacockFeatherHoldLayer(this));
         this.addLayer(new OWTribeFlagLayer<>(this));
     }
 

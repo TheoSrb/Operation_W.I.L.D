@@ -341,6 +341,14 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public static void onBossHitsTamedBeast(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof OWEntity beast) || !beast.isTame()) return;
+        if (beast.level().isClientSide()) return;
+        if (!net.tiew.operationWild.entity.bosses.OWBossEntity.isBossDamage(event.getSource())) return;
+        event.setAmount(event.getAmount() * net.tiew.operationWild.entity.bosses.OWBossEntity.TAMED_BEAST_DAMAGE_FACTOR);
+    }
+
+    @SubscribeEvent
     public static void onTribeFriendlyFire(LivingIncomingDamageEvent event) {
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide()) return;

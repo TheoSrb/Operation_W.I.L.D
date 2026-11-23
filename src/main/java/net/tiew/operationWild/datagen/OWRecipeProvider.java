@@ -436,6 +436,81 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .unlockedBy(getHasName(OWItems.RAW_PEACOCK.get()), has(OWItems.RAW_PEACOCK.get()))
                 .save(recipeOutput, OperationWild.MOD_ID + ":cooked_peacock_from_campfire_cooking");
 
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_ELEPHANT.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_ELEPHANT.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_ELEPHANT.get()), has(OWItems.RAW_ELEPHANT.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_elephant_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_ELEPHANT.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_ELEPHANT.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_ELEPHANT.get()), has(OWItems.RAW_ELEPHANT.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_elephant_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_ELEPHANT.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_ELEPHANT.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_ELEPHANT.get()), has(OWItems.RAW_ELEPHANT.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_elephant_from_campfire_cooking");
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_GIRAFFE.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_GIRAFFE.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_GIRAFFE.get()), has(OWItems.RAW_GIRAFFE.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_giraffe_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_GIRAFFE.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_GIRAFFE.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_GIRAFFE.get()), has(OWItems.RAW_GIRAFFE.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_giraffe_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_GIRAFFE.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_GIRAFFE.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_GIRAFFE.get()), has(OWItems.RAW_GIRAFFE.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_giraffe_from_campfire_cooking");
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_HYENA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_HYENA.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_HYENA.get()), has(OWItems.RAW_HYENA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_hyena_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_HYENA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_HYENA.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_HYENA.get()), has(OWItems.RAW_HYENA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_hyena_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_HYENA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_HYENA.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_HYENA.get()), has(OWItems.RAW_HYENA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_hyena_from_campfire_cooking");
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_KANGAROO.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KANGAROO.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_KANGAROO.get()), has(OWItems.RAW_KANGAROO.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kangaroo_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_KANGAROO.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KANGAROO.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_KANGAROO.get()), has(OWItems.RAW_KANGAROO.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kangaroo_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_KANGAROO.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KANGAROO.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_KANGAROO.get()), has(OWItems.RAW_KANGAROO.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kangaroo_from_campfire_cooking");
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_RHINOCEROS.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_RHINOCEROS.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_RHINOCEROS.get()), has(OWItems.RAW_RHINOCEROS.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_rhinoceros_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_RHINOCEROS.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_RHINOCEROS.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_RHINOCEROS.get()), has(OWItems.RAW_RHINOCEROS.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_rhinoceros_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_RHINOCEROS.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_RHINOCEROS.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_RHINOCEROS.get()), has(OWItems.RAW_RHINOCEROS.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_rhinoceros_from_campfire_cooking");
+
 
     }
 

@@ -3270,4 +3270,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 10;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 16;
+    }
 }

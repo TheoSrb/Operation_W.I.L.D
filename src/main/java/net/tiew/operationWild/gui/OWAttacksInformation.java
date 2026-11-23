@@ -171,7 +171,6 @@ public class OWAttacksInformation {
                     val(OWAttacksConstants.Tiger.SHADOW_STRIKE_DURATION_TICKS / 20),
                     val("15"),
                     val("25"),
-                    val(String.valueOf(OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED)),
                     val(String.valueOf(OWAttacksConstants.Tiger.SHADOW_STRIKE_COOLDOWN_TICKS / 20)))
             ),
 
@@ -209,7 +208,6 @@ public class OWAttacksInformation {
                                 val(e.getDamageToClient()
                                         * CrocodileEntity.DEATH_ROLL_BITE_RATIO
                                         * CrocodileEntity.DEATH_ROLL_BITES),
-                                val(OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Crocodile.PRIMAL_DIVE_COOLDOWN_TICKS / 20))
                 ),
 
@@ -241,7 +239,6 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.kodiak.nap.desc",
                                 val(OWAttacksConstants.Kodiak.NAP_DURATION_TICKS / 20),
                                 val("3"), val("80"),
-                                val(OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Kodiak.NAP_COOLDOWN_TICKS / 20))
                 ),
 
@@ -283,7 +280,6 @@ public class OWAttacksInformation {
                 new AttackSlot(40, 180, "X",
                         title("ow.attacks.boa.ultimate.title"),
                         e -> desc("ow.attacks.boa.ultimate.desc",
-                                val(OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE))
                 ),
 
@@ -320,7 +316,6 @@ public class OWAttacksInformation {
                 new AttackSlot(60, 120, "X",
                         title("ow.attacks.gorilla.chest_beat.title"),
                         e -> desc("ow.attacks.gorilla.chest_beat.desc",
-                                val(OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Gorilla.CHEST_BEAT_RADIUS),
                                 val((int) (OWAttacksConstants.Gorilla.CHEST_BEAT_ALLY_DAMAGE_BONUS * 100)),
                                 val(OWAttacksConstants.Gorilla.CHEST_BEAT_DURATION_TICKS / 20),
@@ -353,7 +348,6 @@ public class OWAttacksInformation {
                 new AttackSlot(40, 140, "X",
                         title("ow.attacks.hippopotamus.river_fury.title"),
                         e -> desc("ow.attacks.hippopotamus.river_fury.desc",
-                                val(OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Hippopotamus.FURY_DURATION_TICKS / 20),
                                 val((int) (OWAttacksConstants.Hippopotamus.FURY_DAMAGE_BONUS * 100)),
                                 val((int) (OWAttacksConstants.Hippopotamus.FURY_GRUDGE_PER_HIT * 100)),
@@ -391,21 +385,26 @@ public class OWAttacksInformation {
                 ),
 
                 new AttackSlot(40, 160, "RMB",
-                        title("ow.attacks.peacock.wing_gust.title"),
-                        e -> desc("ow.attacks.peacock.wing_gust.desc",
-                                val((int) (OWAttacksConstants.Peacock.GUST_SPEED * OWAttacksConstants.Peacock.GUST_LIFETIME_TICKS)),
-                                val(OWAttacksConstants.Peacock.GUST_COOLDOWN_TICKS / 20))
+                        title("ow.attacks.peacock.feather_volley.title"),
+                        e -> desc("ow.attacks.peacock.feather_volley.desc",
+                                val(e.getDamageToClient() / (e instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity tempest
+                                        ? tempest.getFeatherDamageDivisor() : OWAttacksConstants.Peacock.FEATHER_DAMAGE_DIVISOR)),
+                                val((int) OWAttacksConstants.Peacock.FEATHER_HEAL),
+                                val(e instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock
+                                        ? peacock.getFeatherMaxStock() : OWAttacksConstants.Peacock.FEATHER_MAX_STOCK),
+                                val(OWAttacksConstants.Peacock.FEATHER_REGEN_TICKS / 20))
                 ),
 
                 new AttackSlot(60, 160, "X",
                         title("ow.attacks.peacock.royal_sweep.title"),
                         e -> desc("ow.attacks.peacock.royal_sweep.desc",
-                                val(OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Peacock.SWEEP_SHARE_RADIUS),
                                 val(OWAttacksConstants.Peacock.SWEEP_COOLDOWN_TICKS / 20))
                 ),
 
-                null
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.peacock.glide.title"),
+                        e -> desc("ow.attacks.peacock.glide.desc"))
 
         ));
 
@@ -439,7 +438,6 @@ public class OWAttacksInformation {
                 new AttackSlot(236, 0, "X",
                         title("ow.attacks.colossal_squid.ink_frenzy.title"),
                         e -> desc("ow.attacks.colossal_squid.ink_frenzy.desc",
-                                val(OWAttacksConstants.ColossalSquid.INK_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.ColossalSquid.INK_RADIUS),
                                 val(OWAttacksConstants.ColossalSquid.INK_BLIND_TICKS / 20),
                                 val((int) (OWAttacksConstants.ColossalSquid.INK_SPEED_BONUS * 100)),
@@ -476,7 +474,6 @@ public class OWAttacksInformation {
                 new AttackSlot(60, 60, "X",
                         title("ow.attacks.lion.domination_roar.title"),
                         e -> desc("ow.attacks.lion.domination_roar.desc",
-                                val(OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Lion.ROAR_RADIUS),
                                 val(OWAttacksConstants.Lion.ROAR_BUFF_TICKS / 20),
                                 val(OWAttacksConstants.Lion.ROAR_COOLDOWN_TICKS / 20))
@@ -513,7 +510,6 @@ public class OWAttacksInformation {
                 new AttackSlot(80, 60, "X",
                         title("ow.attacks.lion.distress_call.title"),
                         e -> desc("ow.attacks.lion.distress_call.desc",
-                                val(OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED),
                                 val((int) (OWAttacksConstants.Lion.DISTRESS_HEALTH_RATIO * 100)),
                                 val((int) OWAttacksConstants.Lion.DISTRESS_CALL_RADIUS),
                                 val(OWAttacksConstants.Lion.GUARD_TICKS / 20),
@@ -559,7 +555,6 @@ public class OWAttacksInformation {
                 new AttackSlot(60, 200, "X",
                         title("ow.attacks.elephant.earthquake.title"),
                         e -> desc("ow.attacks.elephant.earthquake.desc",
-                                val(OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Elephant.EARTHQUAKE_RADIUS),
                                 val((int) OWAttacksConstants.Elephant.EARTHQUAKE_PULSE_DAMAGE),
                                 val(OWAttacksConstants.Elephant.EARTHQUAKE_COOLDOWN_TICKS / 20))
@@ -596,7 +591,6 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.orca.big_mouth.desc",
                                 val(OrcaEntity.MOUTH_HOLD_ALLY_TICKS / 20),
                                 val(OrcaEntity.MOUTH_HOLD_ENEMY_TICKS / 20),
-                                val(OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Orca.BIG_MOUTH_COOLDOWN_TICKS / 20))
                 ),
 
@@ -635,7 +629,6 @@ public class OWAttacksInformation {
                 new AttackSlot(40, 100, "X",
                         title("ow.attacks.kangaroo.telluric_stomp.title"),
                         e -> desc("ow.attacks.kangaroo.telluric_stomp.desc",
-                                val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED),
                                 val((int) OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS),
                                 val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_CENTER_MULT * 100)),
                                 val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_EDGE_MULT * 100)),
@@ -670,7 +663,6 @@ public class OWAttacksInformation {
                 new AttackSlot(236, 80, "X",
                         title("ow.attacks.red_panda.feast.title"),
                         e -> desc("ow.attacks.red_panda.feast.desc",
-                                val(OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED),
                                 val((int) OWAttacksConstants.RedPanda.FEAST_RADIUS),
                                 val(OWAttacksConstants.RedPanda.FEAST_HEAL_PER_PULSE),
                                 val(OWAttacksConstants.RedPanda.FEAST_DURATION_TICKS / 20),
@@ -796,14 +788,20 @@ public class OWAttacksInformation {
             drawText(g, font, slot.title(), colCX, curY, 0.7f);
             curY += (int)(font.lineHeight * 0.7f) + 3;
 
-            final float DS = 0.52f;
-            int wrapW = (int)(innerW / DS);
-            List<FormattedCharSequence> lines = font.split(slot.desc().apply(entity), wrapW);
-            int lineH = (int)(font.lineHeight * DS) + 1;
+            Component description = slot.desc().apply(entity);
+            int available = maxDescY + 4 - curY;
+            float ds = DESC_SCALE_MAX;
+            List<FormattedCharSequence> lines = font.split(description, (int) (innerW / ds));
+            while (ds > DESC_SCALE_MIN && lines.size() * descLineHeight(font, ds) > available) {
+                ds = Math.max(DESC_SCALE_MIN, ds - DESC_SCALE_STEP);
+                lines = font.split(description, (int) (innerW / ds));
+            }
+            float lineH = descLineHeight(font, ds);
+            float lineY = curY;
             for (FormattedCharSequence line : lines) {
-                if (curY > maxDescY) break;
-                drawLine(g, font, line, colCX, curY, DS);
-                curY += lineH;
+                if (lineY + lineH > maxDescY + 4 + 0.5f) break;
+                drawLine(g, font, line, colCX, lineY, ds);
+                lineY += lineH;
             }
         }
 
@@ -825,12 +823,18 @@ public class OWAttacksInformation {
             drawText(g, font, header, bannerCX, bannerY, 0.65f);
 
             int descY  = bannerY + (int)(font.lineHeight * 0.65f) + 3;
-            final float DS2 = 0.50f;
-            int wrapW2 = (int)((BG_W - 24) / DS2);
-            List<FormattedCharSequence> descLines = font.split(passive.desc().apply(entity), wrapW2);
-            int lineH2 = (int)(font.lineHeight * DS2) + 1;
-            for (int li = 0; li < Math.min(2, descLines.size()); li++) {
-                drawLine(g, font, descLines.get(li), bannerCX, descY + li * lineH2, DS2);
+            Component passiveDesc = passive.desc().apply(entity);
+            int passiveRoom = bgY + BG_H - 3 - descY;
+            float ds2 = PASSIVE_SCALE_MAX;
+            List<FormattedCharSequence> descLines = font.split(passiveDesc, (int) ((BG_W - 24) / ds2));
+            while (ds2 > DESC_SCALE_MIN && descLines.size() * descLineHeight(font, ds2) > passiveRoom) {
+                ds2 = Math.max(DESC_SCALE_MIN, ds2 - DESC_SCALE_STEP);
+                descLines = font.split(passiveDesc, (int) ((BG_W - 24) / ds2));
+            }
+            float lineH2 = descLineHeight(font, ds2);
+            int shown = Math.min(descLines.size(), Math.max(1, (int) (passiveRoom / lineH2)));
+            for (int li = 0; li < shown; li++) {
+                drawLine(g, font, descLines.get(li), bannerCX, descY + li * lineH2, ds2);
             }
         }
 
@@ -896,7 +900,16 @@ public class OWAttacksInformation {
         g.pose().popPose();
     }
 
-    private static void drawLine(GuiGraphics g, Font font, FormattedCharSequence seq, int cx, int y, float scale) {
+    private static final float DESC_SCALE_MAX = 0.52f;
+    private static final float PASSIVE_SCALE_MAX = 0.50f;
+    private static final float DESC_SCALE_MIN = 0.36f;
+    private static final float DESC_SCALE_STEP = 0.02f;
+
+    private static float descLineHeight(Font font, float scale) {
+        return font.lineHeight * scale + 0.75f;
+    }
+
+    private static void drawLine(GuiGraphics g, Font font, FormattedCharSequence seq, int cx, float y, float scale) {
         g.pose().pushPose();
         g.pose().translate(cx, y, 0f);
         g.pose().scale(scale, scale, 1f);

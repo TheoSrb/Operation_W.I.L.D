@@ -162,6 +162,21 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> RAW_PEACOCK = ITEMS.register("raw_peacock", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_PEACOCK)));
     public static final DeferredHolder<Item, Item> COOKED_PEACOCK = ITEMS.register("cooked_peacock", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_PEACOCK)));
 
+    public static final DeferredHolder<Item, Item> RAW_ELEPHANT = ITEMS.register("raw_elephant", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_ELEPHANT)));
+    public static final DeferredHolder<Item, Item> COOKED_ELEPHANT = ITEMS.register("cooked_elephant", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_ELEPHANT)));
+
+    public static final DeferredHolder<Item, Item> RAW_GIRAFFE = ITEMS.register("raw_giraffe", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_GIRAFFE)));
+    public static final DeferredHolder<Item, Item> COOKED_GIRAFFE = ITEMS.register("cooked_giraffe", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_GIRAFFE)));
+
+    public static final DeferredHolder<Item, Item> RAW_HYENA = ITEMS.register("raw_hyena", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_HYENA)));
+    public static final DeferredHolder<Item, Item> COOKED_HYENA = ITEMS.register("cooked_hyena", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_HYENA)));
+
+    public static final DeferredHolder<Item, Item> RAW_KANGAROO = ITEMS.register("raw_kangaroo", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_KANGAROO)));
+    public static final DeferredHolder<Item, Item> COOKED_KANGAROO = ITEMS.register("cooked_kangaroo", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_KANGAROO)));
+
+    public static final DeferredHolder<Item, Item> RAW_RHINOCEROS = ITEMS.register("raw_rhinoceros", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_RHINOCEROS)));
+    public static final DeferredHolder<Item, Item> COOKED_RHINOCEROS = ITEMS.register("cooked_rhinoceros", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_RHINOCEROS)));
+
 
     // Mob Spawn Eggs
     public static final DeferredHolder<Item, Item> KODIAK_SPAWN_EGG = ITEMS.register("kodiak_spawn_egg",

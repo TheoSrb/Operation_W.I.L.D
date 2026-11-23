@@ -25,6 +25,14 @@ public final class OWPistePassives {
     public static final int DOUBLE_RATION = 2;
     /** Panda roux : l'Aura de Vie dure une fois et demie plus longtemps et porte 30 % plus loin. */
     public static final int LONG_TABLE = 3;
+    public static final int FEATHER_TEMPEST = 4;
+    public static final int GENTLE_BOND = 5;
+
+    public static final float FEATHER_TEMPEST_STOCK_FACTOR = 1.3f;
+    public static final float FEATHER_TEMPEST_BURST_TICKS = 20f;
+    public static final float FEATHER_TEMPEST_DAMAGE_DIVISOR = 2f;
+    public static final float GENTLE_BOND_DONOR_FACTOR = 0.5f;
+    public static final float GENTLE_BOND_HEAL_FACTOR = 1.25f;
 
     /** Multiplicateur de viande crue lâchée par les proies (séparé de la valeur innée du Kodiak). */
     public static final float BUTCHER_MULTIPLIER = 1.5f;

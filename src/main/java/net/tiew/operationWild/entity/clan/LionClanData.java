@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.clan;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,7 +13,10 @@ import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +31,22 @@ public class LionClanData extends SavedData {
     private static final float COLOR_BRIGHTNESS = 0.92f;
     private static final int HUE_CANDIDATES = 36;
 
+    public static final int MAX_SATIETY = 72000;
+    public static final int MAX_COALITION_MALES = 3;
+    private static final float START_SATIETY_MIN = 0.45f;
+    private static final float START_SATIETY_SPREAD = 0.4f;
+
     public static final class Clan {
         public final UUID id;
         public final int color;
         public final boolean tamed;
         public UUID male;
+        public final Set<UUID> coMales = new LinkedHashSet<>();
         public final Set<UUID> lionesses = new LinkedHashSet<>();
+        @Nullable
+        public BlockPos home;
+        public int satiety = MAX_SATIETY / 2;
+        public final LionPrideState state = new LionPrideState();
 
         private Clan(UUID id, int color, boolean tamed, UUID male) {
             this.id = id;
@@ -42,7 +56,34 @@ public class LionClanData extends SavedData {
         }
 
         public int size() {
-            return lionesses.size() + 1;
+            return lionesses.size() + maleCount();
+        }
+
+        public int maleCount() {
+            return 1 + coMales.size();
+        }
+
+        public boolean isMale(UUID member) {
+            return male.equals(member) || coMales.contains(member);
+        }
+
+        public boolean isNomad() {
+            return !tamed && lionesses.isEmpty();
+        }
+
+        public boolean isCoalitionFull() {
+            return maleCount() >= MAX_COALITION_MALES;
+        }
+
+        public List<UUID> males() {
+            List<UUID> males = new ArrayList<>(maleCount());
+            males.add(male);
+            males.addAll(coMales);
+            return males;
+        }
+
+        public float satietyRatio() {
+            return Mth.clamp(satiety / (float) MAX_SATIETY, 0f, 1f);
         }
 
         public boolean isFull() {
@@ -76,9 +117,14 @@ public class LionClanData extends SavedData {
         return clanId != null && clanId.equals(memberToClan.get(member));
     }
 
+    public Collection<Clan> clans() {
+        return Collections.unmodifiableCollection(clans.values());
+    }
+
     public Clan found(UUID male, boolean tamed, RandomSource random) {
         leave(male);
         Clan clan = new Clan(UUID.randomUUID(), pickDistinctColor(random), tamed, male);
+        clan.satiety = (int) (MAX_SATIETY * (START_SATIETY_MIN + random.nextFloat() * START_SATIETY_SPREAD));
         clans.put(clan.id, clan);
         memberToClan.put(male, clan.id);
         setDirty();
@@ -95,16 +141,44 @@ public class LionClanData extends SavedData {
         return true;
     }
 
+    public boolean joinCoalition(UUID clanId, UUID male) {
+        Clan clan = clans.get(clanId);
+        if (clan == null || clan.tamed || clan.isCoalitionFull() || clan.isMale(male)) return false;
+        leave(male);
+        clan.coMales.add(male);
+        memberToClan.put(male, clanId);
+        setDirty();
+        return true;
+    }
+
     public void leave(UUID member) {
         UUID clanId = memberToClan.remove(member);
         if (clanId == null) return;
         Clan clan = clans.get(clanId);
         if (clan == null) return;
         if (member.equals(clan.male)) {
-            dissolve(clanId);
+            Iterator<UUID> heirs = clan.coMales.iterator();
+            if (!heirs.hasNext()) {
+                dissolve(clanId);
+                return;
+            }
+            clan.male = heirs.next();
+            heirs.remove();
+            setDirty();
             return;
         }
+        clan.coMales.remove(member);
         clan.lionesses.remove(member);
+        setDirty();
+    }
+
+    public void relocate(Clan clan, @Nullable BlockPos home) {
+        clan.home = home == null ? null : home.immutable();
+        setDirty();
+    }
+
+    public void feed(Clan clan, int amount) {
+        clan.satiety = Mth.clamp(clan.satiety + amount, 0, MAX_SATIETY);
         setDirty();
     }
 
@@ -113,6 +187,7 @@ public class LionClanData extends SavedData {
         if (clan == null) return List.of();
         List<UUID> freed = new ArrayList<>(clan.lionesses);
         for (UUID lioness : clan.lionesses) memberToClan.remove(lioness);
+        for (UUID coMale : clan.coMales) memberToClan.remove(coMale);
         memberToClan.remove(clan.male);
         setDirty();
         return freed;
@@ -123,7 +198,9 @@ public class LionClanData extends SavedData {
         Clan defeated = clans.get(defeatedClanId);
         if (victor == null || defeated == null || victor == defeated) return 0;
 
+        BlockPos inherited = defeated.home;
         List<UUID> freed = dissolve(defeatedClanId);
+        if (victor.home == null && inherited != null) victor.home = inherited;
         int joined = 0;
         for (UUID lioness : freed) {
             if (victor.isFull()) break;
@@ -185,8 +262,16 @@ public class LionClanData extends SavedData {
                 CompoundTag member = members.getCompound(j);
                 if (member.hasUUID("uuid")) clan.lionesses.add(member.getUUID("uuid"));
             }
+            ListTag allies = entry.getList("coMales", Tag.TAG_COMPOUND);
+            for (int j = 0; j < allies.size(); j++) {
+                CompoundTag ally = allies.getCompound(j);
+                if (ally.hasUUID("uuid")) clan.coMales.add(ally.getUUID("uuid"));
+            }
+            if (entry.contains("home")) clan.home = BlockPos.of(entry.getLong("home"));
+            clan.satiety = entry.contains("satiety") ? Mth.clamp(entry.getInt("satiety"), 0, MAX_SATIETY) : MAX_SATIETY / 2;
             data.clans.put(clan.id, clan);
             data.memberToClan.put(clan.male, clan.id);
+            for (UUID coMale : clan.coMales) data.memberToClan.put(coMale, clan.id);
             for (UUID lioness : clan.lionesses) data.memberToClan.put(lioness, clan.id);
         }
         return data;
@@ -208,6 +293,15 @@ public class LionClanData extends SavedData {
                 members.add(member);
             }
             entry.put("lionesses", members);
+            ListTag allies = new ListTag();
+            for (UUID coMale : clan.coMales) {
+                CompoundTag ally = new CompoundTag();
+                ally.putUUID("uuid", coMale);
+                allies.add(ally);
+            }
+            entry.put("coMales", allies);
+            if (clan.home != null) entry.putLong("home", clan.home.asLong());
+            entry.putInt("satiety", clan.satiety);
             list.add(entry);
         }
         tag.put("clans", list);

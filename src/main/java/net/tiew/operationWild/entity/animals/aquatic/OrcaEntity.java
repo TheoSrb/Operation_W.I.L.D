@@ -2659,4 +2659,14 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 9;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 14;
+    }
 }

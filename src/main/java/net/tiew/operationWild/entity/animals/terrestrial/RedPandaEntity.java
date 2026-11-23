@@ -1966,4 +1966,14 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 1;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 3;
+    }
 }

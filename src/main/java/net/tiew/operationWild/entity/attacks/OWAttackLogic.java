@@ -439,6 +439,9 @@ public class OWAttackLogic {
             kangarooWasTelluricStomping = false;
         }
 
+        tickPeacockFeathers(mc);
+        tickDeferredRightPress(mc);
+
         if (peacockLinkAiming && (mc.player == null
                 || !(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity linkPeacock)
                 || OWAttacksHandler.getActiveSecondary(linkPeacock) != OWAttacksHandler.PeacockAttacks.LIFE_LINK)) {
@@ -661,7 +664,7 @@ public class OWAttackLogic {
 
     private static void applySlideFov(ComputeFovModifierEvent event) {
         if (!(event.getPlayer().getVehicle() instanceof net.tiew.operationWild.entity.OWEntity mount)) return;
-        float modifier = mount.slideFovModifier();
+        float modifier = mount.slideFovModifier() * mount.glideFovModifier();
         if (modifier <= 1.001f) return;
 
         event.setNewFovModifier(event.getNewFovModifier() * modifier);
@@ -1251,7 +1254,7 @@ public class OWAttackLogic {
             if (peacockLinkAiming) return;
             boolean engaged = peacock.isLinking() || peacock.isSelectingLink();
             if (!engaged && (isCharging || peacock.isCombo() || peacock.isAttackLocked() || peacock.isSweeping()
-                    || peacock.isGusting() || peacock.isSecondaryOnCooldown() || playerHoldsUsableItem(player))) {
+                    || peacock.isGliding() || peacock.isSecondaryOnCooldown() || playerHoldsUsableItem(player))) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -1298,6 +1301,125 @@ public class OWAttackLogic {
     }
 
     private static boolean elephantSprayHeld = false;
+
+    private static boolean peacockFeatherHeld = false;
+    private static boolean peacockFeatherQueued = false;
+    private static boolean peacockFeatherCharging = false;
+    private static long peacockFeatherChargeStartMs = 0L;
+    private static int peacockLastVehicleId = -1;
+    private static long peacockMountedAtMs = 0L;
+    private static final long PEACOCK_MOUNT_GRACE_MS = 400L;
+
+    public static float getFeatherChargeProgress() {
+        if (!peacockFeatherCharging) return -1f;
+        return Math.min(1f, (System.currentTimeMillis() - peacockFeatherChargeStartMs)
+                / (float) OWAttacksConstants.Peacock.FEATHER_MIN_CHARGE_MS);
+    }
+    private static long peacockFeatherNextMs = 0L;
+    private static final long PEACOCK_FEATHER_CADENCE_MS = OWAttacksConstants.Peacock.FEATHER_CADENCE_TICKS * 50L;
+
+    private static boolean canClientShootFeather(net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock, Player player) {
+        if (peacock.getVitalEnergy() > peacock.getVitalEnergyCapacity() - OWAttacksConstants.Peacock.FEATHER_ENERGY) {
+            peacock.canShowVitalEnergyLack = true;
+            return false;
+        }
+        return peacock.canShootFeather() && !isCharging && !playerHoldsUsableItem(player)
+                && Minecraft.getInstance().screen == null;
+    }
+
+    private static void handlePeacockFeather(OWAttack attack,
+                                             net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock,
+                                             Player player, int action) {
+        if (action == GLFW.GLFW_RELEASE) {
+            peacockFeatherHeld = false;
+            if (peacockFeatherCharging) {
+                peacockFeatherCharging = false;
+                if (canClientShootFeather(peacock, player) && System.currentTimeMillis() >= peacockFeatherNextMs) {
+                    sendFeatherShot(attack);
+                } else {
+                    cancelFeatherCharge(attack);
+                    recordAttackClick(attack.getId(), true);
+                }
+            }
+            return;
+        }
+        if (action != GLFW.GLFW_PRESS) return;
+        if (System.currentTimeMillis() - peacockMountedAtMs < PEACOCK_MOUNT_GRACE_MS) return;
+
+        if (!canClientShootFeather(peacock, player)) {
+            if (peacock.getFeatherStock() <= 0) player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BASS.value(), 0.6f, 0.6f);
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        peacockFeatherHeld = true;
+        if (peacockFeatherCharging) return;
+        if (!peacock.isFeatherAiming()) {
+            peacockFeatherCharging = true;
+            peacockFeatherChargeStartMs = System.currentTimeMillis();
+            PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
+            return;
+        }
+        if (System.currentTimeMillis() >= peacockFeatherNextMs) sendFeatherShot(attack);
+        else peacockFeatherQueued = true;
+    }
+
+    private static void cancelFeatherCharge(OWAttack attack) {
+        peacockFeatherCharging = false;
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+    }
+
+    private static void sendFeatherShot(OWAttack attack) {
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(attack.getId(), false);
+        peacockFeatherNextMs = System.currentTimeMillis() + PEACOCK_FEATHER_CADENCE_MS;
+        peacockFeatherQueued = false;
+    }
+
+    private static void tickPeacockFeathers(Minecraft mc) {
+        int vehicleId = mc.player != null && mc.player.getVehicle() != null ? mc.player.getVehicle().getId() : -1;
+        if (vehicleId != peacockLastVehicleId) {
+            peacockLastVehicleId = vehicleId;
+            peacockMountedAtMs = System.currentTimeMillis();
+        }
+        if (!peacockFeatherHeld && !peacockFeatherQueued && !peacockFeatherCharging) return;
+        if (mc.player == null
+                || !(mc.player.getVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock)
+                || peacock.getControllingPassenger() != mc.player
+                || OWAttacksHandler.getActiveSecondary(peacock) != OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY) {
+            if (peacockFeatherCharging) cancelFeatherCharge(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+            peacockFeatherHeld = false;
+            peacockFeatherQueued = false;
+            return;
+        }
+        if (peacockFeatherHeld && GLFW.glfwGetMouseButton(mc.getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) != GLFW.GLFW_PRESS) {
+            peacockFeatherHeld = false;
+        }
+        if (peacockFeatherCharging) {
+            if (!canClientShootFeather(peacock, mc.player)) {
+                cancelFeatherCharge(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+                peacockFeatherHeld = false;
+                return;
+            }
+            if (!peacockFeatherHeld) {
+                peacockFeatherCharging = false;
+                if (System.currentTimeMillis() >= peacockFeatherNextMs) sendFeatherShot(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+                else cancelFeatherCharge(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+                return;
+            }
+            if (System.currentTimeMillis() - peacockFeatherChargeStartMs < OWAttacksConstants.Peacock.FEATHER_MIN_CHARGE_MS) return;
+            peacockFeatherCharging = false;
+            sendFeatherShot(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+            return;
+        }
+        if (System.currentTimeMillis() < peacockFeatherNextMs) return;
+
+        if (!canClientShootFeather(peacock, mc.player)) {
+            peacockFeatherHeld = false;
+            peacockFeatherQueued = false;
+            return;
+        }
+        if (peacockFeatherQueued || peacockFeatherHeld) sendFeatherShot(OWAttacksHandler.PeacockAttacks.FEATHER_VOLLEY);
+    }
 
     private static void handleColossalSquidMaelstrom(OWAttack attack,
                                                      net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid,
@@ -1576,6 +1698,55 @@ public class OWAttackLogic {
         recordAttackClick(orb.getId(), false);
     }
 
+    private static boolean rightPressPending = false;
+    private static boolean replayingRightPress = false;
+    private static long rightPressPendingMs = 0L;
+    private static final long RIGHT_CLICK_HOLD_TO_START_MS = OWAttacksConstants.Kangaroo.WHIRLWIND_HOLD_TO_START_MS;
+
+    private static boolean deferRightPress(OWEntity owEntity, Player player) {
+        if (rightPressPending) return true;
+        if (playerHoldsUsableItem(player)) return false;
+        OWAttack instant = OWAttacksHandler.findInstantAttack(owEntity, GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+        OWChargedAttack charged = OWAttacksHandler.findChargedAttack(owEntity, GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+        if (instant == null && charged == null) return false;
+        if (instant != null && (instant.getId() == OWAttacksHandler.WHIRLWIND_FISTS_ID
+                || instant.getId() == OWAttacksHandler.FEATHER_VOLLEY_ID)) return false;
+        rightPressPending = true;
+        rightPressPendingMs = System.currentTimeMillis();
+        return true;
+    }
+
+    private static void replayRightPress(boolean backdate) {
+        boolean wasCharging = isCharging;
+        replayingRightPress = true;
+        try {
+            onMouseInput(new InputEvent.MouseButton.Pre(GLFW.GLFW_MOUSE_BUTTON_RIGHT, GLFW.GLFW_PRESS, 0));
+        } finally {
+            replayingRightPress = false;
+        }
+        if (backdate && !wasCharging && isCharging) chargeStartMs = rightPressPendingMs;
+    }
+
+    private static void tickDeferredRightPress(Minecraft mc) {
+        if (!rightPressPending) return;
+        if (mc.player == null || mc.screen != null || !(mc.player.getRootVehicle() instanceof OWEntity)) {
+            rightPressPending = false;
+            return;
+        }
+        if (GLFW.glfwGetMouseButton(mc.getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) != GLFW.GLFW_PRESS) {
+            rightPressPending = false;
+            return;
+        }
+        if (System.currentTimeMillis() - rightPressPendingMs < RIGHT_CLICK_HOLD_TO_START_MS) return;
+        rightPressPending = false;
+        replayRightPress(true);
+    }
+
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST, receiveCanceled = true)
+    public static void letButtonReleasesThrough(InputEvent.MouseButton.Pre event) {
+        if (event.getAction() == GLFW.GLFW_RELEASE && event.isCanceled()) event.setCanceled(false);
+    }
+
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
@@ -1623,6 +1794,17 @@ public class OWAttackLogic {
             handleRedPandaHealOrb(redPanda);
             event.setCanceled(true);
             return;
+        }
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT && !replayingRightPress) {
+            if (event.getAction() == GLFW.GLFW_PRESS && deferRightPress(owEntity, mc.player)) {
+                event.setCanceled(true);
+                return;
+            }
+            if (event.getAction() == GLFW.GLFW_RELEASE && rightPressPending) {
+                rightPressPending = false;
+                replayRightPress(false);
+            }
         }
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
@@ -1742,7 +1924,12 @@ public class OWAttackLogic {
             OWAttack link = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
             if (link != null && link.getId() == OWAttacksHandler.LIFE_LINK_ID) {
                 handlePeacockLifeLink(link, peacock, mc.player, event.getAction());
-                event.setCanceled(true);
+                if (event.getAction() == GLFW.GLFW_PRESS) event.setCanceled(true);
+                return;
+            }
+            if (link != null && link.getId() == OWAttacksHandler.FEATHER_VOLLEY_ID) {
+                handlePeacockFeather(link, peacock, mc.player, event.getAction());
+                if (event.getAction() == GLFW.GLFW_PRESS) event.setCanceled(true);
                 return;
             }
         }

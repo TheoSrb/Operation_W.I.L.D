@@ -78,7 +78,7 @@ public class OWAttacksHandler {
     public static final int INK_FRENZY_ID = OWAttackIds.INK_FRENZY;
     public static final int MAELSTROM_ID = OWAttackIds.MAELSTROM;
     public static final int LIFE_LINK_ID = OWAttackIds.LIFE_LINK;
-    public static final int WING_GUST_ID = OWAttackIds.WING_GUST;
+    public static final int FEATHER_VOLLEY_ID = OWAttackIds.FEATHER_VOLLEY;
     public static final int ROYAL_SWEEP_ID = OWAttackIds.ROYAL_SWEEP;
 
 
@@ -181,7 +181,7 @@ public class OWAttacksHandler {
         registerCardOrigin(PeacockEntity.class, 0, 160);
         registerComboMaxTimer(PeacockEntity.class, 14);
         register(PeacockEntity.class, PeacockAttacks.LIFE_LINK);
-        register(PeacockEntity.class, PeacockAttacks.WING_GUST);
+        register(PeacockEntity.class, PeacockAttacks.FEATHER_VOLLEY);
         register(PeacockEntity.class, PeacockAttacks.ROYAL_SWEEP);
     }
 
@@ -525,22 +525,13 @@ public class OWAttacksHandler {
                 0
         );
 
-        public static final OWChargedAttack WING_GUST = new OWChargedAttack(
-                WING_GUST_ID,
+        public static final OWAttack FEATHER_VOLLEY = new OWAttack(
+                FEATHER_VOLLEY_ID,
                 OW_ATTACK_0,
-                OWAttacksConstants.Peacock.GUST_ENERGY,
-                OWAttacksConstants.Peacock.GUST_COOLDOWN_TICKS,
-                0L,
-                50L,
+                OWAttacksConstants.Peacock.FEATHER_ENERGY,
                 entity -> { },
-                entity -> { },
-                (entity, factor) -> ((PeacockEntity) entity).performWingGust(),
-                (entity, factor, dir) -> { },
-                false,
-                false
-        )
-                .withCanUsePredicate(entity -> entity instanceof PeacockEntity peacock
-                && !peacock.isLinking() && !peacock.isSweeping() && !peacock.isGusting());
+                0
+        );
 
         public static final OWAttack ROYAL_SWEEP = new OWAttack(
                 ROYAL_SWEEP_ID,

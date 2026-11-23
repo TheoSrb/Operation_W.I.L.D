@@ -103,6 +103,14 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
+            if (packet.attackId() == OWAttackIds.FEATHER_VOLLEY
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockCharge
+                    && (packet.action() == ACTION_CHARGE_START || packet.action() == ACTION_CHARGE_CANCEL)) {
+                if (packet.action() == ACTION_CHARGE_START) peacockCharge.startFeatherCharge();
+                else peacockCharge.cancelFeatherCharge();
+                return;
+            }
+
             if (packet.attackId() == OWAttackIds.MAELSTROM
                     && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squidMaelstrom) {
                 if (packet.action() == ACTION_EXECUTE) squidMaelstrom.startMaelstrom();
@@ -138,6 +146,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     if (packet.attackId() == OWAttackIds.LIFE_LINK) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockLink)
                             peacockLink.breakLinkByRider();
+                        return;
+                    }
+
+                    if (packet.attackId() == OWAttackIds.FEATHER_VOLLEY) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockFeather)
+                            peacockFeather.shootFeather();
                         return;
                     }
 
@@ -391,13 +405,6 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.CLAN_CALL -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion)
                                 lion.performClanCall();
-                        }
-                        case OWAttackIds.WING_GUST -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockGust
-                                    && !peacockGust.performWingGust()) {
-                                PacketDistributor.sendToPlayer(player,
-                                        new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
-                            }
                         }
                         case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)

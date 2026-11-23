@@ -112,6 +112,14 @@ public class OWOptionsScreen extends Screen {
                     entity::isFollowingOwner,
                     () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("followOwner"))
             ));
+            if (entity.isHealer()) {
+                scrollPanel.add(toggle(
+                        Component.translatable("option.autoHeal"),
+                        Component.translatable("option.autoHeal.desc"),
+                        entity::isAutoHeal,
+                        () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("autoHeal"))
+                ));
+            }
         }
 
         if (entity instanceof IOWWaypointEntity) {

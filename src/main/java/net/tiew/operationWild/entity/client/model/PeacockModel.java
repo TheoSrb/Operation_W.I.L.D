@@ -34,6 +34,8 @@ public class PeacockModel<T extends PeacockEntity> extends OWComboModel<T> imple
     private static final float REST_POSE_Y_SUM = 13f;
     private static final float COMBO_ANIMATION_SPEED = 1.0f;
     private static final float WALK_ANIM_SPEED = 5.6f;
+    private static final float FAN_WALK_ANIM_SPEED = 7.5f;
+    private static final float FAN_FADE_MS = 250f;
     private static final float RUN_ANIM_SPEED = 1.3f;
     private static final float WALK_WEIGHT_FACTOR = 4.5f;
     private static final float RUN_WEIGHT_FACTOR = 1.25f;
@@ -101,18 +103,26 @@ public class PeacockModel<T extends PeacockEntity> extends OWComboModel<T> imple
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-        PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -5.0F, 8.0F, 8.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+        PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -5.0F, 8.0F, 8.0F, 11.0F, new CubeDeformation(0.0F))
+                .texOffs(19, 40).addBox(-3.0F, -6.0F, -3.0F, 6.0F, 2.0F, 7.0F, new CubeDeformation(0.0F))
+                .texOffs(0, 20).addBox(-4.0F, -4.0F, -5.0F, 8.0F, 8.0F, 11.0F, new CubeDeformation(0.25F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(64, 0).addBox(-1.5F, -7.0F, -1.5F, 3.0F, 8.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -3.0F, -4.5F));
 
         PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(78, 0).addBox(-2.0F, -3.5F, -4.5F, 4.0F, 4.0F, 5.0F, new CubeDeformation(0.0F))
-                .texOffs(98, 0).addBox(-1.0F, -1.5F, -6.5F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -7.5F, 1.0F));
+                .texOffs(98, 0).addBox(-1.0F, -1.5F, -6.5F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(19, 50).addBox(-2.0F, -3.5F, -4.5F, 4.0F, 4.0F, 5.0F, new CubeDeformation(0.25F))
+                .texOffs(44, 20).addBox(-1.0F, -1.5F, -5.5F, 2.0F, 1.0F, 1.0F, new CubeDeformation(0.3F))
+                .texOffs(39, 20).addBox(2.3F, -2.0F, -5.0F, 0.0F, 2.0F, 2.0F, new CubeDeformation(0.01F))
+                .texOffs(39, 20).mirror().addBox(-2.3F, -2.0F, -5.0F, 0.0F, 2.0F, 2.0F, new CubeDeformation(0.01F)).mirror(false)
+                .texOffs(0, 40).addBox(2.45F, -1.5F, -4.5F, 0.0F, 6.0F, 9.0F, new CubeDeformation(0.01F))
+                .texOffs(0, 40).mirror().addBox(-2.45F, -1.5F, -4.5F, 0.0F, 6.0F, 9.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0F, -7.5F, 1.0F));
 
         head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(108, 0).addBox(0.0F, -1.0F, -1.0F, 0.0F, 1.0F, 2.0F, new CubeDeformation(0.025F)), PartPose.offset(2.0F, -2.5F, -1.5F));
 
         head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(108, 0).mirror().addBox(0.0F, -1.0F, -1.0F, 0.0F, 1.0F, 2.0F, new CubeDeformation(0.025F)).mirror(false), PartPose.offset(-2.0F, -2.5F, -1.5F));
 
-        head.addOrReplaceChild("crest", CubeListBuilder.create().texOffs(80, 5).addBox(0.0F, -7.0F, -2.5F, 0.0F, 8.0F, 9.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -3.5F, -1.0F));
+        head.addOrReplaceChild("crest", CubeListBuilder.create().texOffs(80, 5).addBox(0.0F, -7.0F, -2.5F, 0.0F, 8.0F, 9.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -3.5F, -1.0F));
 
         body.addOrReplaceChild("left_wing", CubeListBuilder.create().texOffs(40, 0).addBox(0.0F, 0.0F, 0.0F, 1.0F, 5.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(4.0F, -3.0F, -3.0F));
 
@@ -136,11 +146,11 @@ public class PeacockModel<T extends PeacockEntity> extends OWComboModel<T> imple
 
         PartDefinition left_train3 = tail.addOrReplaceChild("left_train3", CubeListBuilder.create(), PartPose.offset(0.647F, -0.3F, -7.388F));
 
-        left_train3.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(64, 22).addBox(-4.5F, 0.0F, 0.0F, 9.0F, 0.0F, 46.0F, new CubeDeformation(0.025F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.1745F, 0.0F));
+        left_train3.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(64, 22).addBox(-4.5F, 0.0F, 0.0F, 9.0F, 0.0F, 46.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.1745F, 0.0F));
 
         PartDefinition right_train3 = tail.addOrReplaceChild("right_train3", CubeListBuilder.create(), PartPose.offset(-0.647F, -0.3F, -7.388F));
 
-        right_train3.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(64, 22).mirror().addBox(-4.5F, 0.0F, 0.0F, 9.0F, 0.0F, 46.0F, new CubeDeformation(0.025F)).mirror(false), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, -0.1745F, 0.0F));
+        right_train3.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(64, 22).mirror().addBox(-4.5F, 0.0F, 0.0F, 9.0F, 0.0F, 46.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, -0.1745F, 0.0F));
 
         addFlagParts(body);
 
@@ -255,23 +265,31 @@ public class PeacockModel<T extends PeacockEntity> extends OWComboModel<T> imple
         long time = (long) (ageInTicks * 50f);
 
         float sweep = peacock.sweepAnimationState.isStarted() ? 1f : 0f;
-        float rest = smoothStep(peacock.restBlend(pt)) * (1f - sweep);
-        float sit = smoothStep(peacock.sitBlend(pt)) * (1f - rest) * (1f - sweep);
-        float link = smoothStep(peacock.linkBlend(pt)) * (1f - rest) * (1f - sit) * (1f - sweep);
-        float stance = (1f - rest) * (1f - sit) * (1f - sweep);
+        float glide = smoothStep(peacock.glideBlend(pt)) * (1f - sweep);
+        float rest = smoothStep(peacock.restBlend(pt)) * (1f - sweep) * (1f - glide);
+        float sit = smoothStep(peacock.sitBlend(pt)) * (1f - rest) * (1f - sweep) * (1f - glide);
+        float link = smoothStep(peacock.linkBlend(pt)) * (1f - rest) * (1f - sit) * (1f - sweep) * (1f - glide);
+        float aim = smoothStep(peacock.aimBlend(pt)) * (1f - rest) * (1f - sit) * (1f - sweep) * (1f - glide);
+        float stance = (1f - rest) * (1f - sit) * (1f - sweep) * (1f - glide);
+        int fanPhase = peacock.getFanPhase();
+        long fanMs = fanMillis(peacock, ageInTicks);
+        float fan = fanCover(peacock, fanPhase, fanMs);
+        float fanLook = fanPhase == PeacockEntity.FAN_SHOW ? 0.5f * fan : fan;
 
-        float look = (1f - rest) * (1f - 0.4f * sit) * (1f - link) * (1f - sweep);
+        float look = (1f - rest) * (1f - 0.4f * sit) * (1f - link) * (1f - sweep) * (1f - 0.7f * glide) * (1f - 0.6f * aim) * (1f - fanLook);
         this.applyHeadRotation(netHeadYaw * look, headPitch * look);
 
         if (sit > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.SIT, time, sit, ANIM_VECTOR);
         if (rest > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.NAP, time, rest, ANIM_VECTOR);
         if (link > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.LIFE_LINK, time, link, ANIM_VECTOR);
+        if (aim > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.FEATHER_AIM, time, aim, ANIM_VECTOR);
+        if (glide > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.GLIDE, time, glide, ANIM_VECTOR);
 
         float swim = swimWeight(peacock, ageInTicks);
         float land = stance * (1f - swim);
         if (land > 0.001f) {
-            float moving = animateLocomotion(peacock, limbSwing, limbSwingAmount, pt, land);
-            float idle = land * (1f - moving) * (1f - link);
+            float moving = animateLocomotion(peacock, limbSwing, limbSwingAmount, pt, land * (1f - fan));
+            float idle = land * (1f - moving) * (1f - link) * (1f - aim) * (1f - fan);
             if (idle > 0.001f) {
                 KeyframeAnimations.animate(this, PeacockAnimations.MISC_IDLE, time, idle, ANIM_VECTOR);
                 animateGesture(peacock.idleGestureAnimationState, PeacockAnimations.MISC_IDLE_2, ageInTicks, idle);
@@ -280,15 +298,96 @@ public class PeacockModel<T extends PeacockEntity> extends OWComboModel<T> imple
             }
         }
         animateSwim(peacock, PeacockAnimations.SWIM, ageInTicks, stance * swim);
+        if (fanPhase != PeacockEntity.FAN_NONE) animateFan(peacock, fanPhase, fanMs, fan * stance, limbSwing, limbSwingAmount);
 
-        if (peacock.gustAnimationState.isStarted()) {
-            this.animate(peacock.gustAnimationState, PeacockAnimations.WING_GUST, ageInTicks, 1f);
+        if (glide < 0.5f) {
+            if (peacock.featherShotRightState.isStarted()) {
+                this.animate(peacock.featherShotRightState, PeacockAnimations.FEATHER_SHOT_RIGHT, ageInTicks, 1f);
+            }
+            if (peacock.featherShotLeftState.isStarted()) {
+                this.animate(peacock.featherShotLeftState, PeacockAnimations.FEATHER_SHOT_LEFT, ageInTicks, 1f);
+            }
         }
+
+        float takeoff = peacock.glideFlapSeconds(pt);
+        if (takeoff >= 0f && takeoff < PeacockAnimations.GLIDE_TAKEOFF.lengthInSeconds()) {
+            KeyframeAnimations.animate(this, PeacockAnimations.GLIDE_TAKEOFF, (long) (takeoff * 1000f), 1f - 0.5f * glide, ANIM_VECTOR);
+        }
+        float landing = peacock.glideLandSeconds(pt);
+        if (landing >= 0f && landing < PeacockAnimations.GLIDE_LAND.lengthInSeconds()) {
+            KeyframeAnimations.animate(this, PeacockAnimations.GLIDE_LAND, (long) (landing * 1000f), 1f, ANIM_VECTOR);
+        }
+        if (glide > 0.001f) applyGlideAttitude(peacock, pt, glide);
         if (peacock.sweepAnimationState.isStarted()) {
             this.animate(peacock.sweepAnimationState, PeacockAnimations.TAIL_SWEEP, ageInTicks, 1f);
         }
 
         animateCombos(peacock, ageInTicks, COMBO_ANIMATION_SPEED);
+    }
+
+    private void applyGlideAttitude(T peacock, float pt, float glide) {
+        float tilt = peacock.glideTilt(pt);
+        float roll = peacock.glideRoll(pt);
+        this.ALL.xRot += tilt * glide * Mth.DEG_TO_RAD;
+        this.ALL.zRot -= roll * glide * Mth.DEG_TO_RAD;
+        this.neck.xRot -= tilt * 0.35f * glide * Mth.DEG_TO_RAD;
+
+        float dive = Mth.clamp(tilt / 40f, 0f, 1f) * glide;
+        float sweepBack = dive * 28f * Mth.DEG_TO_RAD;
+        float fold = dive * 22f * Mth.DEG_TO_RAD;
+        float lean = Mth.clamp(roll / 38f, -1f, 1f) * glide * 10f * Mth.DEG_TO_RAD;
+        this.left_wing.xRot += sweepBack;
+        this.right_wing.xRot += sweepBack;
+        this.left_wing.zRot += fold - lean;
+        this.right_wing.zRot -= fold + lean;
+        this.tail.yRot += Mth.clamp(roll / 38f, -1f, 1f) * glide * 12f * Mth.DEG_TO_RAD;
+    }
+
+    public void translateToWingTip(PoseStack poseStack, boolean left) {
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        (left ? this.left_wing : this.right_wing).translateAndRotate(poseStack);
+        poseStack.translate((left ? 0.5f : -0.5f) / 16f, 4.2f / 16f, 7.5f / 16f);
+    }
+
+    private static long fanMillis(PeacockEntity peacock, float ageInTicks) {
+        AnimationState state = peacock.fanPhaseState;
+        if (!state.isStarted()) return 0L;
+        state.updateTime(ageInTicks, 1f);
+        return state.getAccumulatedTime();
+    }
+
+    private static float fanCover(PeacockEntity peacock, int phase, long ms) {
+        if (phase == PeacockEntity.FAN_NONE) return 0f;
+        if (phase == PeacockEntity.FAN_OPEN && peacock.fanPrevPhase == PeacockEntity.FAN_NONE) return smoothStep(ms / FAN_FADE_MS);
+        if (phase == PeacockEntity.FAN_CLOSE) return smoothStep((PeacockEntity.FAN_CLOSE_TICKS * 50L - ms) / FAN_FADE_MS);
+        return 1f;
+    }
+
+    private void animateFan(PeacockEntity peacock, int phase, long ms, float weight, float limbSwing, float limbSwingAmount) {
+        float move = phase == PeacockEntity.FAN_SHOW ? Math.min(limbSwingAmount * WALK_WEIGHT_FACTOR, 1f) : 0f;
+        peacock.fanShowMove = move;
+        float previous = peacock.fanPrevPhase == PeacockEntity.FAN_NONE ? 0f : 1f - smoothStep(ms / FAN_FADE_MS);
+        if (previous > 0.001f) {
+            animateFanPhase(peacock.fanPrevPhase, peacock.fanPrevMs, weight * previous, limbSwing, peacock.fanPrevMove);
+        }
+        animateFanPhase(phase, ms, weight * (1f - previous), limbSwing, move);
+    }
+
+    private void animateFanPhase(int phase, long ms, float weight, float limbSwing, float move) {
+        if (weight <= 0.001f) return;
+        switch (phase) {
+            case PeacockEntity.FAN_OPEN -> KeyframeAnimations.animate(this, PeacockAnimations.FAN_OPEN, ms, weight, ANIM_VECTOR);
+            case PeacockEntity.FAN_SHAKE -> KeyframeAnimations.animate(this, PeacockAnimations.FAN_SHAKE, ms, weight, ANIM_VECTOR);
+            case PeacockEntity.FAN_DANCE -> KeyframeAnimations.animate(this, PeacockAnimations.FAN_DANCE, ms, weight, ANIM_VECTOR);
+            case PeacockEntity.FAN_SHOW -> {
+                if (move < 0.999f) KeyframeAnimations.animate(this, PeacockAnimations.FAN_IDLE, ms, weight * (1f - move), ANIM_VECTOR);
+                if (move > 0.001f) KeyframeAnimations.animate(this, PeacockAnimations.FAN_WALK, (long) (limbSwing * 50f * FAN_WALK_ANIM_SPEED), weight * move, ANIM_VECTOR);
+            }
+            case PeacockEntity.FAN_CLOSE -> KeyframeAnimations.animate(this, PeacockAnimations.FAN_CLOSE, ms, weight, ANIM_VECTOR);
+            default -> { }
+        }
     }
 
     private void animateGesture(AnimationState state, AnimationDefinition animation, float ageInTicks, float weight) {

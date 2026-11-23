@@ -35,6 +35,9 @@ public record OWEntityTogglePacket(String option) implements CustomPacketPayload
                     case "autoPickup" -> entity.setAutoPickup(!entity.isAutoPickup());
                     case "tribeFlag"  -> entity.setShowTribeFlag(!entity.isShowTribeFlag());
                     case "followOwner" -> entity.setFollowingOwner(!entity.isFollowingOwner());
+                    case "autoHeal"   -> {
+                        if (entity.isHealer()) entity.setAutoHeal(!entity.isAutoHeal());
+                    }
                     default -> {}
                 }
             }

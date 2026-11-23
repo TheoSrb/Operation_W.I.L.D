@@ -2017,4 +2017,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 6;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 10;
+    }
 }

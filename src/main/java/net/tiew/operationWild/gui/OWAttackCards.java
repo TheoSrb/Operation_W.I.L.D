@@ -41,13 +41,13 @@ public final class OWAttackCards {
     public static void draw(GuiGraphics g, int x, int y, int texX, int texY, int greyedRows) {
         g.blit(ATLAS, x, y, texX, texY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
 
-        int greyedBottom = Math.min(greyedRows, CONTENT_INSET + CONTENT_SIZE);
-        if (greyedBottom <= CONTENT_INSET) return;
+        int contentRows = Mth.clamp(Math.round(greyedRows * (float) CONTENT_SIZE / CARD_SIZE), 0, CONTENT_SIZE);
+        if (contentRows <= 0) return;
 
         g.blit(greyedAtlas(),
                 x + CONTENT_INSET, y + CONTENT_INSET,
                 texX + CONTENT_INSET, texY + CONTENT_INSET,
-                CONTENT_SIZE, greyedBottom - CONTENT_INSET,
+                CONTENT_SIZE, contentRows,
                 TEX_SIZE, TEX_SIZE);
     }
 

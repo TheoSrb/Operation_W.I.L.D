@@ -607,11 +607,11 @@
           "REFLEX_ONE": 0.55,
           "REFLEX_THREE": 0.2,
           "REFLEX_TWO": 0.36,
-          "SAP_COUNTER_BONUS": 0.35,
+          "SAP_COUNTER_BONUS": 0.6,
           "SAP_CRITICAL_FACTOR": 1.35,
-          "SAP_GAIN_FACTOR": 2.2,
+          "SAP_GAIN_FACTOR": 5.0,
           "SAP_MELEE_FACTOR": 1.5,
-          "SAP_PLANTED_FACTOR": 1.2
+          "SAP_PLANTED_FACTOR": 1.6
         },
         "entity": {
           "ACTION_DODGE": -2,
@@ -639,8 +639,8 @@
           "REFLEX_RECHARGE": 160,
           "REGEN_DELAY": 200,
           "RESET_DELAY": 600,
-          "SAP_DECAY_DELAY": 60,
-          "SAP_DECAY_PER_TICK": 8.0E-4,
+          "SAP_DECAY_DELAY": 120,
+          "SAP_DECAY_PER_TICK": 4.0E-4,
           "SIDE_HEALTH": 180.0
         },
         "timings": {
@@ -692,9 +692,10 @@
           "SPAWN_TICKS": 300,
           "SPIT_COUNTER_START": 28,
           "SPIT_RELEASE": 38,
+          "STAGGER_COLLAPSE_SKIP": 10,
           "STAGGER_DOWN_END": 74,
           "STAGGER_DOWN_START": 8,
-          "STAGGER_IMMUNITY": 200,
+          "STAGGER_IMMUNITY": 70,
           "TRANSITION_SHOCKWAVE": 10,
           "TRIPLE_LOCK": 12,
           "WHIP_RADIUS_END": 12.5,
@@ -1011,7 +1012,7 @@
           },
           {
             "blockable": true,
-            "cooldown_seconds": 6.5,
+            "cooldown_seconds": 5.5,
             "counterable": true,
             "damage": 16.0,
             "head": "side",
@@ -1023,9 +1024,9 @@
             ],
             "telegraph": "red",
             "weights": [
-              11,
-              11,
-              11
+              17,
+              17,
+              17
             ]
           },
           {
@@ -1260,11 +1261,11 @@
           }
         ],
         "sap": {
-          "counter_bonus": 0.35,
+          "counter_bonus": 0.6,
           "critical_factor": 1.35,
-          "gain_factor": 2.2,
+          "gain_factor": 5.0,
           "melee_factor": 1.5,
-          "planted_factor": 1.2
+          "planted_factor": 1.6
         },
         "spawn": {
           "bar_fill_end_seconds": 14.0,
@@ -1411,7 +1412,7 @@
           "spore_radius": 2.5,
           "sprout_arm_seconds": 1.5,
           "sprout_life_seconds": 11.0,
-          "stagger_immunity_seconds": 10.0,
+          "stagger_immunity_seconds": 3.5,
           "stagger_seconds": 3.7,
           "whip_radius_end": 12.5,
           "whip_wave_start_seconds": 1.3
@@ -1426,9 +1427,9 @@
         "created": "2026-11-13T18:47:02.5023786+01:00",
         "created_date": "2026-11-13",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-11-13T18:53:09.5378856+01:00",
-        "last_modified_date": "2026-11-13",
-        "size_bytes": 57255
+        "last_modified": "2026-11-22T10:52:52.8344766+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 60203
       },
       "id": "ow:plant_empress",
       "names": {
@@ -1694,9 +1695,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.combo.desc",
-              "plain": "Faites mordre votre Tigre toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+              "plain": "Faites mordre votre tigre toutes les %s s : %s dégâts par morsure.",
               "translations": {
-                "fr_fr": "Faites mordre votre Tigre toutes les %s secondes, infligeant %s points de dégâts à chaque morsure."
+                "fr_fr": "Faites mordre votre tigre toutes les %s s : %s dégâts par morsure."
               }
             },
             "slug": "combo",
@@ -1711,9 +1712,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.bond.desc",
-              "plain": "Faites bondir votre Tigre sur un ennemi en chargeant l'attaque toutes les %s secondes. Si une cible est saisie, mordez-la depuis votre monture. Cette recharge est partagée avec le Rugissement Primal : changer de carte ne la remet pas à zéro.",
+              "plain": "Chargez puis relâchez : le tigre bondit sur l'ennemi visé et le saisit. Mordez-le ensuite au clic gauche. Recharge de %s s, commune avec le Rugissement Primal.",
               "translations": {
-                "fr_fr": "Faites bondir votre Tigre sur un ennemi en chargeant l'attaque toutes les %s secondes. Si une cible est saisie, mordez-la depuis votre monture. Cette recharge est partagée avec le Rugissement Primal : changer de carte ne la remet pas à zéro."
+                "fr_fr": "Chargez puis relâchez : le tigre bondit sur l'ennemi visé et le saisit. Mordez-le ensuite au clic gauche. Recharge de %s s, commune avec le Rugissement Primal."
               }
             },
             "slug": "bond",
@@ -1728,9 +1729,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.primal_roar.desc",
-              "plain": "Chargez %s secondes, immobile mais libre de vos mouvements de regard, puis lâchez un cri qui ralentit et terrorise tout ennemi à %s blocs pendant %s secondes. Le Tigre reste figé pendant le rugissement. Toutes les %s secondes. Cette recharge est partagée avec le Bond Bestial : changer de carte ne la remet pas à zéro.",
+              "plain": "Chargez %s s sans bouger, puis le tigre rugit : les ennemis à %s blocs sont ralentis et terrifiés pendant %s s. Recharge de %s s, commune avec le Bond Bestial.",
               "translations": {
-                "fr_fr": "Chargez %s secondes, immobile mais libre de vos mouvements de regard, puis lâchez un cri qui ralentit et terrorise tout ennemi à %s blocs pendant %s secondes. Le Tigre reste figé pendant le rugissement. Toutes les %s secondes. Cette recharge est partagée avec le Bond Bestial : changer de carte ne la remet pas à zéro."
+                "fr_fr": "Chargez %s s sans bouger, puis le tigre rugit : les ennemis à %s blocs sont ralentis et terrifiés pendant %s s. Recharge de %s s, commune avec le Bond Bestial."
               }
             },
             "slug": "primal_roar",
@@ -1745,9 +1746,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.shadow_strike.desc",
-              "plain": "Votre Tigre devient camouflé pendant %s secondes, augmentant sa vitesse de %s%%, ses dégâts de %s%% et tuant en un seul coup les entités blessées. À recharger avec %s kills toutes les %s secondes.",
+              "plain": "Le tigre se camoufle %s s : +%s%% de vitesse, +%s%% de dégâts, et un seul coup achève une proie blessée. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Votre Tigre devient camouflé pendant %s secondes, augmentant sa vitesse de %s%%, ses dégâts de %s%% et tuant en un seul coup les entités blessées. À recharger avec %s kills toutes les %s secondes."
+                "fr_fr": "Le tigre se camoufle %s s : +%s%% de vitesse, +%s%% de dégâts, et un seul coup achève une proie blessée. Recharge de %s s."
               }
             },
             "slug": "shadow_strike",
@@ -1762,9 +1763,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.predator_sense.desc",
-              "plain": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs.",
+              "plain": "Vous voyez à travers les murs les créatures sous %s%% de vie, jusqu'à %s blocs.",
               "translations": {
-                "fr_fr": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs."
+                "fr_fr": "Vous voyez à travers les murs les créatures sous %s%% de vie, jusqu'à %s blocs."
               }
             },
             "slug": "predator_sense",
@@ -2272,9 +2273,9 @@
         "created": "2026-10-17T16:56:05.2950614+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-11-03T17:10:45.2000765+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 81032
+        "last_modified": "2026-11-22T12:09:45.2341912+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 81207
       },
       "id": "ow:tiger",
       "loot": {
@@ -3593,9 +3594,9 @@
           {
             "desc": {
               "key": "ow.attacks.kodiak.combo.desc",
-              "plain": "Faites frapper votre Kodiak toutes les %s secondes, infligeant %s points de dégâts par coup de pattes.",
+              "plain": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup de patte.",
               "translations": {
-                "fr_fr": "Faites frapper votre Kodiak toutes les %s secondes, infligeant %s points de dégâts par coup de pattes."
+                "fr_fr": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup de patte."
               }
             },
             "slug": "combo",
@@ -3610,9 +3611,9 @@
           {
             "desc": {
               "key": "ow.attacks.kodiak.paw_slam.desc",
-              "plain": "Chargez jusqu'à %s s pour que le Kodiak se dresse et frappe le sol, infligeant un pourcentage de la vie actuelle des entités proches (10%% à 50%%). Limité à 15 dégâts sur les grandes créatures. Rechargement toutes les %s secondes.",
+              "plain": "Chargez jusqu'à %s s : le kodiak se dresse et frappe le sol. Les créatures proches perdent 10 à 50 %% de leur vie actuelle, 15 dégâts au plus sur les grosses. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Chargez jusqu'à %s s pour que le Kodiak se dresse et frappe le sol, infligeant un pourcentage de la vie actuelle des entités proches (10%% à 50%%). Limité à 15 dégâts sur les grandes créatures. Rechargement toutes les %s secondes."
+                "fr_fr": "Chargez jusqu'à %s s : le kodiak se dresse et frappe le sol. Les créatures proches perdent 10 à 50 %% de leur vie actuelle, 15 dégâts au plus sur les grosses. Recharge de %s s."
               }
             },
             "slug": "paw_slam",
@@ -3627,9 +3628,9 @@
           {
             "desc": {
               "key": "ow.attacks.kodiak.nap.desc",
-              "plain": "Le Kodiak s'endort jusqu'à %s secondes, se régénérant de %s PV/s et absorbant %s%% des dégâts reçus. Rappuyez sur la touche pour interrompre la sieste à tout moment. Rechargement tous les %s kills et %ss.",
+              "plain": "Le kodiak dort jusqu'à %s s : il regagne %s PV/s et absorbe %s%% des dégâts. Réappuyez pour le réveiller. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Le Kodiak s'endort jusqu'à %s secondes, se régénérant de %s PV/s et absorbant %s%% des dégâts reçus. Rappuyez sur la touche pour interrompre la sieste à tout moment. Rechargement tous les %s kills et %ss."
+                "fr_fr": "Le kodiak dort jusqu'à %s s : il regagne %s PV/s et absorbe %s%% des dégâts. Réappuyez pour le réveiller. Recharge de %s s."
               }
             },
             "slug": "nap",
@@ -3644,9 +3645,9 @@
           {
             "desc": {
               "key": "ow.attacks.kodiak.butcher.desc",
-              "plain": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue.",
+              "plain": "Les créatures tuées par le kodiak lâchent %s%% de viande crue en plus.",
               "translations": {
-                "fr_fr": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue."
+                "fr_fr": "Les créatures tuées par le kodiak lâchent %s%% de viande crue en plus."
               }
             },
             "slug": "butcher",
@@ -4100,9 +4101,9 @@
         "created": "2026-10-18T15:06:31.0637823+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1975473+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 64301
+        "last_modified": "2026-11-22T12:09:44.931427+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 64575
       },
       "id": "ow:kodiak",
       "loot": {
@@ -5278,9 +5279,9 @@
           {
             "desc": {
               "key": "ow.attacks.crocodile.combo.desc",
-              "plain": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+              "plain": "Faites broyer votre proie par le crocodile toutes les %s s : %s dégâts par morsure.",
               "translations": {
-                "fr_fr": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure."
+                "fr_fr": "Faites broyer votre proie par le crocodile toutes les %s s : %s dégâts par morsure."
               }
             },
             "slug": "combo",
@@ -5295,9 +5296,9 @@
           {
             "desc": {
               "key": "ow.attacks.crocodile.mouth.desc",
-              "plain": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts.",
+              "plain": "Maintenez pour ouvrir la gueule, %s s au plus (recharge de %s s), puis relâchez : elle claque pour %s dégâts au maximum.",
               "translations": {
-                "fr_fr": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts."
+                "fr_fr": "Maintenez pour ouvrir la gueule, %s s au plus (recharge de %s s), puis relâchez : elle claque pour %s dégâts au maximum."
               }
             },
             "slug": "mouth",
@@ -5312,9 +5313,9 @@
           {
             "desc": {
               "key": "ow.attacks.crocodile.primal_dive.desc",
-              "plain": "Désignez une entité et faites bondir votre Crocodile dessus pour la maintenir %s secondes dans sa gueule : chaque Roulade de la Mort inflige %s points de dégâts. À recharger avec %s kills, toutes les %s secondes.",
+              "plain": "Visez une créature : le crocodile bondit dessus et la garde %s s dans sa gueule. Chaque Roulade de la Mort inflige %s dégâts. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Désignez une entité et faites bondir votre Crocodile dessus pour la maintenir %s secondes dans sa gueule : chaque Roulade de la Mort inflige %s points de dégâts. À recharger avec %s kills, toutes les %s secondes."
+                "fr_fr": "Visez une créature : le crocodile bondit dessus et la garde %s s dans sa gueule. Chaque Roulade de la Mort inflige %s dégâts. Recharge de %s s."
               }
             },
             "slug": "primal_dive",
@@ -5329,9 +5330,9 @@
           {
             "desc": {
               "key": "ow.attacks.crocodile.reptilian.desc",
-              "plain": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées.",
+              "plain": "Près de l'eau, une morsure peut saisir une créature moyenne et la garder %s s dans la gueule.",
               "translations": {
-                "fr_fr": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées."
+                "fr_fr": "Près de l'eau, une morsure peut saisir une créature moyenne et la garder %s s dans la gueule."
               }
             },
             "slug": "reptilian",
@@ -5650,9 +5651,9 @@
         "created": "2026-10-30T17:28:11.4096468+01:00",
         "created_date": "2026-10-30",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-11-03T17:10:45.190111+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 85480
+        "last_modified": "2026-11-22T12:09:44.4352531+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 85655
       },
       "id": "ow:crocodile",
       "loot": {
@@ -6729,9 +6730,9 @@
           {
             "desc": {
               "key": "ow.attacks.boa.combo.desc",
-              "plain": "Faites mordre votre Boa toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+              "plain": "Faites mordre votre boa toutes les %s s : %s dégâts par morsure.",
               "translations": {
-                "fr_fr": "Faites mordre votre Boa toutes les %s secondes, infligeant %s points de dégâts à chaque morsure."
+                "fr_fr": "Faites mordre votre boa toutes les %s s : %s dégâts par morsure."
               }
             },
             "slug": "combo",
@@ -6746,9 +6747,9 @@
           {
             "desc": {
               "key": "ow.attacks.boa.venom.desc",
-              "plain": "Activez pour armer les crochets de votre Boa. La prochaine morsure de combo qui touche injecte Venin I pendant %s à %s secondes, puis la capacité se recharge en %s secondes. Désactivez à tout moment pour désarmer.",
+              "plain": "Clic droit pour armer les crochets : la prochaine morsure qui touche injecte Venin I (%s à %s s). Recharge de %s s. Un autre clic les désarme.",
               "translations": {
-                "fr_fr": "Activez pour armer les crochets de votre Boa. La prochaine morsure de combo qui touche injecte Venin I pendant %s à %s secondes, puis la capacité se recharge en %s secondes. Désactivez à tout moment pour désarmer."
+                "fr_fr": "Clic droit pour armer les crochets : la prochaine morsure qui touche injecte Venin I (%s à %s s). Recharge de %s s. Un autre clic les désarme."
               }
             },
             "slug": "venom",
@@ -6763,9 +6764,9 @@
           {
             "desc": {
               "key": "ow.attacks.boa.thermal_vision.desc",
-              "plain": "En chevauchant, vous seul voyez le cœur des créatures proches de moins de %s PV. Touchez-le précisément en combo pour 1,5× les dégâts et un saignement.",
+              "plain": "Monté, vous voyez le cœur des créatures sous %s PV. Une morsure dessus fait 1,5 fois les dégâts et un saignement.",
               "translations": {
-                "fr_fr": "En chevauchant, vous seul voyez le cœur des créatures proches de moins de %s PV. Touchez-le précisément en combo pour 1,5× les dégâts et un saignement."
+                "fr_fr": "Monté, vous voyez le cœur des créatures sous %s PV. Une morsure dessus fait 1,5 fois les dégâts et un saignement."
               }
             },
             "slug": "thermal_vision",
@@ -6780,9 +6781,9 @@
           {
             "desc": {
               "key": "ow.attacks.boa.ultimate.desc",
-              "plain": "Se charge avec %s kills. Appuyez sur X pour marquer les créatures enroulables à %s blocs (point vert), réappuyez sur X sur celle que vous visez : vous descendez et votre Boa l'enroule comme à l'état sauvage.",
+              "plain": "X marque les proies à %s blocs d'un point vert. Visez-en une et réappuyez : vous descendez et le boa l'enserre.",
               "translations": {
-                "fr_fr": "Se charge avec %s kills. Appuyez sur X pour marquer les créatures enroulables à %s blocs (point vert), réappuyez sur X sur celle que vous visez : vous descendez et votre Boa l'enroule comme à l'état sauvage."
+                "fr_fr": "X marque les proies à %s blocs d'un point vert. Visez-en une et réappuyez : vous descendez et le boa l'enserre."
               }
             },
             "slug": "ultimate",
@@ -7173,9 +7174,9 @@
         "created": "2026-10-17T16:58:42.131349+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1939984+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 62783
+        "last_modified": "2026-11-22T12:09:44.658591+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 62957
       },
       "id": "ow:boa",
       "loot": {
@@ -8332,9 +8333,9 @@
           {
             "desc": {
               "key": "ow.attacks.orca.big_mouth.desc",
-              "plain": "Votre Orque gobe l'entité devant elle : un allié y respire librement %s secondes, un ennemi y est broyé et privé d'air %s secondes. Appuyez de nouveau pour la recracher. À recharger avec %s kills toutes les %s secondes.",
+              "plain": "L'orque gobe ce qui est devant elle. Un allié y respire %s s, un ennemi y étouffe %s s. Réappuyez pour recracher. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Votre Orque gobe l'entité devant elle : un allié y respire librement %s secondes, un ennemi y est broyé et privé d'air %s secondes. Appuyez de nouveau pour la recracher. À recharger avec %s kills toutes les %s secondes."
+                "fr_fr": "L'orque gobe ce qui est devant elle. Un allié y respire %s s, un ennemi y étouffe %s s. Réappuyez pour recracher. Recharge de %s s."
               }
             },
             "slug": "big_mouth",
@@ -8349,9 +8350,9 @@
           {
             "desc": {
               "key": "ow.attacks.orca.combo.desc",
-              "plain": "Faites mordre votre Orque toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+              "plain": "Faites mordre votre orque toutes les %s s : %s dégâts par morsure.",
               "translations": {
-                "fr_fr": "Faites mordre votre Orque toutes les %s secondes, infligeant %s points de dégâts à chaque morsure."
+                "fr_fr": "Faites mordre votre orque toutes les %s s : %s dégâts par morsure."
               }
             },
             "slug": "combo",
@@ -8366,9 +8367,9 @@
           {
             "desc": {
               "key": "ow.attacks.orca.tidal_rush.desc",
-              "plain": "Propulsez votre Orque dans l'axe de son museau, infligeant %s points de dégâts à ce qu'elle percute. Visez la surface pour la faire jaillir hors de l'eau. Toutes les %s secondes.",
+              "plain": "L'orque fonce droit devant et inflige %s dégâts à ce qu'elle percute. Visez la surface pour sauter hors de l'eau. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Propulsez votre Orque dans l'axe de son museau, infligeant %s points de dégâts à ce qu'elle percute. Visez la surface pour la faire jaillir hors de l'eau. Toutes les %s secondes."
+                "fr_fr": "L'orque fonce droit devant et inflige %s dégâts à ce qu'elle percute. Visez la surface pour sauter hors de l'eau. Recharge de %s s."
               }
             },
             "slug": "tidal_rush",
@@ -8383,9 +8384,9 @@
           {
             "desc": {
               "key": "ow.attacks.orca.slipstream.desc",
-              "plain": "Dans un rayon de %s blocs, vos créatures apprivoisées et les membres de votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sans respirer.",
+              "plain": "À %s blocs, vos bêtes et votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sous l'eau.",
               "translations": {
-                "fr_fr": "Dans un rayon de %s blocs, vos créatures apprivoisées et les membres de votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sans respirer."
+                "fr_fr": "À %s blocs, vos bêtes et votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sous l'eau."
               }
             },
             "slug": "slipstream",
@@ -8620,9 +8621,9 @@
         "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1916892+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 101339
+        "last_modified": "2026-11-22T12:09:44.5845087+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 101709
       },
       "id": "ow:orca",
       "loot": {
@@ -8931,9 +8932,9 @@
           {
             "desc": {
               "key": "ow.attacks.elephant.combo.desc",
-              "plain": "Faites frapper votre Éléphant toutes les %s secondes, infligeant %s points de dégâts à chaque coup.",
+              "plain": "Faites piétiner votre éléphant toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites frapper votre Éléphant toutes les %s secondes, infligeant %s points de dégâts à chaque coup."
+                "fr_fr": "Faites piétiner votre éléphant toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -8948,9 +8949,9 @@
           {
             "desc": {
               "key": "ow.attacks.elephant.shoulder_bash.desc",
-              "plain": "Clic droit : l'Éléphant se jette du côté vers lequel vous regardez, infligeant %s points de dégâts et projetant tout sur son passage. %s secondes de recharge. Cette recharge est partagée avec le Jet de Trompe : changer de carte ne la remet pas à zéro.",
+              "plain": "Clic droit : l'éléphant se jette du côté où vous regardez, %s dégâts et tout est projeté. Recharge de %s s, commune avec le Jet de Trompe.",
               "translations": {
-                "fr_fr": "Clic droit : l'Éléphant se jette du côté vers lequel vous regardez, infligeant %s points de dégâts et projetant tout sur son passage. %s secondes de recharge. Cette recharge est partagée avec le Jet de Trompe : changer de carte ne la remet pas à zéro."
+                "fr_fr": "Clic droit : l'éléphant se jette du côté où vous regardez, %s dégâts et tout est projeté. Recharge de %s s, commune avec le Jet de Trompe."
               }
             },
             "slug": "shoulder_bash",
@@ -8965,9 +8966,9 @@
           {
             "desc": {
               "key": "ow.attacks.elephant.earthquake.desc",
-              "plain": "Se charge avec %s kills. L'Éléphant se cabre puis retombe de tout son poids : onde de choc sur %s blocs, jusqu'à %s points de dégâts au centre, sol disloqué et caméras ébranlées. %s secondes de recharge.",
+              "plain": "L'éléphant se cabre et retombe : onde de choc sur %s blocs, jusqu'à %s dégâts au centre. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Se charge avec %s kills. L'Éléphant se cabre puis retombe de tout son poids : onde de choc sur %s blocs, jusqu'à %s points de dégâts au centre, sol disloqué et caméras ébranlées. %s secondes de recharge."
+                "fr_fr": "L'éléphant se cabre et retombe : onde de choc sur %s blocs, jusqu'à %s dégâts au centre. Recharge de %s s."
               }
             },
             "slug": "earthquake",
@@ -8982,9 +8983,9 @@
           {
             "desc": {
               "key": "ow.attacks.elephant.lumberjack.desc",
-              "plain": "Lancé au galop, l'Éléphant abat d'un seul coup l'arbre entier qu'il percute et en tire %s%% de bois en plus.",
+              "plain": "Au galop, l'éléphant abat d'un coup l'arbre qu'il percute et récupère %s%% de bois en plus.",
               "translations": {
-                "fr_fr": "Lancé au galop, l'Éléphant abat d'un seul coup l'arbre entier qu'il percute et en tire %s%% de bois en plus."
+                "fr_fr": "Au galop, l'éléphant abat d'un coup l'arbre qu'il percute et récupère %s%% de bois en plus."
               }
             },
             "slug": "lumberjack",
@@ -8999,9 +9000,9 @@
           {
             "desc": {
               "key": "ow.attacks.elephant.water_spray.desc",
-              "plain": "Clic droit maintenu : au bord de l'eau, l'Éléphant remplit sa trompe ; ailleurs, il pulvérise sur %s blocs, repoussant ce qu'il balaie et éteignant les incendies. Insister %s secondes sur un même bloc de lave le fige en pierre. La réserve fuit lentement avec le temps. La trompe reste inutilisable pendant les %s secondes de recharge du Coup d'Épaule.",
+              "plain": "Maintenez : au bord de l'eau, il remplit sa trompe. Ailleurs, il arrose sur %s blocs, repousse et éteint le feu. %s s sur de la lave la changent en pierre. Bloqué pendant les %s s de recharge du Coup d'Épaule.",
               "translations": {
-                "fr_fr": "Clic droit maintenu : au bord de l'eau, l'Éléphant remplit sa trompe ; ailleurs, il pulvérise sur %s blocs, repoussant ce qu'il balaie et éteignant les incendies. Insister %s secondes sur un même bloc de lave le fige en pierre. La réserve fuit lentement avec le temps. La trompe reste inutilisable pendant les %s secondes de recharge du Coup d'Épaule."
+                "fr_fr": "Maintenez : au bord de l'eau, il remplit sa trompe. Ailleurs, il arrose sur %s blocs, repousse et éteint le feu. %s s sur de la lave la changent en pierre. Bloqué pendant les %s s de recharge du Coup d'Épaule."
               }
             },
             "slug": "water_spray",
@@ -9319,9 +9320,9 @@
         "created": "2026-10-18T20:39:21.2420416+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1944993+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 141847
+        "last_modified": "2026-11-22T12:09:44.7229558+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 142590
       },
       "id": "ow:elephant",
       "loot": {
@@ -9716,9 +9717,9 @@
           {
             "desc": {
               "key": "ow.attacks.kangaroo.combo.desc",
-              "plain": "Faites boxer votre Kangourou toutes les %s secondes, infligeant %s points de dégâts par coup.",
+              "plain": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup de poing.",
               "translations": {
-                "fr_fr": "Faites boxer votre Kangourou toutes les %s secondes, infligeant %s points de dégâts par coup."
+                "fr_fr": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup de poing."
               }
             },
             "slug": "combo",
@@ -9733,9 +9734,9 @@
           {
             "desc": {
               "key": "ow.attacks.kangaroo.whirlwind.desc",
-              "plain": "Maintenez le clic droit : les poings du Kangourou tournent de plus en plus vite (pic à %s s). Immobilisé, il inflige devant lui des dégâts de plus en plus forts (jusqu'à %s par coup) aux entités à moins de %s blocs. Dure %s s max ; recharge de %s s si l'attaque a duré plus de %s s.",
+              "plain": "Maintenez : les poings tournent de plus en plus vite (pic à %s s) et frappent devant, jusqu'à %s dégâts, à %s blocs. %s s au plus. Recharge de %s s si l'attaque dépasse %s s.",
               "translations": {
-                "fr_fr": "Maintenez le clic droit : les poings du Kangourou tournent de plus en plus vite (pic à %s s). Immobilisé, il inflige devant lui des dégâts de plus en plus forts (jusqu'à %s par coup) aux entités à moins de %s blocs. Dure %s s max ; recharge de %s s si l'attaque a duré plus de %s s."
+                "fr_fr": "Maintenez : les poings tournent de plus en plus vite (pic à %s s) et frappent devant, jusqu'à %s dégâts, à %s blocs. %s s au plus. Recharge de %s s si l'attaque dépasse %s s."
               }
             },
             "slug": "whirlwind",
@@ -9750,9 +9751,9 @@
           {
             "desc": {
               "key": "ow.attacks.kangaroo.telluric_stomp.desc",
-              "plain": "Se charge avec %s kills. Appuyez sur X : au sol, le Kangourou bondit haut, se fige en l'air, puis fonce dans la direction du regard ; en l'air, il fonce directement. À l'impact, une onde de choc dans un rayon de %s blocs inflige de %s%% (au centre) à %s%% (au bord) des dégâts du Kangourou et applique Lenteur I pendant %s s. Rechargement : %s s.",
+              "plain": "X : le kangourou saute, se fige et pique là où vous regardez. Onde de %s blocs : %s%% de ses dégâts au centre, %s%% au bord, Lenteur %s s. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Se charge avec %s kills. Appuyez sur X : au sol, le Kangourou bondit haut, se fige en l'air, puis fonce dans la direction du regard ; en l'air, il fonce directement. À l'impact, une onde de choc dans un rayon de %s blocs inflige de %s%% (au centre) à %s%% (au bord) des dégâts du Kangourou et applique Lenteur I pendant %s s. Rechargement : %s s."
+                "fr_fr": "X : le kangourou saute, se fige et pique là où vous regardez. Onde de %s blocs : %s%% de ses dégâts au centre, %s%% au bord, Lenteur %s s. Recharge de %s s."
               }
             },
             "slug": "telluric_stomp",
@@ -9767,9 +9768,9 @@
           {
             "desc": {
               "key": "ow.attacks.kangaroo.spring_step.desc",
-              "plain": "Les pattes puissantes du kangourou amortissent tous les impacts : il ne subit jamais de dégâts de chute.",
+              "plain": "Le kangourou ne prend jamais de dégâts de chute.",
               "translations": {
-                "fr_fr": "Les pattes puissantes du kangourou amortissent tous les impacts : il ne subit jamais de dégâts de chute."
+                "fr_fr": "Le kangourou ne prend jamais de dégâts de chute."
               }
             },
             "slug": "spring_step",
@@ -10105,9 +10106,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1970432+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 74906
+        "last_modified": "2026-11-22T12:09:44.8691578+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 75334
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -10377,9 +10378,9 @@
           {
             "desc": {
               "key": "ow.attacks.red_panda.heal_snack.desc",
-              "plain": "Clic droit : le panda roux fouille sa besace et lance un en-cas — pousse de bambou, baies, rayon de miel — à l'allié que vous visez. Le jet ne peut pas manquer. La cible l'attrape et le mange : une fois la dernière bouchée avalée elle regagne %s%% de ses points de vie maximum, et %s%% de plus lui reviennent sur %s secondes de digestion. Portée de %s blocs, %s secondes de recharge.",
+              "plain": "Clic droit : le panda lance un en-cas à l'allié visé, sans jamais rater. Il rend %s%% de vie, puis %s%% de plus sur %s s. Portée de %s blocs, recharge de %s s.",
               "translations": {
-                "fr_fr": "Clic droit : le panda roux fouille sa besace et lance un en-cas — pousse de bambou, baies, rayon de miel — à l'allié que vous visez. Le jet ne peut pas manquer. La cible l'attrape et le mange : une fois la dernière bouchée avalée elle regagne %s%% de ses points de vie maximum, et %s%% de plus lui reviennent sur %s secondes de digestion. Portée de %s blocs, %s secondes de recharge."
+                "fr_fr": "Clic droit : le panda lance un en-cas à l'allié visé, sans jamais rater. Il rend %s%% de vie, puis %s%% de plus sur %s s. Portée de %s blocs, recharge de %s s."
               }
             },
             "slug": "heal_snack",
@@ -10394,9 +10395,9 @@
           {
             "desc": {
               "key": "ow.attacks.red_panda.feast.desc",
-              "plain": "Ne s'arme pas en tuant mais en soignant : %s en-cas servis suffisent. Le panda roux vide alors sa besace et dresse un vrai tas de nourriture sur %s blocs. Chaque créature apprivoisée et chaque membre de la tribu qui vient y manger récupère %s points de vie par seconde. Le festin dure %s secondes, et chaque en-cas servi une fois l'ultime armé lui en ajoute une, jusqu'à %s de plus, soit %s secondes en tout. Le tas ne s'épuise que lorsqu'on s'y sert. %s secondes de recharge.",
+              "plain": "Le panda dresse un tas de nourriture de %s blocs : qui s'y sert regagne %s PV/s. Dure %s s, +1 s par en-cas servi ensuite (%s au plus, %s s en tout). Recharge de %s s.",
               "translations": {
-                "fr_fr": "Ne s'arme pas en tuant mais en soignant : %s en-cas servis suffisent. Le panda roux vide alors sa besace et dresse un vrai tas de nourriture sur %s blocs. Chaque créature apprivoisée et chaque membre de la tribu qui vient y manger récupère %s points de vie par seconde. Le festin dure %s secondes, et chaque en-cas servi une fois l'ultime armé lui en ajoute une, jusqu'à %s de plus, soit %s secondes en tout. Le tas ne s'épuise que lorsqu'on s'y sert. %s secondes de recharge."
+                "fr_fr": "Le panda dresse un tas de nourriture de %s blocs : qui s'y sert regagne %s PV/s. Dure %s s, +1 s par en-cas servi ensuite (%s au plus, %s s en tout). Recharge de %s s."
               }
             },
             "slug": "feast",
@@ -10411,9 +10412,9 @@
           {
             "desc": {
               "key": "ow.attacks.red_panda.vital_sense.desc",
-              "plain": "Hissez le panda roux sur votre épaule d'un clic droit — accroupi, un clic droit l'en fait descendre. Perché, il vous révèle la vie de tout ce qui respire à %s blocs : les points de vie s'inscrivent au-dessus de chaque créature, à jour en temps réel. Sous 35%% de vie, l'inscription rougit et se met à respirer. Ce que cachent les murs reste caché.",
+              "plain": "Clic droit pour le percher sur l'épaule, accroupi pour le poser. Perché, il affiche la vie des créatures à %s blocs, en rouge sous 35 %%. Pas à travers les murs.",
               "translations": {
-                "fr_fr": "Hissez le panda roux sur votre épaule d'un clic droit — accroupi, un clic droit l'en fait descendre. Perché, il vous révèle la vie de tout ce qui respire à %s blocs : les points de vie s'inscrivent au-dessus de chaque créature, à jour en temps réel. Sous 35%% de vie, l'inscription rougit et se met à respirer. Ce que cachent les murs reste caché."
+                "fr_fr": "Clic droit pour le percher sur l'épaule, accroupi pour le poser. Perché, il affiche la vie des créatures à %s blocs, en rouge sous 35 %%. Pas à travers les murs."
               }
             },
             "slug": "vital_sense",
@@ -10725,9 +10726,9 @@
         "created": "2026-10-17T21:51:56.435674+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1995765+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 80100
+        "last_modified": "2026-11-22T12:09:45.1450593+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 80272
       },
       "id": "ow:red_panda",
       "loot": {
@@ -11533,9 +11534,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.combo.desc",
-              "plain": "Clic gauche : une droite, puis une gauche, et un troisième coup qui écrase les deux poings au sol dans une onde de choc — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
+              "plain": "Faites cogner votre gorille : une droite, une gauche, puis les deux poings au sol en onde de choc. Portée de %s bloc, %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Clic gauche : une droite, puis une gauche, et un troisième coup qui écrase les deux poings au sol dans une onde de choc — celui-là projette. Portée de %s bloc, %s dégâts par coup."
+                "fr_fr": "Faites cogner votre gorille : une droite, une gauche, puis les deux poings au sol en onde de choc. Portée de %s bloc, %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -11550,9 +11551,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.rock_throw.desc",
-              "plain": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge.",
+              "plain": "Maintenez : le gorille arrache un bloc de pierre et le lance, plus loin si la charge dure. Jusqu'à %s dégâts, explosion de %s blocs, aucun bloc cassé. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge."
+                "fr_fr": "Maintenez : le gorille arrache un bloc de pierre et le lance, plus loin si la charge dure. Jusqu'à %s dégâts, explosion de %s blocs, aucun bloc cassé. Recharge de %s s."
               }
             },
             "slug": "rock_throw",
@@ -11567,9 +11568,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.rider_launch.desc",
-              "plain": "Clic droit maintenu : le gorille saisit son propre cavalier et l'envoie en cloche. La charge règle la hauteur et la portée du vol, et l'atterrissage ne coûte aucun dégât de chute. De quoi atteindre la corniche que rien n'escalade. %s secondes de recharge.",
+              "plain": "Maintenez : le gorille attrape son cavalier et le lance en cloche. La charge règle la portée, l'atterrissage ne fait aucun dégât de chute. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Clic droit maintenu : le gorille saisit son propre cavalier et l'envoie en cloche. La charge règle la hauteur et la portée du vol, et l'atterrissage ne coûte aucun dégât de chute. De quoi atteindre la corniche que rien n'escalade. %s secondes de recharge."
+                "fr_fr": "Maintenez : le gorille attrape son cavalier et le lance en cloche. La charge règle la portée, l'atterrissage ne fait aucun dégât de chute. Recharge de %s s."
               }
             },
             "slug": "rider_launch",
@@ -11584,9 +11585,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.chest_beat.desc",
-              "plain": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge.",
+              "plain": "Le gorille se frappe le torse : à %s blocs, vos alliés tapent %s%% plus fort et encaissent mieux, les hostiles reculent. Dure %s s, recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge."
+                "fr_fr": "Le gorille se frappe le torse : à %s blocs, vos alliés tapent %s%% plus fort et encaissent mieux, les hostiles reculent. Dure %s s, recharge de %s s."
               }
             },
             "slug": "chest_beat",
@@ -11601,9 +11602,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.cold_blood.desc",
-              "plain": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir.",
+              "plain": "La Peur primitive n'a aucun effet sur le gorille : il ne panique jamais et son cavalier garde le contrôle.",
               "translations": {
-                "fr_fr": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir."
+                "fr_fr": "La Peur primitive n'a aucun effet sur le gorille : il ne panique jamais et son cavalier garde le contrôle."
               }
             },
             "slug": "cold_blood",
@@ -11860,9 +11861,9 @@
         "created": "2026-10-29T20:21:47.2318351+01:00",
         "created_date": "2026-10-29",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1960242+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 88137
+        "last_modified": "2026-11-22T12:09:44.8027524+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 88310
       },
       "id": "ow:gorilla",
       "loot": {
@@ -12130,9 +12131,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.combo.desc",
-              "plain": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup est un coup de tête qui projette la cible au loin.",
+              "plain": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par morsure. Le troisième coup est un coup de tête qui projette.",
               "translations": {
-                "fr_fr": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup est un coup de tête qui projette la cible au loin."
+                "fr_fr": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par morsure. Le troisième coup est un coup de tête qui projette."
               }
             },
             "slug": "combo",
@@ -12147,9 +12148,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.roll.desc",
-              "plain": "Clic droit : l'hippopotame se roule en boule et dévale droit devant ; un second clic le déroule. Démarrer coûte %s d'énergie, puis la roulade la consomme plus vite que la course — à bout de souffle, il se déroule seul et reste étourdi. Difficile à diriger, elle prend de la vitesse dans les descentes et écrase tout ce qui n'est pas de votre tribu : jusqu'à %s%% de ses dégâts, et les victimes restent aplaties un instant. Un mur ou une bête trop grosse le fait rebondir, sonné. Impossible en eau profonde. %s secondes de recharge.",
+              "plain": "Clic droit : l'hippopotame se roule en boule et fonce, un second clic l'arrête. %s d'énergie au départ, puis elle fond. Il écrase tout hors de la tribu (%s%% de ses dégâts). Recharge de %s s.",
               "translations": {
-                "fr_fr": "Clic droit : l'hippopotame se roule en boule et dévale droit devant ; un second clic le déroule. Démarrer coûte %s d'énergie, puis la roulade la consomme plus vite que la course — à bout de souffle, il se déroule seul et reste étourdi. Difficile à diriger, elle prend de la vitesse dans les descentes et écrase tout ce qui n'est pas de votre tribu : jusqu'à %s%% de ses dégâts, et les victimes restent aplaties un instant. Un mur ou une bête trop grosse le fait rebondir, sonné. Impossible en eau profonde. %s secondes de recharge."
+                "fr_fr": "Clic droit : l'hippopotame se roule en boule et fonce, un second clic l'arrête. %s d'énergie au départ, puis elle fond. Il écrase tout hors de la tribu (%s%% de ses dégâts). Recharge de %s s."
               }
             },
             "slug": "roll",
@@ -12164,9 +12165,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.river_fury.desc",
-              "plain": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. Dans l'eau, il rugit sans frapper le sol et nage %s%% plus vite. %s secondes de recharge.",
+              "plain": "L'hippopotame rugit et frappe le sol. Pendant %s s : +%s%% de dégâts, +%s%% par coup encaissé, %s%% de dégâts subis en moins, aucun recul. Nage %s%% plus vite. Recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. Dans l'eau, il rugit sans frapper le sol et nage %s%% plus vite. %s secondes de recharge."
+                "fr_fr": "L'hippopotame rugit et frappe le sol. Pendant %s s : +%s%% de dégâts, +%s%% par coup encaissé, %s%% de dégâts subis en moins, aucun recul. Nage %s%% plus vite. Recharge de %s s."
               }
             },
             "slug": "river_fury",
@@ -12181,9 +12182,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.river_surge.desc",
-              "plain": "Comme un vrai hippopotame, il ne nage pas : monté, il coule et galope au fond de l'eau, et Saut maintenu le fait remonter respirer. En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan.",
+              "plain": "Monté, il marche au fond de l'eau et remonte avec Saut. À la sortie, il garde l'élan : %s s de course à +%s%% de vitesse.",
               "translations": {
-                "fr_fr": "Comme un vrai hippopotame, il ne nage pas : monté, il coule et galope au fond de l'eau, et Saut maintenu le fait remonter respirer. En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
+                "fr_fr": "Monté, il marche au fond de l'eau et remonte avec Saut. À la sortie, il garde l'élan : %s s de course à +%s%% de vitesse."
               }
             },
             "slug": "river_surge",
@@ -12495,12 +12496,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-18T14:35:53.7018984+02:00",
-        "created_date": "2026-10-18",
+        "created": "2026-11-22T12:02:40.30042+01:00",
+        "created_date": "2026-11-22",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-11-03T17:10:45.191188+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 75780
+        "last_modified": "2026-11-22T12:09:44.5111143+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 76707
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -12688,7 +12689,8 @@
         "textures/entity/hippopotamus/hippopotamus_bloody_stage_1.png",
         "textures/entity/hippopotamus/hippopotamus_bloody_stage_2.png",
         "textures/entity/hippopotamus/hippopotamus_default.png",
-        "textures/entity/hippopotamus/hippopotamus_default_angry_eyes.png"
+        "textures/entity/hippopotamus/hippopotamus_default_angry_eyes.png",
+        "textures/entity/hippopotamus/hippopotamus_saddle.png"
       ],
       "tracking": {
         "client_tracking_range": 5,
@@ -12725,9 +12727,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.combo.desc",
-              "plain": "Faites frapper votre Lion toutes les %s secondes, infligeant %s points de dégâts par coup : des griffes rapides et des morsures légères pour garder la pression sur la cible.",
+              "plain": "Faites griffer votre lion toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites frapper votre Lion toutes les %s secondes, infligeant %s points de dégâts par coup : des griffes rapides et des morsures légères pour garder la pression sur la cible."
+                "fr_fr": "Faites griffer votre lion toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -12742,9 +12744,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.clan_call.desc",
-              "plain": "Le fauve appelle son clan : jusqu'à %s lionnes apprivoisées du même clan, dans un rayon de %s blocs, le rejoignent aussitôt et attaquent la créature visée (ou le dernier ennemi frappé). Pendant %s secondes, elles régénèrent et encaissent mieux les coups. Il faut au moins une lionne du clan à portée. %s secondes de recharge.",
+              "plain": "Jusqu'à %s lionnes du clan à %s blocs accourent et attaquent votre cible. Elles régénèrent et résistent mieux pendant %s s. Une lionne doit être à portée. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Le fauve appelle son clan : jusqu'à %s lionnes apprivoisées du même clan, dans un rayon de %s blocs, le rejoignent aussitôt et attaquent la créature visée (ou le dernier ennemi frappé). Pendant %s secondes, elles régénèrent et encaissent mieux les coups. Il faut au moins une lionne du clan à portée. %s secondes de recharge."
+                "fr_fr": "Jusqu'à %s lionnes du clan à %s blocs accourent et attaquent votre cible. Elles régénèrent et résistent mieux pendant %s s. Une lionne doit être à portée. Recharge de %s s."
               }
             },
             "slug": "clan_call",
@@ -12759,9 +12761,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.domination_roar.desc",
-              "plain": "S'arme sur %s victimes. Le fauve s'immobilise et rugit pour imposer sa présence : les lionnes de son clan dans un rayon de %s blocs courent plus vite, frappent plus fort et régénèrent sans interruption pendant %s secondes. %s secondes de recharge.",
+              "plain": "Le lion rugit : les lionnes du clan à %s blocs courent plus vite, frappent plus fort et régénèrent pendant %s s. Recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes. Le fauve s'immobilise et rugit pour imposer sa présence : les lionnes de son clan dans un rayon de %s blocs courent plus vite, frappent plus fort et régénèrent sans interruption pendant %s secondes. %s secondes de recharge."
+                "fr_fr": "Le lion rugit : les lionnes du clan à %s blocs courent plus vite, frappent plus fort et régénèrent pendant %s s. Recharge de %s s."
               }
             },
             "slug": "domination_roar",
@@ -12776,9 +12778,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.hunting_leap.desc",
-              "plain": "En pleine course, visez une créature moyenne ou grande à moins de %s blocs (un curseur doré apparaît sur elle) : la lionne fonce, bondit et s'agrippe là où elle atterrit. Accrochée, clic gauche pour mordre, clic droit pour lâcher prise. Sa prise tient %s secondes au plus et faiblit à chaque secousse ou coup encaissé. %s secondes de recharge.",
+              "plain": "En courant, visez une grosse proie à %s blocs (repère doré) : la lionne bondit et s'agrippe. Clic gauche pour mordre, clic droit pour lâcher. Tient %s s au plus. Recharge de %s s.",
               "translations": {
-                "fr_fr": "En pleine course, visez une créature moyenne ou grande à moins de %s blocs (un curseur doré apparaît sur elle) : la lionne fonce, bondit et s'agrippe là où elle atterrit. Accrochée, clic gauche pour mordre, clic droit pour lâcher prise. Sa prise tient %s secondes au plus et faiblit à chaque secousse ou coup encaissé. %s secondes de recharge."
+                "fr_fr": "En courant, visez une grosse proie à %s blocs (repère doré) : la lionne bondit et s'agrippe. Clic gauche pour mordre, clic droit pour lâcher. Tient %s s au plus. Recharge de %s s."
               }
             },
             "slug": "hunting_leap",
@@ -12793,9 +12795,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.distress_call.desc",
-              "plain": "S'arme sur %s victimes, utilisable seulement à %s%% de vie ou moins. La lionne blessée appelle son clan : tous les lions apprivoisés du clan dans un rayon de %s blocs accourent, le mâle rugit une fois pour faire fuir les créatures hostiles, et les lionnes se postent en cercle autour d'elle pour attaquer toute menace pendant %s secondes. %s secondes de recharge.",
+              "plain": "Sous %s%% de vie, la lionne appelle à l'aide. Les lions du clan à %s blocs accourent : le mâle rugit, les lionnes la protègent en cercle pendant %s s. Recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes, utilisable seulement à %s%% de vie ou moins. La lionne blessée appelle son clan : tous les lions apprivoisés du clan dans un rayon de %s blocs accourent, le mâle rugit une fois pour faire fuir les créatures hostiles, et les lionnes se postent en cercle autour d'elle pour attaquer toute menace pendant %s secondes. %s secondes de recharge."
+                "fr_fr": "Sous %s%% de vie, la lionne appelle à l'aide. Les lions du clan à %s blocs accourent : le mâle rugit, les lionnes la protègent en cercle pendant %s s. Recharge de %s s."
               }
             },
             "slug": "distress_call",
@@ -12810,9 +12812,9 @@
           {
             "desc": {
               "key": "ow.attacks.lion.pride_bond.desc",
-              "plain": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs.",
+              "plain": "+%s PV par lionne du clan (%s au plus). Chaque lionne proche ajoute %s%% de dégâts et de résistance, jusqu'à %s lionnes à %s blocs.",
               "translations": {
-                "fr_fr": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs."
+                "fr_fr": "+%s PV par lionne du clan (%s au plus). Chaque lionne proche ajoute %s%% de dégâts et de résistance, jusqu'à %s lionnes à %s blocs."
               }
             },
             "slug": "pride_bond",
@@ -13172,9 +13174,9 @@
         "created": "2026-11-03T17:14:57.0062291+01:00",
         "created_date": "2026-11-03",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-11-03T17:15:10.1471949+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 119671
+        "last_modified": "2026-11-22T12:09:19.4366159+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 122604
       },
       "id": "ow:lion",
       "loot": {
@@ -13349,9 +13351,9 @@
           {
             "desc": {
               "key": "ow.attacks.peacock.combo.desc",
-              "plain": "Faites frapper votre Paon toutes les %s secondes, infligeant %s points de dégâts par coup : coups de bec vifs et ergots lancés en avant, plus pour gêner que pour abattre.",
+              "plain": "Faites picorer votre paon toutes les %s s : %s dégâts par coup de bec ou d'ergot.",
               "translations": {
-                "fr_fr": "Faites frapper votre Paon toutes les %s secondes, infligeant %s points de dégâts par coup : coups de bec vifs et ergots lancés en avant, plus pour gêner que pour abattre."
+                "fr_fr": "Faites picorer votre paon toutes les %s s : %s dégâts par coup de bec ou d'ergot."
               }
             },
             "slug": "combo",
@@ -13366,9 +13368,9 @@
           {
             "desc": {
               "key": "ow.attacks.peacock.life_link.desc",
-              "plain": "Maintenez le clic droit et relâchez-le sur une bête apprivoisée de votre tribu pour en faire le donneur, puis recommencez sur une seconde, le receveur : le paon lève l'aile et tisse entre elles un lien de vie. Le donneur cède %s%% de sa vie maximale par seconde, que le paon amplifie à %s%% pour le receveur. Le transfert se met en pause quand le receveur est soigné ou que le donneur atteint %s%% de sa vie. Le lien se rompt au-delà de %s blocs ou d'un clic droit bref. Coûte %s d'énergie au lancement et dure %s secondes au plus.",
+              "plain": "Relâchez le clic droit sur une bête de la tribu (le donneur), puis sur une autre (le receveur). Le donneur cède %s%% de vie par seconde, rendus à %s%%. Pause à %s%% de vie, rupture au-delà de %s blocs. %s d'énergie, %s s au plus.",
               "translations": {
-                "fr_fr": "Maintenez le clic droit et relâchez-le sur une bête apprivoisée de votre tribu pour en faire le donneur, puis recommencez sur une seconde, le receveur : le paon lève l'aile et tisse entre elles un lien de vie. Le donneur cède %s%% de sa vie maximale par seconde, que le paon amplifie à %s%% pour le receveur. Le transfert se met en pause quand le receveur est soigné ou que le donneur atteint %s%% de sa vie. Le lien se rompt au-delà de %s blocs ou d'un clic droit bref. Coûte %s d'énergie au lancement et dure %s secondes au plus."
+                "fr_fr": "Relâchez le clic droit sur une bête de la tribu (le donneur), puis sur une autre (le receveur). Le donneur cède %s%% de vie par seconde, rendus à %s%%. Pause à %s%% de vie, rupture au-delà de %s blocs. %s d'énergie, %s s au plus."
               }
             },
             "slug": "life_link",
@@ -13382,27 +13384,10 @@
           },
           {
             "desc": {
-              "key": "ow.attacks.peacock.wing_gust.desc",
-              "plain": "Le paon bat des deux ailes et lance droit devant lui une onde de vent qui file sur environ %s blocs avant de s'estomper. Elle ne blesse pas, mais repousse violemment les ennemis. %s secondes de recharge.",
-              "translations": {
-                "fr_fr": "Le paon bat des deux ailes et lance droit devant lui une onde de vent qui file sur environ %s blocs avant de s'estomper. Elle ne blesse pas, mais repousse violemment les ennemis. %s secondes de recharge."
-              }
-            },
-            "slug": "wing_gust",
-            "title": {
-              "key": "ow.attacks.peacock.wing_gust.title",
-              "plain": "Bourrasque",
-              "translations": {
-                "fr_fr": "Bourrasque"
-              }
-            }
-          },
-          {
-            "desc": {
               "key": "ow.attacks.peacock.royal_sweep.desc",
-              "plain": "S'arme sur %s charges : chaque Lien de Vie qui soigne compte pour une, chaque victime aussi. Le paon s'accroupit, abaisse sa traîne au ras du sol et pivote d'un tour complet : elle fauche, inflige ses dégâts et projette tous les ennemis autour de lui. Chaque ennemi touché rapporte le double de ces dégâts en soins, répartis entre les alliés dans un rayon de %s blocs, en priorité aux plus mal en point, et un bref lien vert relie le paon à chaque bête soignée. %s secondes de recharge.",
+              "plain": "Le paon tourne sur lui-même et sa traîne fauche tout autour de lui. Les dégâts infligés reviennent en double comme soins aux alliés à %s blocs. Recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s charges : chaque Lien de Vie qui soigne compte pour une, chaque victime aussi. Le paon s'accroupit, abaisse sa traîne au ras du sol et pivote d'un tour complet : elle fauche, inflige ses dégâts et projette tous les ennemis autour de lui. Chaque ennemi touché rapporte le double de ces dégâts en soins, répartis entre les alliés dans un rayon de %s blocs, en priorité aux plus mal en point, et un bref lien vert relie le paon à chaque bête soignée. %s secondes de recharge."
+                "fr_fr": "Le paon tourne sur lui-même et sa traîne fauche tout autour de lui. Les dégâts infligés reviennent en double comme soins aux alliés à %s blocs. Recharge de %s s."
               }
             },
             "slug": "royal_sweep",
@@ -13411,6 +13396,40 @@
               "plain": "Balayage Royal",
               "translations": {
                 "fr_fr": "Balayage Royal"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.peacock.feather_volley.desc",
+              "plain": "Clic droit : le paon vise et lance une plume, aile droite puis gauche. Maintenez pour tirer deux fois par seconde. %s dégâts sur un ennemi, %s PV rendus à un allié. %s plumes, une de plus toutes les %s s hors visée.",
+              "translations": {
+                "fr_fr": "Clic droit : le paon vise et lance une plume, aile droite puis gauche. Maintenez pour tirer deux fois par seconde. %s dégâts sur un ennemi, %s PV rendus à un allié. %s plumes, une de plus toutes les %s s hors visée."
+              }
+            },
+            "slug": "feather_volley",
+            "title": {
+              "key": "ow.attacks.peacock.feather_volley.title",
+              "plain": "Salve de Plumes",
+              "translations": {
+                "fr_fr": "Salve de Plumes"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.peacock.glide.desc",
+              "plain": "Saut fait bondir le paon d'un battement d'ailes. Saut maintenu en l'air : il plane, pique si vous regardez en bas, freine vers le haut. Aucun dégât de chute, mais ni plumes ni ultime en vol.",
+              "translations": {
+                "fr_fr": "Saut fait bondir le paon d'un battement d'ailes. Saut maintenu en l'air : il plane, pique si vous regardez en bas, freine vers le haut. Aucun dégât de chute, mais ni plumes ni ultime en vol."
+              }
+            },
+            "slug": "glide",
+            "title": {
+              "key": "ow.attacks.peacock.glide.title",
+              "plain": "Vol Plané",
+              "translations": {
+                "fr_fr": "Vol Plané"
               }
             }
           }
@@ -13470,16 +13489,23 @@
         ]
       },
       "attack_constants": {
-        "GUST_ANIMATION_TICKS": 20,
-        "GUST_COOLDOWN_TICKS": 100,
-        "GUST_END_RADIUS": 2.6,
-        "GUST_ENERGY": 60.0,
-        "GUST_LIFETIME_TICKS": 18,
-        "GUST_LIFT": 0.35,
-        "GUST_PUSH": 1.7,
-        "GUST_RELEASE_TICK": 9,
-        "GUST_SPEED": 0.9,
-        "GUST_START_RADIUS": 0.9,
+        "FEATHER_AIM_DISTANCE": 24.0,
+        "FEATHER_AIM_HOLD_TICKS": 40,
+        "FEATHER_AIM_SPEED_FACTOR": 0.6,
+        "FEATHER_CADENCE_SLACK_TICKS": 2,
+        "FEATHER_CADENCE_TICKS": 10,
+        "FEATHER_CHARGE_SLACK_TICKS": 2,
+        "FEATHER_DAMAGE_DIVISOR": 1.5,
+        "FEATHER_ENERGY": 8.0,
+        "FEATHER_HEAL": 5.0,
+        "FEATHER_LIFETIME_TICKS": 21,
+        "FEATHER_MAX_STOCK": 10,
+        "FEATHER_MIN_CHARGE_MS": 120,
+        "FEATHER_MIN_CHARGE_TICKS": 2,
+        "FEATHER_REGEN_TICKS": 80,
+        "FEATHER_RELEASE_TICKS": 5,
+        "FEATHER_SHOT_ANIMATION_TICKS": 12,
+        "FEATHER_SPEED": 0.95,
         "LINK_AIM_RANGE": 32.0,
         "LINK_AIM_TOLERANCE": 1.5,
         "LINK_AMPLIFICATION": 1.5,
@@ -13692,15 +13718,41 @@
           {
             "looping": false,
             "name": "DEFINITION",
-            "seconds": 1.0
+            "seconds": 3.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
           },
           {
             "looping": false,
             "name": "DEFINITION",
-            "seconds": 3.0
+            "seconds": 0.6
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.5
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.7
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.45
           }
         ],
         "layers": [
+          "PeacockFeatherHoldLayer",
           "PeacockLayer"
         ],
         "model": "PeacockModel",
@@ -13822,12 +13874,12 @@
         "walk_speed_blocks_per_second": 3.8
       },
       "history": {
-        "created": "2026-11-11T20:25:23.8041746+01:00",
-        "created_date": "2026-11-11",
+        "created": "2026-11-22T11:36:05.0332817+01:00",
+        "created_date": "2026-11-22",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/PeacockEntity.java",
-        "last_modified": "2026-11-11T21:07:56.941237+01:00",
-        "last_modified_date": "2026-11-11",
-        "size_bytes": 51984
+        "last_modified": "2026-11-22T12:09:45.0793741+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 62310
       },
       "id": "ow:peacock",
       "loot": {
@@ -13930,7 +13982,7 @@
         }
       },
       "mount": {
-        "base_rider_y_offset": 0.6000000238418579,
+        "base_rider_y_offset": 0.48000001907348633,
         "changes_speed_during_combo": false,
         "combo_speed_multiplier": 2.0,
         "increases_speed_during_sprint": false,
@@ -14667,11 +14719,17 @@
         ]
       },
       "textures": [
+        "textures/entity/peacock/feather/albino.png",
+        "textures/entity/peacock/feather/cameo.png",
+        "textures/entity/peacock/feather/default.png",
+        "textures/entity/peacock/feather/green.png",
+        "textures/entity/peacock/feather/purple.png",
         "textures/entity/peacock/peacock_albino.png",
         "textures/entity/peacock/peacock_cameo.png",
         "textures/entity/peacock/peacock_default.png",
         "textures/entity/peacock/peacock_green.png",
-        "textures/entity/peacock/peacock_purple.png"
+        "textures/entity/peacock/peacock_purple.png",
+        "textures/entity/peacock/peacock_saddle.png"
       ],
       "tracking": {
         "client_tracking_range": 5,
@@ -14736,9 +14794,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.combo.desc",
-              "plain": "Les dix bras du Calamar Colossal s'abattent l'un après l'autre, toutes les %s secondes, pour %s points de dégâts par salve. Tant que vous relancez et qu'il reste de l'énergie, l'enchaînement ne s'arrête jamais : chaque salve coûte %s d'énergie. Avant de frapper, la bête se retourne pour présenter ses tentacules.",
+              "plain": "Faites fouetter votre calamar : ses bras s'abattent en salve toutes les %s s, %s dégâts par salve. %s d'énergie par salve, sans fin tant que vous relancez.",
               "translations": {
-                "fr_fr": "Les dix bras du Calamar Colossal s'abattent l'un après l'autre, toutes les %s secondes, pour %s points de dégâts par salve. Tant que vous relancez et qu'il reste de l'énergie, l'enchaînement ne s'arrête jamais : chaque salve coûte %s d'énergie. Avant de frapper, la bête se retourne pour présenter ses tentacules."
+                "fr_fr": "Faites fouetter votre calamar : ses bras s'abattent en salve toutes les %s s, %s dégâts par salve. %s d'énergie par salve, sans fin tant que vous relancez."
               }
             },
             "slug": "combo",
@@ -14753,9 +14811,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.abyssal_grab.desc",
-              "plain": "Clic droit : le calamar se ramasse, puis ses deux longues tentacules jaillissent jusqu'à %s blocs, harponnent la proie et la plaquent dans une cage de bras. Tant qu'il la tient, chaque coup de combo la broie et le soigne de %s%% des points de vie actuels de sa proie. Un joueur se débat au clic droit ; une créature est relâchée au bout de %s secondes. Un second clic droit lâche la proie. Votre tribu est épargnée. %s secondes de recharge.",
+              "plain": "Clic droit : deux tentacules harponnent une proie jusqu'à %s blocs. Chaque coup la broie et soigne de %s%% de sa vie. Lâchée après %s s ou au clic droit. Recharge de %s s.",
               "translations": {
-                "fr_fr": "Clic droit : le calamar se ramasse, puis ses deux longues tentacules jaillissent jusqu'à %s blocs, harponnent la proie et la plaquent dans une cage de bras. Tant qu'il la tient, chaque coup de combo la broie et le soigne de %s%% des points de vie actuels de sa proie. Un joueur se débat au clic droit ; une créature est relâchée au bout de %s secondes. Un second clic droit lâche la proie. Votre tribu est épargnée. %s secondes de recharge."
+                "fr_fr": "Clic droit : deux tentacules harponnent une proie jusqu'à %s blocs. Chaque coup la broie et soigne de %s%% de sa vie. Lâchée après %s s ou au clic droit. Recharge de %s s."
               }
             },
             "slug": "abyssal_grab",
@@ -14770,9 +14828,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.maelstrom.desc",
-              "plain": "Le calamar se dresse à la verticale et fait tournoyer toutes ses tentacules autour de lui pendant %s secondes : un tourbillon lourd qui frappe tout dans un rayon de %s blocs (%s dégâts par passage) et repousse les ennemis. Votre tribu est épargnée. Recharge commune de %s secondes avec l'Étreinte Abyssale.",
+              "plain": "Le calamar tournoie %s s : tout ce qui est à %s blocs prend %s dégâts par passage et recule. La tribu est épargnée. Recharge de %s s, commune avec l'Étreinte.",
               "translations": {
-                "fr_fr": "Le calamar se dresse à la verticale et fait tournoyer toutes ses tentacules autour de lui pendant %s secondes : un tourbillon lourd qui frappe tout dans un rayon de %s blocs (%s dégâts par passage) et repousse les ennemis. Votre tribu est épargnée. Recharge commune de %s secondes avec l'Étreinte Abyssale."
+                "fr_fr": "Le calamar tournoie %s s : tout ce qui est à %s blocs prend %s dégâts par passage et recule. La tribu est épargnée. Recharge de %s s, commune avec l'Étreinte."
               }
             },
             "slug": "maelstrom",
@@ -14787,9 +14845,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.ink_frenzy.desc",
-              "plain": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge.",
+              "plain": "Une nuée d'encre aveugle tout ce qui est à %s blocs pendant %s s, sauf la tribu. Le calamar fuit ensuite à +%s%% de vitesse pendant %s s. Recharge de %s s.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge."
+                "fr_fr": "Une nuée d'encre aveugle tout ce qui est à %s blocs pendant %s s, sauf la tribu. Le calamar fuit ensuite à +%s%% de vitesse pendant %s s. Recharge de %s s."
               }
             },
             "slug": "ink_frenzy",
@@ -14804,9 +14862,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.volte_face.desc",
-              "plain": "Le Calamar Colossal nage manteau en avant et se retourne en %s seconde pour frapper tentacules devant ; son cavalier, lui, ne bouge pas. Après %s secondes sans attaquer, ou dès que vous sprintez, il se retourne pour repartir nager.",
+              "plain": "Il nage manteau devant et se retourne en %s s pour frapper. Il repart nager après %s s sans attaquer ou dès que vous sprintez.",
               "translations": {
-                "fr_fr": "Le Calamar Colossal nage manteau en avant et se retourne en %s seconde pour frapper tentacules devant ; son cavalier, lui, ne bouge pas. Après %s secondes sans attaquer, ou dès que vous sprintez, il se retourne pour repartir nager."
+                "fr_fr": "Il nage manteau devant et se retourne en %s s pour frapper. Il repart nager après %s s sans attaquer ou dès que vous sprintez."
               }
             },
             "slug": "volte_face",
@@ -15183,9 +15241,9 @@
         "created": "2026-11-03T16:59:27.8853906+01:00",
         "created_date": "2026-11-03",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/ColossalSquidEntity.java",
-        "last_modified": "2026-11-03T17:10:45.1885838+01:00",
-        "last_modified_date": "2026-11-03",
-        "size_bytes": 114946
+        "last_modified": "2026-11-22T12:09:44.3488681+01:00",
+        "last_modified_date": "2026-11-22",
+        "size_bytes": 115241
       },
       "id": "ow:colossal_squid",
       "loot": {
@@ -16083,6 +16141,7 @@
       "DOMINATION_ROAR": 25,
       "EARTHQUAKE": 14,
       "FEAST": 18,
+      "FEATHER_VOLLEY": 32,
       "HEAL_SNACK": 17,
       "HIPPO_ROLL": 22,
       "HUNTING_LEAP": 26,
@@ -16104,8 +16163,7 @@
       "TIDAL_RUSH": 7,
       "VENOM_FANGS": 9,
       "WATER_SPRAY": 15,
-      "WHIRLWIND_FISTS": 11,
-      "WING_GUST": 32
+      "WHIRLWIND_FISTS": 11
     },
     "daily_quests": [
       {
@@ -17860,6 +17918,196 @@
       "translation_key": "item.ow.cooked_peacock"
     },
     {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 4,
+        "saturation": 2.4
+      },
+      "id": "ow:raw_elephant",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Éléphant cru"
+      },
+      "path": "raw_elephant",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.raw_elephant"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 10,
+        "saturation": 18.0
+      },
+      "id": "ow:cooked_elephant",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Éléphant cuit"
+      },
+      "path": "cooked_elephant",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.cooked_elephant"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 3,
+        "saturation": 1.8000001
+      },
+      "id": "ow:raw_giraffe",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Girafe crue"
+      },
+      "path": "raw_giraffe",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.raw_giraffe"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 8,
+        "saturation": 12.8
+      },
+      "id": "ow:cooked_giraffe",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Girafe cuite"
+      },
+      "path": "cooked_giraffe",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.cooked_giraffe"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 2,
+        "saturation": 0.8
+      },
+      "id": "ow:raw_hyena",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Hyène crue"
+      },
+      "path": "raw_hyena",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.raw_hyena"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 6,
+        "saturation": 7.2000003
+      },
+      "id": "ow:cooked_hyena",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Hyène cuite"
+      },
+      "path": "cooked_hyena",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.cooked_hyena"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 3,
+        "saturation": 1.8000001
+      },
+      "id": "ow:raw_kangaroo",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Kangourou cru"
+      },
+      "path": "raw_kangaroo",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.raw_kangaroo"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 7,
+        "saturation": 9.8
+      },
+      "id": "ow:cooked_kangaroo",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Kangourou cuit"
+      },
+      "path": "cooked_kangaroo",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.cooked_kangaroo"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 4,
+        "saturation": 2.4
+      },
+      "id": "ow:raw_rhinoceros",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Rhinocéros cru"
+      },
+      "path": "raw_rhinoceros",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.raw_rhinoceros"
+    },
+    {
+      "class": "Item",
+      "fire_resistant": false,
+      "food": {
+        "can_always_eat": false,
+        "eat_seconds": 1.6,
+        "nutrition": 9,
+        "saturation": 16.199999
+      },
+      "id": "ow:cooked_rhinoceros",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Rhinocéros cuit"
+      },
+      "path": "cooked_rhinoceros",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.cooked_rhinoceros"
+    },
+    {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
       "id": "ow:kodiak_spawn_egg",
@@ -18533,7 +18781,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1242
+      "fr_fr": 1254
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -18869,6 +19117,306 @@
     },
     {
       "type": "minecraft:campfire_cooking",
+      "id": "ow:cooked_elephant_from_campfire_cooking",
+      "ingredients": [
+        "ow:raw_elephant"
+      ],
+      "json": {
+        "type": "minecraft:campfire_cooking",
+        "category": "food",
+        "cookingtime": 600,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_elephant"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_elephant"
+        }
+      },
+      "result": "ow:cooked_elephant",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Éléphant cuit"
+      }
+    },
+    {
+      "type": "minecraft:smelting",
+      "id": "ow:cooked_elephant_from_smelting",
+      "ingredients": [
+        "ow:raw_elephant"
+      ],
+      "json": {
+        "type": "minecraft:smelting",
+        "category": "food",
+        "cookingtime": 200,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_elephant"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_elephant"
+        }
+      },
+      "result": "ow:cooked_elephant",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Éléphant cuit"
+      }
+    },
+    {
+      "type": "minecraft:smoking",
+      "id": "ow:cooked_elephant_from_smoking",
+      "ingredients": [
+        "ow:raw_elephant"
+      ],
+      "json": {
+        "type": "minecraft:smoking",
+        "category": "food",
+        "cookingtime": 100,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_elephant"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_elephant"
+        }
+      },
+      "result": "ow:cooked_elephant",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Éléphant cuit"
+      }
+    },
+    {
+      "type": "minecraft:campfire_cooking",
+      "id": "ow:cooked_giraffe_from_campfire_cooking",
+      "ingredients": [
+        "ow:raw_giraffe"
+      ],
+      "json": {
+        "type": "minecraft:campfire_cooking",
+        "category": "food",
+        "cookingtime": 600,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_giraffe"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_giraffe"
+        }
+      },
+      "result": "ow:cooked_giraffe",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Girafe cuite"
+      }
+    },
+    {
+      "type": "minecraft:smelting",
+      "id": "ow:cooked_giraffe_from_smelting",
+      "ingredients": [
+        "ow:raw_giraffe"
+      ],
+      "json": {
+        "type": "minecraft:smelting",
+        "category": "food",
+        "cookingtime": 200,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_giraffe"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_giraffe"
+        }
+      },
+      "result": "ow:cooked_giraffe",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Girafe cuite"
+      }
+    },
+    {
+      "type": "minecraft:smoking",
+      "id": "ow:cooked_giraffe_from_smoking",
+      "ingredients": [
+        "ow:raw_giraffe"
+      ],
+      "json": {
+        "type": "minecraft:smoking",
+        "category": "food",
+        "cookingtime": 100,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_giraffe"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_giraffe"
+        }
+      },
+      "result": "ow:cooked_giraffe",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Girafe cuite"
+      }
+    },
+    {
+      "type": "minecraft:campfire_cooking",
+      "id": "ow:cooked_hyena_from_campfire_cooking",
+      "ingredients": [
+        "ow:raw_hyena"
+      ],
+      "json": {
+        "type": "minecraft:campfire_cooking",
+        "category": "food",
+        "cookingtime": 600,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_hyena"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_hyena"
+        }
+      },
+      "result": "ow:cooked_hyena",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Hyène cuite"
+      }
+    },
+    {
+      "type": "minecraft:smelting",
+      "id": "ow:cooked_hyena_from_smelting",
+      "ingredients": [
+        "ow:raw_hyena"
+      ],
+      "json": {
+        "type": "minecraft:smelting",
+        "category": "food",
+        "cookingtime": 200,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_hyena"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_hyena"
+        }
+      },
+      "result": "ow:cooked_hyena",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Hyène cuite"
+      }
+    },
+    {
+      "type": "minecraft:smoking",
+      "id": "ow:cooked_hyena_from_smoking",
+      "ingredients": [
+        "ow:raw_hyena"
+      ],
+      "json": {
+        "type": "minecraft:smoking",
+        "category": "food",
+        "cookingtime": 100,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_hyena"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_hyena"
+        }
+      },
+      "result": "ow:cooked_hyena",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Hyène cuite"
+      }
+    },
+    {
+      "type": "minecraft:campfire_cooking",
+      "id": "ow:cooked_kangaroo_from_campfire_cooking",
+      "ingredients": [
+        "ow:raw_kangaroo"
+      ],
+      "json": {
+        "type": "minecraft:campfire_cooking",
+        "category": "food",
+        "cookingtime": 600,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_kangaroo"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_kangaroo"
+        }
+      },
+      "result": "ow:cooked_kangaroo",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Kangourou cuit"
+      }
+    },
+    {
+      "type": "minecraft:smelting",
+      "id": "ow:cooked_kangaroo_from_smelting",
+      "ingredients": [
+        "ow:raw_kangaroo"
+      ],
+      "json": {
+        "type": "minecraft:smelting",
+        "category": "food",
+        "cookingtime": 200,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_kangaroo"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_kangaroo"
+        }
+      },
+      "result": "ow:cooked_kangaroo",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Kangourou cuit"
+      }
+    },
+    {
+      "type": "minecraft:smoking",
+      "id": "ow:cooked_kangaroo_from_smoking",
+      "ingredients": [
+        "ow:raw_kangaroo"
+      ],
+      "json": {
+        "type": "minecraft:smoking",
+        "category": "food",
+        "cookingtime": 100,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_kangaroo"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_kangaroo"
+        }
+      },
+      "result": "ow:cooked_kangaroo",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Kangourou cuit"
+      }
+    },
+    {
+      "type": "minecraft:campfire_cooking",
       "id": "ow:cooked_kodiak_from_campfire_cooking",
       "ingredients": [
         "ow:raw_kodiak"
@@ -19015,6 +19563,81 @@
       "result_count": 1,
       "result_names": {
         "fr_fr": "Paon cuit"
+      }
+    },
+    {
+      "type": "minecraft:campfire_cooking",
+      "id": "ow:cooked_rhinoceros_from_campfire_cooking",
+      "ingredients": [
+        "ow:raw_rhinoceros"
+      ],
+      "json": {
+        "type": "minecraft:campfire_cooking",
+        "category": "food",
+        "cookingtime": 600,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_rhinoceros"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_rhinoceros"
+        }
+      },
+      "result": "ow:cooked_rhinoceros",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Rhinocéros cuit"
+      }
+    },
+    {
+      "type": "minecraft:smelting",
+      "id": "ow:cooked_rhinoceros_from_smelting",
+      "ingredients": [
+        "ow:raw_rhinoceros"
+      ],
+      "json": {
+        "type": "minecraft:smelting",
+        "category": "food",
+        "cookingtime": 200,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_rhinoceros"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_rhinoceros"
+        }
+      },
+      "result": "ow:cooked_rhinoceros",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Rhinocéros cuit"
+      }
+    },
+    {
+      "type": "minecraft:smoking",
+      "id": "ow:cooked_rhinoceros_from_smoking",
+      "ingredients": [
+        "ow:raw_rhinoceros"
+      ],
+      "json": {
+        "type": "minecraft:smoking",
+        "category": "food",
+        "cookingtime": 100,
+        "experience": 0.35,
+        "ingredient": {
+          "item": "ow:raw_rhinoceros"
+        },
+        "result": {
+          "count": 1,
+          "id": "ow:cooked_rhinoceros"
+        }
+      },
+      "result": "ow:cooked_rhinoceros",
+      "result_count": 1,
+      "result_names": {
+        "fr_fr": "Rhinocéros cuit"
       }
     },
     {

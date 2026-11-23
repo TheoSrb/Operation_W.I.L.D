@@ -488,4 +488,14 @@ public class Submarine extends OWEntity implements IOWWaypointEntity {
         this.entityData.set(IS_OFF, tag.getBoolean("isOff"));
         this.entityData.set(ENERGY, tag.getFloat("getEnergy"));
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 0;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 0;
+    }
 }

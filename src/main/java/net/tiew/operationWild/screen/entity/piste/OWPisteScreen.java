@@ -21,7 +21,6 @@ import net.tiew.operationWild.entity.piste.OWPisteRules;
 import net.tiew.operationWild.gui.OWEntityHud;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWPisteAdvancePacket;
-import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
 import net.tiew.operationWild.screen.entity.OWTabsRenderer;
 
 import java.util.ArrayDeque;
@@ -116,7 +115,6 @@ public class OWPisteScreen extends Screen {
     private double panY;
     private double zoom = DEFAULT_ZOOM;
     private boolean dragged = false;
-    private boolean returning = false;
 
     // Animation du pion : il suit le VRAI chemin (nœud par nœud, le long des couloirs).
     private int displayedNode = -1;
@@ -217,16 +215,6 @@ public class OWPisteScreen extends Screen {
         return false;
     }
 
-    @Override
-    public void onClose() {
-        returnToInventory();
-    }
-
-    private void returnToInventory() {
-        if (returning) return;
-        returning = true;
-        OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
-    }
 
     // --- Conversion canvas ↔ écran ---
 

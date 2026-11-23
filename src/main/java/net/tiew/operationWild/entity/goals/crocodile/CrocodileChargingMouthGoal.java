@@ -21,7 +21,9 @@ public class CrocodileChargingMouthGoal extends Goal {
     private final CrocodileEntity crocodile;
 
     private final int MAX_COOLDOWN = 400;
+    private static final int MAX_DURATION_TICKS = 600;
     private int cooldown = 0;
+    private int startTick = 0;
 
     public CrocodileChargingMouthGoal(CrocodileEntity crocodile) {
         this.crocodile = crocodile;
@@ -53,6 +55,7 @@ public class CrocodileChargingMouthGoal extends Goal {
         super.start();
         float pitch = (float) (OWUtils.generateRandomInterval(1.0, 1.2));
         this.crocodile.setChargingMouth(true);
+        this.startTick = this.crocodile.tickCount;
         this.crocodile.playSound(OWSounds.CROCODILE_IDLE_2.get(), 1.0F, pitch);
     }
 
@@ -67,6 +70,7 @@ public class CrocodileChargingMouthGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (crocodile.isBaby() || crocodile.hasGrabSomething() || isProvoked()) return false;
+        if (crocodile.tickCount - startTick > MAX_DURATION_TICKS) return false;
         return crocodile.getTarget() != null && crocodile.isChargingMouth() && this.crocodile.getTarget().distanceTo(this.crocodile) <= 20
                 && !crocodile.isNapping();
     }

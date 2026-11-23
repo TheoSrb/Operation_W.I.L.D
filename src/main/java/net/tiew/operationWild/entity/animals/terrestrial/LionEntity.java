@@ -63,6 +63,20 @@ import net.tiew.operationWild.entity.OWSaddleShield;
 import net.tiew.operationWild.entity.attacks.OWAttackIds;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.clan.LionClanData;
+import net.tiew.operationWild.entity.clan.LionPride;
+import net.tiew.operationWild.entity.clan.LionWildMind;
+import net.tiew.operationWild.entity.goals.lion.LionClanRestGoal;
+import net.tiew.operationWild.entity.goals.lion.LionConcedeFleeGoal;
+import net.tiew.operationWild.entity.goals.lion.LionDuelTargetGoal;
+import net.tiew.operationWild.entity.goals.lion.LionDuelWatchGoal;
+import net.tiew.operationWild.entity.goals.lion.LionFeastGoal;
+import net.tiew.operationWild.entity.goals.lion.LionHuntGoal;
+import net.tiew.operationWild.entity.goals.lion.LionIntruderTargetGoal;
+import net.tiew.operationWild.entity.goals.lion.LionNomadRoamGoal;
+import net.tiew.operationWild.entity.goals.lion.LionPerchGoal;
+import net.tiew.operationWild.entity.goals.lion.LionRivalPredatorTargetGoal;
+import net.tiew.operationWild.entity.goals.lion.LionStayHomeGoal;
+import net.tiew.operationWild.entity.goals.lion.LionWarnGoal;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
@@ -162,6 +176,15 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final float RELEASE_BLEND_RATE = 0.3f;
     private static final float DISTRESS_BLEND_RATE = 0.2f;
     private static final float GUARD_BLEND_RATE = 0.1f;
+    private static final float WILD_POSE_BLEND_RATE = 0.12f;
+    private static final int COALITION_CHANCE = 10;
+    private static final double COALITION_RADIUS = 24.0;
+    private static final double KILL_CALL_RADIUS = 48.0;
+
+    public static final int WILD_POSE_NONE = 0;
+    public static final int WILD_POSE_STALK = 1;
+    public static final int WILD_POSE_THREAT = 2;
+    public static final int WILD_POSE_EAT = 3;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
@@ -186,6 +209,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final EntityDataAccessor<Boolean> RELEASE_LEAP = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> LEAP_FLIGHT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> LEAP_APEX = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> WILD_POSE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
@@ -205,6 +229,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     // ==================================================
 
     public volatile float bodyAnimY = 0f;
+
+    public final LionWildMind wild = new LionWildMind(this);
+    private boolean chorusRoar = false;
+    private float stalkBlend, stalkBlendO;
+    private float threatBlend, threatBlendO;
+    private float eatBlend, eatBlendO;
 
     private int clanCheckCooldown = 0;
     private int packNearbyLionesses = 0;
@@ -284,11 +314,24 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.goalSelector.addGoal(0, new FloatGoal(this));
 
         this.goalSelector.addGoal(1, new LionGuardGoal());
+        this.goalSelector.addGoal(1, new LionConcedeFleeGoal(this));
+        this.goalSelector.addGoal(1, new LionDuelWatchGoal(this));
         this.goalSelector.addGoal(2, new LionMeleeAttackGoal());
+        this.goalSelector.addGoal(3, new LionHuntGoal(this));
+        this.goalSelector.addGoal(3, new LionFeastGoal(this));
+        this.goalSelector.addGoal(3, new LionPerchGoal(this));
+        this.goalSelector.addGoal(4, new LionClanRestGoal(this));
 
         this.goalSelector.addGoal(5, new NapGoal(this, 1f, 800, true));
+        this.goalSelector.addGoal(5, new LionWarnGoal(this));
 
         this.goalSelector.addGoal(7, new LionessStayWithPrideGoal());
+        this.goalSelector.addGoal(8, new LionStayHomeGoal(this));
+        this.goalSelector.addGoal(8, new LionNomadRoamGoal(this));
+
+        this.targetSelector.addGoal(2, new LionDuelTargetGoal(this));
+        this.targetSelector.addGoal(2, new LionIntruderTargetGoal(this));
+        this.targetSelector.addGoal(3, new LionRivalPredatorTargetGoal(this));
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.65D));
@@ -317,6 +360,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         builder.define(LATCH_GRIP, 0);
         builder.define(LATCH_SHAKE, 0);
         builder.define(BITE_TICK, 0);
+        builder.define(WILD_POSE, WILD_POSE_NONE);
         builder.define(DISTRESS_TICK, 0);
         builder.define(GUARD_POSE, false);
         builder.define(RELEASE_LEAP, true);
@@ -612,6 +656,8 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
             tickAutoPounce();
             tickGestureCounters();
             tickClan(serverLevel);
+            if (!this.isTame()) wild.tick(serverLevel);
+            else if (getWildPose() != WILD_POSE_NONE) setWildPose(WILD_POSE_NONE);
         } else {
             tickClientEffects();
         }
@@ -648,6 +694,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public void setTarget(@Nullable LivingEntity target) {
         if (target != null && (isSedatedFleeing() || isNapping())) return;
         if (target != null && isClanmate(target)) return;
+        if (target instanceof LionEntity && !this.isTame() && wild.isConceding()) return;
 
         if (!isTame()) {
             setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting());
@@ -682,6 +729,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         boolean hurt = super.hurt(damageSource, received);
         if (hurt && latched && !this.level().isClientSide()) onLatchedHurt(received);
 
+        if (hurt && this.level() instanceof ServerLevel serverLevel && !this.isTame() && this.isAlive()
+                && damageSource.getEntity() != null && damageSource.getEntity() != this) {
+            LionPride.onHurt(serverLevel, this, damageSource.getEntity());
+        }
+
         if (hurt && !this.level().isClientSide() && this.isMale() && damageSource.getEntity() instanceof LivingEntity attacker) {
             rallyClanAgainst(attacker);
         }
@@ -695,6 +747,10 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         if (kills < required) setUltimateKillCount(kills + 1);
 
         if (target instanceof LionEntity rival) claimDefeatedClan(level, rival);
+        else if (!this.isTame()) {
+            LionPride.onKill(level, this, target);
+            callMaleToKill(level, target);
+        }
         return super.killedEntity(level, target);
     }
 
@@ -818,8 +874,53 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
             clan = this.isMale() ? data.found(this.getUUID(), this.isTame(), this.random) : findClanToJoin(level, data);
         }
 
+        if (clan != null && !clan.tamed && this.isMale()) clan = tryFormCoalition(level, data, clan);
+
         setClan(clan);
         if (this.isMale()) updatePackStrength(level, clan);
+        if (clan != null && !clan.tamed) LionPride.tick(level, clan, data);
+    }
+
+    private LionClanData.Clan tryFormCoalition(ServerLevel level, LionClanData data, LionClanData.Clan clan) {
+        if (!clan.isNomad() || !clan.coMales.isEmpty() || !clan.male.equals(this.getUUID())) return clan;
+        if (this.random.nextInt(COALITION_CHANCE) != 0) return clan;
+        for (LionEntity other : level.getEntitiesOfClass(LionEntity.class, this.getBoundingBox().inflate(COALITION_RADIUS),
+                lion -> lion != this && lion.isAlive() && lion.isMale() && !lion.isBaby() && !lion.isTame() && lion.getClanId() != null)) {
+            LionClanData.Clan theirs = data.getClan(other.getClanId());
+            if (theirs == null || theirs == clan || !theirs.isNomad() || theirs.isCoalitionFull()) continue;
+            if (!theirs.male.equals(other.getUUID())) continue;
+            boolean iJoin = theirs.maleCount() > clan.maleCount()
+                    || (theirs.maleCount() == clan.maleCount() && this.getUUID().compareTo(other.getUUID()) > 0);
+            if (!iJoin) continue;
+            if (data.joinCoalition(theirs.id, this.getUUID())) return theirs;
+        }
+        return clan;
+    }
+
+    @Nullable
+    public LionClanData.Clan wildClan() {
+        if (this.isTame() || !(this.level() instanceof ServerLevel level) || getClanId() == null) return null;
+        LionClanData data = LionClanData.get(level.getServer());
+        LionClanData.Clan clan = data.getClan(getClanId());
+        return clan != null && !clan.tamed && data.isMember(clan.id, this.getUUID()) ? clan : null;
+    }
+
+    public boolean isCoMale() {
+        LionClanData.Clan clan = wildClan();
+        return clan != null && clan.coMales.contains(this.getUUID());
+    }
+
+    public void refreshClan(ServerLevel level) {
+        clanCheckCooldown = 0;
+    }
+
+    private void callMaleToKill(ServerLevel level, LivingEntity prey) {
+        LionClanData.Clan clan = wildClan();
+        if (clan == null) return;
+        LionEntity male = LionPride.loadedLeader(level, clan);
+        if (male == null || male == this || male.distanceTo(prey) > KILL_CALL_RADIUS || male.isKnockedOut()) return;
+        if (male.isNapping()) male.setNap(false);
+        if (male.isSitting()) male.setSitting(false);
     }
 
     @Nullable
@@ -829,7 +930,10 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
                 lion -> lion != this && lion.isAlive() && lion.isMale() && !lion.isBaby()
                         && lion.isTame() == this.isTame() && lion.getClanId() != null
                         && (!this.isTame() || (this.getOwnerUUID() != null && this.getOwnerUUID().equals(lion.getOwnerUUID()))));
-        leaders.sort(Comparator.comparingDouble(this::distanceToSqr));
+        leaders.sort(Comparator.comparingInt((LionEntity leader) -> {
+            LionClanData.Clan candidate = data.getClan(leader.getClanId());
+            return candidate != null && candidate.isNomad() ? 1 : 0;
+        }).thenComparingDouble(this::distanceToSqr));
 
         for (LionEntity leader : leaders) {
             LionClanData.Clan clan = data.getClan(leader.getClanId());
@@ -853,12 +957,27 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     private void claimDefeatedClan(ServerLevel level, LionEntity rival) {
         if (!this.isMale() || !rival.isMale() || this.isTame() || rival.isTame()) return;
-        UUID mine = getClanId();
         UUID theirs = rival.getClanId();
+        if (theirs == null || theirs.equals(getClanId())) return;
+        LionClanData.Clan defeated = LionClanData.get(level.getServer()).getClan(theirs);
+        if (defeated == null || defeated.maleCount() > 1) return;
+        claimClan(level, theirs);
+    }
+
+    public void claimClan(ServerLevel level, UUID theirs) {
+        UUID mine = getClanId();
         if (mine == null || theirs == null || mine.equals(theirs)) return;
 
         LionClanData data = LionClanData.get(level.getServer());
-        if (data.absorb(mine, theirs) <= 0) return;
+        LionClanData.Clan victor = data.getClan(mine);
+        if (victor != null) {
+            victor.state.clearRival();
+            victor.state.waypoint = null;
+        }
+        if (data.absorb(mine, theirs) <= 0) {
+            setClan(data.getClan(mine));
+            return;
+        }
 
         LionClanData.Clan clan = data.getClan(mine);
         for (LionEntity lioness : level.getEntitiesOfClass(LionEntity.class, this.getBoundingBox().inflate(OWAttacksConstants.Lion.CLAN_DEFENSE_RADIUS),
@@ -871,6 +990,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     private void rallyClanAgainst(LivingEntity attacker) {
         if (getClanId() == null || attacker == this || isClanmate(attacker)) return;
+        if (!this.isTame() && attacker instanceof LionEntity rival && rival.isMale() && !rival.isTame()) return;
         if (this.isTame() && (attacker == this.getOwner() || this.isAlliedTo(attacker))) return;
         if (attacker instanceof Player player && (player.isCreative() || player.isSpectator())) return;
 
@@ -1155,10 +1275,16 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         if (elapsed == OWAttacksConstants.Lion.ROAR_SHOUT_TICK) {
             if (guardRoar) guardRoarShout(level);
+            else if (chorusRoar) LionPride.onChorusShout(level, this);
             else roarOfDomination(level);
         }
-        if (tick - 1 <= 0) guardRoar = false;
+        boolean chorus = chorusRoar;
+        if (tick - 1 <= 0) {
+            guardRoar = false;
+            chorusRoar = false;
+        }
         if (elapsed == OWAttacksConstants.Lion.ROAR_STOMP_TICK) groundSlam(level, 1.4, 20);
+        if (chorus) return;
 
         int[] pulses = OWAttacksConstants.Lion.ROAR_PULSE_TICKS;
         for (int i = 0; i < pulses.length; i++) {
@@ -1344,6 +1470,14 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         guardBlendO = guardBlend;
         guardBlend = approach(guardBlend, isGuardPosed() ? 1f : 0f, GUARD_BLEND_RATE);
 
+        int pose = getWildPose();
+        stalkBlendO = stalkBlend;
+        stalkBlend = approach(stalkBlend, pose == WILD_POSE_STALK ? 1f : 0f, WILD_POSE_BLEND_RATE);
+        threatBlendO = threatBlend;
+        threatBlend = approach(threatBlend, pose == WILD_POSE_THREAT ? 1f : 0f, WILD_POSE_BLEND_RATE);
+        eatBlendO = eatBlend;
+        eatBlend = approach(eatBlend, pose == WILD_POSE_EAT ? 1f : 0f, WILD_POSE_BLEND_RATE);
+
         if (earFlickTicks > 0) {
             earFlickTicks--;
         } else if (--earFlickCooldown <= 0) {
@@ -1376,6 +1510,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public float distressBlend(float partialTick) { return Mth.lerp(partialTick, distressBlendO, distressBlend); }
 
     public float guardBlend(float partialTick) { return Mth.lerp(partialTick, guardBlendO, guardBlend); }
+
+    public float stalkBlend(float partialTick) { return Mth.lerp(partialTick, stalkBlendO, stalkBlend); }
+
+    public float threatBlend(float partialTick) { return Mth.lerp(partialTick, threatBlendO, threatBlend); }
+
+    public float eatBlend(float partialTick) { return Mth.lerp(partialTick, eatBlendO, eatBlend); }
 
     public float earFlick(float partialTick) {
         if (earFlickTicks <= 0) return 0f;
@@ -2229,6 +2369,67 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
                 || entity.getRootVehicle() == leader;
     }
 
+    public void startChorus() {
+        if (this.level().isClientSide() || isRoaring()) return;
+        chorusRoar = true;
+        guardRoar = false;
+        this.getNavigation().stop();
+        this.entityData.set(ROAR_TICK, OWAttacksConstants.Lion.ROAR_ANIMATION_TICKS);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.HORSE_BREATHE,
+                SoundSource.NEUTRAL, 1.6f, 0.5f);
+    }
+
+    public void chorusReply(ServerLevel level) {
+        if (!this.isAlive() || this.isKnockedOut()) return;
+        this.entityData.set(RESPOND_TICK, OWAttacksConstants.Lion.RESPOND_TICKS);
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(), SoundSource.NEUTRAL,
+                LionPride.CHORUS_REPLY_VOLUME, (float) OWUtils.generateRandomInterval(1.1, 1.35) * (this.isMale() ? 0.8f : 1f));
+    }
+
+    public void huntTarget(LivingEntity prey) {
+        if (this.isNapping()) this.setNap(false);
+        if (this.isSitting()) this.setSitting(false);
+        this.setTarget(prey);
+        if (this.getTarget() != prey) return;
+        this.setRunning(true);
+        if (this.isMale() || this.isBaby() || getLatchPhase() != LATCH_NONE || isSecondaryOnCooldown() || this.isInWater()) return;
+        if (!canLatchOnto(prey) || !hasLatchRoom(prey) || prey instanceof LionEntity) return;
+        if (this.distanceTo(prey) > OWAttacksConstants.Lion.AUTO_LEAP_MAX_DISTANCE || !this.getSensing().hasLineOfSight(prey)) return;
+        beginHunt(prey, false);
+    }
+
+    public void setGuardPosed(boolean posed) {
+        if (this.entityData.get(GUARD_POSE) != posed) this.entityData.set(GUARD_POSE, posed);
+    }
+
+    public int getWildPose() {
+        return this.entityData.get(WILD_POSE);
+    }
+
+    public void setWildPose(int pose) {
+        if (this.entityData.get(WILD_POSE) != pose) this.entityData.set(WILD_POSE, pose);
+    }
+
+    public boolean isInTallGrass() {
+        BlockPos feet = this.blockPosition();
+        return isCover(this.level().getBlockState(feet)) || isCover(this.level().getBlockState(feet.above()));
+    }
+
+    private static boolean isCover(BlockState state) {
+        return state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN) || state.is(Blocks.LARGE_FERN);
+    }
+
+    @Override
+    public boolean hidesInfoOverlay() {
+        return !this.isTame() && getWildPose() == WILD_POSE_STALK && isInTallGrass();
+    }
+
+    @Override
+    public boolean canStartNap() {
+        if (!this.isTame() && hasClan()) return false;
+        return super.canStartNap();
+    }
+
     private void startGuardRoar() {
         guardRoar = true;
         this.getNavigation().stop();
@@ -2594,7 +2795,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         private boolean isFree() {
             LionEntity lioness = LionEntity.this;
-            return lioness.isFemale() && !lioness.isBaby() && lioness.hasClan()
+            return (lioness.isFemale() || lioness.isCoMale()) && !lioness.isBaby() && lioness.hasClan()
                     && lioness.getTarget() == null && !lioness.isSitting() && !lioness.isVehicle()
                     && !lioness.isKnockedOut() && !lioness.isSleeping() && !lioness.isNapping()
                     && !lioness.isLeashed() && (!lioness.isTame() || !lioness.isFollowingOwner());
@@ -2716,5 +2917,15 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
+    }
+
+    @Override
+    protected int experienceRewardMin() {
+        return this.isMale() ? 7 : 5;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return this.isMale() ? 11 : 8;
     }
 }

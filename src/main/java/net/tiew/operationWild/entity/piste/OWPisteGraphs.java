@@ -256,7 +256,7 @@ public final class OWPisteGraphs {
                 .coins('Y', 8, 20, 48)
                 .xp('Z', 250, 15, 50).requireAll('Z');
         if (redPandaPassives) maze.attack('R', 2, 3, 70, 34);
-        else maze.xp('R', 95, 15, 34);
+        else maze.attack('R', 4, 5, 70, 42);
         return maze.build();
     }
 

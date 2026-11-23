@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_rhinoceros": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:raw_rhinoceros"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:cooked_rhinoceros_from_smelting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_rhinoceros"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:cooked_rhinoceros_from_smelting"
+    ]
+  }
+}

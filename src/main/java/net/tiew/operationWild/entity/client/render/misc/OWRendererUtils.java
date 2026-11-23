@@ -1367,7 +1367,7 @@ public class OWRendererUtils {
 
         if (player != null) {
             int distance = (int) entity.distanceTo(player);
-            infoState.showInfo = distance <= distanceToShow;
+            infoState.showInfo = distance <= distanceToShow && !entity.hidesInfoOverlay();
         }
 
         int smoothAnimationTimeInSeconds = 1;

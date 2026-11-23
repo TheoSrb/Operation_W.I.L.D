@@ -92,15 +92,15 @@ public class OWEntityRegistry {
                     .sized(0.4f, 0.4f)
                     .build("heal_snack"));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<WindGustEntity>> WIND_GUST =
-            ENTITY_TYPES.register("wind_gust", () -> EntityType.Builder
-                    .<WindGustEntity>of(WindGustEntity::new, MobCategory.MISC)
+    public static final DeferredHolder<EntityType<?>, EntityType<PeacockFeatherEntity>> PEACOCK_FEATHER =
+            ENTITY_TYPES.register("peacock_feather", () -> EntityType.Builder
+                    .<PeacockFeatherEntity>of(PeacockFeatherEntity::new, MobCategory.MISC)
                     .noSave()
                     .noSummon()
                     .clientTrackingRange(8)
                     .updateInterval(1)
-                    .sized(0.5f, 0.5f)
-                    .build("wind_gust"));
+                    .sized(0.6f, 0.6f)
+                    .build("peacock_feather"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<FeastPileEntity>> FEAST_PILE =
             ENTITY_TYPES.register("feast_pile", () -> EntityType.Builder

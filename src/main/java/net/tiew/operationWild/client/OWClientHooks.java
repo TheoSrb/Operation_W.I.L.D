@@ -35,6 +35,19 @@ public final class OWClientHooks {
         return Minecraft.getInstance().options.keyJump.isDown();
     }
 
+    public static final int GLIDE_STOP = 0;
+    public static final int GLIDE_START = 1;
+    public static final int GLIDE_TAKEOFF = 2;
+
+    public static boolean isScreenOpen() {
+        return Minecraft.getInstance().screen != null;
+    }
+
+    public static void sendGlide(int action) {
+        net.tiew.operationWild.networking.OWNetworkHandler.sendToServer(
+                new net.tiew.operationWild.networking.packets.to_server.OWGlidePacket(action));
+    }
+
     public static boolean isSlideKeyDown() {
         return net.tiew.operationWild.core.OWKeysBinding.OW_SLIDE.isDown();
     }

@@ -61,4 +61,14 @@ public class SeabugShard extends OWEntity {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0, -0.02, 0.0));
         }
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 0;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 0;
+    }
 }

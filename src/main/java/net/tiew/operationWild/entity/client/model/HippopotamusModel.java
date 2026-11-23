@@ -110,17 +110,31 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-        PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-10.0F, -8.0F, -14.0F, 20.0F, 19.0F, 30.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.0F, 0.0F));
+        PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-10.0F, -8.0F, -14.0F, 20.0F, 19.0F, 30.0F, new CubeDeformation(0.0F))
+                .texOffs(168, 73).addBox(-6.0F, -11.0F, -12.0F, 12.0F, 3.0F, 11.0F, new CubeDeformation(0.0F))
+                .texOffs(168, 73).addBox(-6.0F, -11.0F, 2.0F, 12.0F, 3.0F, 11.0F, new CubeDeformation(0.0F))
+                .texOffs(101, 0).addBox(-10.0F, -8.0F, -14.0F, 20.0F, 19.0F, 30.0F, new CubeDeformation(0.5F))
+                .texOffs(202, 0).addBox(10.75F, -7.0F, -10.5F, 1.0F, 12.0F, 22.0F, new CubeDeformation(0.0F))
+                .texOffs(202, 0).mirror().addBox(-11.75F, -7.0F, -10.5F, 1.0F, 12.0F, 22.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(0.0F, -2.0F, 0.0F));
 
         PartDefinition head = body.addOrReplaceChild("head", CubeListBuilder.create().texOffs(5, 158).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 11.0F, 8.0F, new CubeDeformation(0.0F))
                 .texOffs(52, 79).addBox(1.5F, -8.0F, -7.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(52, 79).mirror().addBox(-5.5F, -8.0F, -7.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(0.0F, 0.0F, -15.0F));
+                .texOffs(52, 79).mirror().addBox(-5.5F, -8.0F, -7.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false)
+                .texOffs(125, 69).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 11.0F, 8.0F, new CubeDeformation(0.25F))
+                .texOffs(0, 50).addBox(-8.5F, -1.0F, -14.0F, 17.0F, 1.0F, 1.0F, new CubeDeformation(0.05F))
+                .texOffs(249, 0).addBox(8.6F, -2.0F, -15.0F, 0.0F, 3.0F, 3.0F, new CubeDeformation(0.01F))
+                .texOffs(249, 0).mirror().addBox(-8.6F, -2.0F, -15.0F, 0.0F, 3.0F, 3.0F, new CubeDeformation(0.01F)).mirror(false)
+                .texOffs(202, 35).addBox(8.8F, -15.0F, -14.0F, 0.0F, 16.0F, 21.0F, new CubeDeformation(0.01F))
+                .texOffs(202, 35).mirror().addBox(-8.8F, -15.0F, -14.0F, 0.0F, 16.0F, 21.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0F, 0.0F, -15.0F));
 
-        head.addOrReplaceChild("mouth_Up", CubeListBuilder.create().texOffs(8, 57).addBox(-6.5F, -4.0F, -13.0F, 13.0F, 6.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.0F, -6.0F));
+        head.addOrReplaceChild("mouth_Up", CubeListBuilder.create().texOffs(8, 57).addBox(-6.5F, -4.0F, -13.0F, 13.0F, 6.0F, 12.0F, new CubeDeformation(0.0F))
+                .texOffs(125, 50).addBox(-6.5F, -4.0F, -13.0F, 13.0F, 6.0F, 12.0F, new CubeDeformation(0.25F)), PartPose.offset(0.0F, -2.0F, -6.0F));
 
         head.addOrReplaceChild("mouth_Down", CubeListBuilder.create().texOffs(74, 57).addBox(-6.5F, -2.0F, -13.0F, 13.0F, 5.0F, 12.0F, new CubeDeformation(0.0F))
                 .texOffs(103, 83).addBox(-5.5F, -6.0F, -12.0F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F))
-                .texOffs(103, 83).mirror().addBox(2.5F, -6.0F, -12.0F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(0.0F, 2.0F, -6.0F));
+                .texOffs(103, 83).mirror().addBox(2.5F, -6.0F, -12.0F, 3.0F, 4.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false)
+                .texOffs(37, 50).addBox(-5.5F, -3.0F, -12.0F, 3.0F, 1.0F, 3.0F, new CubeDeformation(0.3F))
+                .texOffs(37, 50).mirror().addBox(2.5F, -3.0F, -12.0F, 3.0F, 1.0F, 3.0F, new CubeDeformation(0.3F)).mirror(false), PartPose.offset(0.0F, 2.0F, -6.0F));
 
         head.addOrReplaceChild("left_Ear", CubeListBuilder.create().texOffs(52, 83).addBox(-1.5F, -2.0F, -0.5F, 3.0F, 3.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(6.0F, -6.0F, -0.5F));
 

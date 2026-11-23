@@ -30,6 +30,9 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +40,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.advancements.OWAdvancements;
@@ -48,6 +55,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.attacks.OWAttackIds;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import net.tiew.operationWild.entity.attacks.OWPistePassives;
 import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -56,7 +64,8 @@ import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
-import net.tiew.operationWild.entity.misc.WindGustEntity;
+import net.tiew.operationWild.entity.OWGlideProfile;
+import net.tiew.operationWild.entity.misc.PeacockFeatherEntity;
 import net.tiew.operationWild.entity.taming.OWSedationImpact;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.item.OWItems;
@@ -93,6 +102,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public static final double BASE_SPEED = 0.19;
 
     private static final float MAX_VITAL_ENERGY = 320f;
+    private static final double RIDER_HEIGHT_FACTOR = 0.4;
     private static final int SEDATION_WAKE_TICKS = 45;
     private static final float RUN_BLEND_RATE = 0.2f;
     private static final float SIT_BLEND_RATE = 0.1f;
@@ -102,6 +112,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final int IDLE_GESTURE_MIN_DELAY = 300;
     private static final int IDLE_GESTURE_MAX_DELAY = 700;
     private static final DustParticleOptions LINK_DUST = new DustParticleOptions(new Vector3f(0.36f, 1f, 0.54f), 1.1f);
+    private static final DustParticleOptions FEATHER_PUFF = new DustParticleOptions(new Vector3f(0.12f, 0.62f, 0.66f), 0.7f);
     private static final DustParticleOptions DONOR_DUST = new DustParticleOptions(new Vector3f(0.85f, 0.2f, 0.25f), 0.8f);
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
@@ -110,20 +121,67 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final EntityDataAccessor<Integer> LINK_PHASE = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LINK_DONOR = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LINK_RECEIVER = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> GUST_TICK = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FEATHER_STOCK = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FEATHER_AIM_TICK = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FEATHER_SHOT = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SWEEP_TICK = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SWEEP_LINK_TICK = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> SWEEP_LINKS = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Integer> FAN_PHASE = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> STORM_CALL = SynchedEntityData.defineId(PeacockEntity.class, EntityDataSerializers.INT);
+
+    public static final int FAN_NONE = 0;
+    public static final int FAN_OPEN = 1;
+    public static final int FAN_SHAKE = 2;
+    public static final int FAN_DANCE = 3;
+    public static final int FAN_SHOW = 4;
+    public static final int FAN_CLOSE = 5;
+
+    public static final int FAN_OPEN_TICKS = 45;
+    public static final int FAN_SHAKE_TICKS = 40;
+    public static final int FAN_DANCE_LOOP_TICKS = 70;
+    public static final int FAN_DANCE_TICKS = FAN_DANCE_LOOP_TICKS * 2;
+    public static final int FAN_DANCE_VOLTE_TICK = 40;
+    public static final int FAN_CLOSE_TICKS = 30;
+    public static final int FAN_FEAR_DELAY_TICKS = 4;
+    public static final double FAN_FEAR_RADIUS = 10.0;
+    private static final float COURT_COUNTER_CHANCE = 0.6f;
+    private static final int STORM_CHECK_INTERVAL = 40;
+    private static final int STORM_FORECAST_TICKS = 2400;
+    private static final int STORM_CALL_MIN_DELAY = 160;
+    private static final int STORM_CALL_MAX_DELAY = 420;
+    private static final float STORM_CALL_VOLUME = 3.0f;
+    public static final int FAN_FEAR_DURATION_TICKS = 100;
+    public static final int FAN_SLOW_DURATION_TICKS = 60;
+    private static final int FAN_AGGRESSOR_MEMORY_TICKS = 100;
+    private static final double FEATHER_LEAD_FACTOR = 0.8;
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
     // ==================================================
 
-    public final AnimationState gustAnimationState = new AnimationState();
+    public final AnimationState featherShotRightState = new AnimationState();
+    public final AnimationState featherShotLeftState = new AnimationState();
     public final AnimationState sweepAnimationState = new AnimationState();
     public final AnimationState idleGestureAnimationState = new AnimationState();
     public final AnimationState peckAnimationState = new AnimationState();
     public final AnimationState callAnimationState = new AnimationState();
+    public final AnimationState fanPhaseState = new AnimationState();
+    public int fanPrevPhase = FAN_NONE;
+    public long fanPrevMs = 0L;
+    public float fanPrevMove = 0f;
+    public float fanShowMove = 0f;
+    private int clientFanPhase = FAN_NONE;
+    private int clientStormCall = 0;
+
+    private int fanPhaseTicks = 0;
+    private int fanPhaseElapsed = 0;
+    private boolean fanCourting = false;
+    private boolean fanStorm = false;
+    private int fanShowTicks = 0;
+    private int fanFocusId = -1;
+    private boolean stormIncoming = false;
+    private int stormCallTimer = 0;
 
     private int idleGestureCooldown = IDLE_GESTURE_MIN_DELAY;
     private int idleGestureTicks = 0;
@@ -138,6 +196,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private int linkTransferTimer = 0;
     private boolean linkCredited = false;
     private int linkDurationTimer = 0;
+    private boolean linkAuto = false;
     private float sweepDamagePool = 0f;
     private final Set<Integer> sweepHits = new HashSet<>();
 
@@ -145,6 +204,27 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private float sitBlend, sitBlendO;
     private float restBlend, restBlendO;
     private float linkBlend, linkBlendO;
+    private float aimBlend, aimBlendO;
+
+    private int featherRegenTimer = 0;
+    private int featherCadenceTimer = 0;
+    private int featherReleaseTimer = 0;
+    private boolean featherReleaseRight = true;
+    private boolean featherCharging = false;
+    private int featherChargeTick = 0;
+    private int featherLastShotTick = Integer.MIN_VALUE / 2;
+    private int featherReleaseTargetId = -1;
+    private int featherAutoShotTick = Integer.MIN_VALUE / 2;
+    private boolean featherReleaseHostile = false;
+    private int clientFeatherRegen = 0;
+    private int featherBurstLeft = 0;
+    private float featherBurstClock = 0f;
+    private final java.util.ArrayDeque<int[]> featherPendingReleases = new java.util.ArrayDeque<>();
+    private int clientLastStock = -1;
+    private int clientSeenShot = 0;
+    private int clientShotTicks = 0;
+    private int clientRightShotTicks = 0;
+    private int clientLeftShotTicks = 0;
 
     // ==================================================
     //            INTELLIGENCE ARTIFICIELLE
@@ -168,7 +248,11 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new PeacockMeleeAttackGoal());
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.peacock.PeacockAutoHealGoal(this));
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.peacock.PeacockFanDisplayGoal(this));
+        this.goalSelector.addGoal(2, new net.tiew.operationWild.entity.goals.peacock.PeacockWildFeatherGoal(this));
+        this.goalSelector.addGoal(3, new PeacockMeleeAttackGoal());
+        this.goalSelector.addGoal(4, new net.tiew.operationWild.entity.goals.peacock.PeacockCourtshipGoal(this));
         this.goalSelector.addGoal(5, new NapGoal(this, 1f, 800, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
@@ -184,10 +268,14 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         builder.define(LINK_PHASE, LINK_NONE);
         builder.define(LINK_DONOR, -1);
         builder.define(LINK_RECEIVER, -1);
-        builder.define(GUST_TICK, 0);
+        builder.define(FEATHER_STOCK, OWAttacksConstants.Peacock.FEATHER_MAX_STOCK);
+        builder.define(FEATHER_AIM_TICK, 0);
+        builder.define(FEATHER_SHOT, 0);
         builder.define(SWEEP_TICK, 0);
         builder.define(SWEEP_LINK_TICK, 0);
         builder.define(SWEEP_LINKS, "");
+        builder.define(FAN_PHASE, FAN_NONE);
+        builder.define(STORM_CALL, 0);
     }
 
     // ==================================================
@@ -221,7 +309,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     public boolean hasStandardHeadPose() {
-        return !isLinking() && !isGusting() && !isSweeping();
+        return !isLinking() && !isFeatherAiming() && !isSweeping() && !isGliding() && !isFanDisplaying();
     }
 
     @Override
@@ -316,6 +404,11 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     @Override
+    protected boolean pausesEnergyRecovery() {
+        return isFeatherAiming();
+    }
+
+    @Override
     public float getVitalEnergyRecuperation() {
         return 1.1f * (1 + ((float) this.getLevel() / 50));
     }
@@ -343,7 +436,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public float getRotationSpeed() {
         if (isSweeping()) return 0f;
-        return 0.25f;
+        return isFeatherAiming() ? 0.5f : 0.25f;
     }
 
     @Override
@@ -450,15 +543,17 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
-            setMadByRider(this.isCombo() || this.isSweeping() || this.isGusting());
+            setMadByRider(this.isCombo() || this.isSweeping() || this.isFeatherAiming());
         }
 
         // ------------ FONCTIONNEMENT PROPRE ------------
 
         if (this.level() instanceof ServerLevel serverLevel) {
             tickLink(serverLevel);
-            tickGust(serverLevel);
+            tickFeathers(serverLevel);
             tickSweep(serverLevel);
+            tickFanDisplay(serverLevel);
+            tickStormSense(serverLevel);
         } else {
             tickClientEffects();
         }
@@ -490,7 +585,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public float getRiddenSpeedVehicle(Player player) {
         if (isSweeping()) return 0;
         float speed = super.getRiddenSpeedVehicle(player);
-        return isGusting() ? speed * 0.35f : speed;
+        return isFeatherAiming() ? speed * OWAttacksConstants.Peacock.FEATHER_AIM_SPEED_FACTOR : speed;
     }
 
     @Override
@@ -499,6 +594,10 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         boolean hurt = super.hurt(damageSource, amount);
         if (hurt && !this.level().isClientSide() && isLinking() && amount >= OWAttacksConstants.Peacock.LINK_BREAK_DAMAGE) {
             breakLink(true);
+        }
+        if (hurt && !this.level().isClientSide() && isCourtingPhase() && damageSource.getEntity() instanceof LivingEntity attacker) {
+            if (this.random.nextFloat() < COURT_COUNTER_CHANCE) startFanDisplay(attacker);
+            else closeFan();
         }
         return hurt;
     }
@@ -518,8 +617,14 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public void die(DamageSource damageSource) {
         if (!this.level().isClientSide()) {
             breakLink(false);
-            this.entityData.set(GUST_TICK, 0);
+            this.entityData.set(FEATHER_AIM_TICK, 0);
+            featherReleaseTimer = 0;
+            featherReleaseTargetId = -1;
+            featherBurstLeft = 0;
+            featherPendingReleases.clear();
+            featherReleaseHostile = false;
             this.entityData.set(SWEEP_TICK, 0);
+            setFanPhase(FAN_NONE, 0);
         }
         super.die(damageSource);
         if (!this.level().isClientSide() && this.isSaddled()) this.spawnAtLocation(acceptSaddle());
@@ -527,22 +632,32 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     protected boolean isImmobile() {
-        return super.isImmobile() || isSweeping();
+        return super.isImmobile() || isSweeping() || isFanLocked();
     }
 
     @Override
     public boolean isAttackLocked() {
-        return super.isAttackLocked() || isSweeping();
+        return super.isAttackLocked() || isSweeping() || isFanDisplaying();
     }
 
     @Override
     public boolean canStartCombo() {
-        return super.canStartCombo() && !isLinking() && !isSweeping() && !isGusting();
+        return super.canStartCombo() && !isLinking() && !isSweeping() && !isFanDisplaying();
     }
 
     @Override
-    public boolean canUseUltimate() {
-        return super.canUseUltimate() && !isGusting();
+    public @Nullable OWGlideProfile glideProfile() {
+        return OWGlideProfile.DEFAULT;
+    }
+
+    @Override
+    public boolean canGlideNow() {
+        return super.canGlideNow() && !isSweeping();
+    }
+
+    @Override
+    public @Nullable SoundEvent glideFlapSound() {
+        return OWSounds.PEACOCK_WING_GUST.get();
     }
 
     @Override
@@ -552,7 +667,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     public boolean isAlliedTo(Entity entity) {
-        if (entity instanceof PeacockEntity other && other.isBaby() && !other.isTame() && !this.isTame()) return true;
+        if (entity instanceof PeacockEntity other && !other.isTame() && !this.isTame()) return true;
         return super.isAlliedTo(entity);
     }
 
@@ -651,6 +766,33 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         }
     }
 
+    public boolean startAutoLink(OWEntity donor, OWEntity receiver) {
+        if (this.level().isClientSide()) return false;
+        if (getLinkPhase() != LINK_NONE || donor == receiver) return false;
+        if (!isLinkCandidate(donor) || !isLinkCandidate(receiver) || !canDonate(donor)) return false;
+        if (isSecondaryOnCooldown() || isSweeping() || isCombo() || isFeatherAiming()) return false;
+        float cost = OWAttacksConstants.Peacock.LINK_START_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) return false;
+
+        setVitalEnergy(getVitalEnergy() + cost);
+        this.entityData.set(LINK_DONOR, donor.getId());
+        this.entityData.set(LINK_RECEIVER, receiver.getId());
+        this.entityData.set(LINK_PHASE, LINK_ACTIVE);
+        linkAuto = true;
+        linkSelectionTimer = 0;
+        linkTransferTimer = 0;
+        linkCredited = false;
+        linkDurationTimer = OWAttacksConstants.Peacock.LINK_DURATION_TICKS;
+        playSoundAt(donor, SoundEvents.AMETHYST_BLOCK_CHIME, 1.0f, 1.4f);
+        playSoundAt(this, SoundEvents.BEACON_ACTIVATE, 0.8f, 1.6f);
+        playSoundAt(receiver, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0f, 1.2f);
+        return true;
+    }
+
+    public boolean isAutoLinking() {
+        return linkAuto && getLinkPhase() == LINK_ACTIVE;
+    }
+
     public void breakLinkByRider() {
         if (getLinkPhase() == LINK_NONE) return;
         breakLink(true);
@@ -659,6 +801,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private void breakLink(boolean withCooldown) {
         if (this.level().isClientSide()) return;
         boolean wasActive = getLinkPhase() == LINK_ACTIVE;
+        linkAuto = false;
         this.entityData.set(LINK_PHASE, LINK_NONE);
         this.entityData.set(LINK_DONOR, -1);
         this.entityData.set(LINK_RECEIVER, -1);
@@ -674,7 +817,10 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         int phase = getLinkPhase();
         if (phase == LINK_NONE) return;
 
-        if (this.getControllingPassenger() == null || isKnockedOut() || isSleeping() || !this.isAlive()) {
+        boolean lostControl = linkAuto
+                ? this.getControllingPassenger() != null || !canAutoHealNow()
+                : this.getControllingPassenger() == null;
+        if (lostControl || isKnockedOut() || isSleeping() || !this.isAlive()) {
             breakLink(phase == LINK_ACTIVE);
             return;
         }
@@ -704,12 +850,18 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         float floor = donor.getMaxHealth() * OWAttacksConstants.Peacock.LINK_DONOR_FLOOR;
         float available = donor.getHealth() - floor;
         float missing = receiver.getMaxHealth() - receiver.getHealth();
-        if (available <= 0.05f || missing <= 0.05f) return;
+        if (available <= 0.05f || missing <= 0.05f) {
+            if (linkAuto) breakLink(true);
+            return;
+        }
 
-        float amplification = OWAttacksConstants.Peacock.LINK_AMPLIFICATION;
-        float taken = Math.min(donor.getMaxHealth() * OWAttacksConstants.Peacock.LINK_TRANSFER_RATIO, available);
-        float given = Math.min(taken * amplification, missing);
-        taken = given / amplification;
+        boolean gentle = OWPistePassives.has(this, OWPistePassives.GENTLE_BOND);
+        float donorFactor = gentle ? OWPistePassives.GENTLE_BOND_DONOR_FACTOR : 1f;
+        float amplification = OWAttacksConstants.Peacock.LINK_AMPLIFICATION
+                * (gentle ? OWPistePassives.GENTLE_BOND_HEAL_FACTOR : 1f);
+        float drawn = Math.min(donor.getMaxHealth() * OWAttacksConstants.Peacock.LINK_TRANSFER_RATIO, available / donorFactor);
+        float given = Math.min(drawn * amplification, missing);
+        float taken = given / amplification * donorFactor;
 
         donor.setHealth(donor.getHealth() - taken);
         receiver.heal(given);
@@ -728,41 +880,513 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         }
     }
 
-    public boolean performWingGust() {
-        if (this.level().isClientSide()) return false;
-        if (isGusting() || isSweeping() || isLinking() || isCombo()) return false;
+    public boolean isFeatherAlly(@Nullable LivingEntity target) {
+        if (target == null || target == this) return false;
+        if (this.isAlliedTo(target)) return true;
+        if (!this.isTame() && target instanceof PeacockEntity other && !other.isTame()) return true;
+        if (target instanceof OWEntity other && this.getOwnerUUID() != null && this.getOwnerUUID().equals(other.getOwnerUUID())) return true;
+        return target instanceof Player player && this.getOwnerUUID() != null && this.getOwnerUUID().equals(player.getUUID());
+    }
 
-        float cost = OWAttacksConstants.Peacock.GUST_ENERGY;
+    public boolean canShootFeather() {
+        return getFeatherStock() > 0 && !isGliding() && !isSweeping() && !isAttackLocked()
+                && !isKnockedOut() && !isSitting();
+    }
+
+    public boolean autoShootFeatherAt(LivingEntity target) {
+        if (this.level().isClientSide() || target == null || !target.isAlive()) return false;
+        if (!canShootFeather() || isLinking() || featherCadenceTimer > 0 || featherReleaseTimer > 0) return false;
+        float cost = OWAttacksConstants.Peacock.FEATHER_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) return false;
+
+        setVitalEnergy(getVitalEnergy() + cost);
+        queueAutoFeather(target, false);
+        return true;
+    }
+
+    public boolean wildShootFeatherAt(LivingEntity target) {
+        if (this.level().isClientSide() || this.isTame() || target == null || !target.isAlive()) return false;
+        if (this.getControllingPassenger() != null) return false;
+        if (!canShootFeather() || featherCadenceTimer > 0 || featherReleaseTimer > 0) return false;
+        interruptComboForFeathers();
+        queueAutoFeather(target, true);
+        return true;
+    }
+
+    public boolean isFeatherReady() {
+        return featherCadenceTimer <= 0 && featherReleaseTimer <= 0;
+    }
+
+    private void queueAutoFeather(LivingEntity target, boolean hostile) {
+        featherLastShotTick = this.tickCount;
+        featherAutoShotTick = this.tickCount;
+
+        int shot = getFeatherShot() + 1;
+        this.entityData.set(FEATHER_SHOT, shot);
+        this.entityData.set(FEATHER_STOCK, getFeatherStock() - 1);
+        this.entityData.set(FEATHER_AIM_TICK, OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS);
+        featherCadenceTimer = OWAttacksConstants.Peacock.FEATHER_CADENCE_TICKS;
+        featherReleaseTimer = OWAttacksConstants.Peacock.FEATHER_RELEASE_TICKS;
+        featherReleaseRight = isRightWingShot(shot);
+        featherReleaseTargetId = target.getId();
+        featherReleaseHostile = hostile;
+        playSoundAt(this, SoundEvents.ARMOR_EQUIP_ELYTRA.value(), 0.6f, 1.6f + this.random.nextFloat() * 0.2f);
+    }
+
+    private boolean isAutoVolleyActive() {
+        return this.tickCount - featherAutoShotTick <= OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS;
+    }
+
+    private void interruptComboForFeathers() {
+        if (!isCombo()) return;
+        resetCombo(0);
+        actualAttackNumber = 0;
+    }
+
+    public boolean isFeatherVolleyActive() {
+        return this.tickCount - featherLastShotTick <= OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS;
+    }
+
+    public void startFeatherCharge() {
+        if (this.level().isClientSide()) return;
+        if (!canShootFeather() || !(this.getControllingPassenger() instanceof Player)) return;
+        interruptComboForFeathers();
+        featherCharging = true;
+        featherChargeTick = this.tickCount;
+        this.entityData.set(FEATHER_AIM_TICK, OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS);
+        playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 0.5f, 1.4f);
+    }
+
+    public void cancelFeatherCharge() {
+        if (this.level().isClientSide() || !featherCharging) return;
+        featherCharging = false;
+        if (!isFeatherVolleyActive()) this.entityData.set(FEATHER_AIM_TICK, 0);
+    }
+
+    public boolean shootFeather() {
+        if (this.level().isClientSide()) return false;
+        if (!canShootFeather() || !(this.getControllingPassenger() instanceof Player)) return false;
+        if (featherCadenceTimer > OWAttacksConstants.Peacock.FEATHER_CADENCE_SLACK_TICKS) return false;
+        if (featherBurstLeft > 0) return false;
+        boolean charged = featherCharging && this.tickCount - featherChargeTick
+                >= OWAttacksConstants.Peacock.FEATHER_MIN_CHARGE_TICKS - OWAttacksConstants.Peacock.FEATHER_CHARGE_SLACK_TICKS;
+        if (!isFeatherVolleyActive() && !charged) return false;
+        float cost = OWAttacksConstants.Peacock.FEATHER_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
+            canShowVitalEnergyLack = true;
+            return false;
+        }
+        interruptComboForFeathers();
+        featherCharging = false;
+        if (hasFeatherTempest()) {
+            featherBurstLeft = getFeatherStock();
+            featherBurstClock = 0f;
+            fireBurstFeather();
+            return true;
+        }
+        setVitalEnergy(getVitalEnergy() + cost);
+        featherLastShotTick = this.tickCount;
+
+        int shot = getFeatherShot() + 1;
+        this.entityData.set(FEATHER_SHOT, shot);
+        this.entityData.set(FEATHER_STOCK, getFeatherStock() - 1);
+        this.entityData.set(FEATHER_AIM_TICK, OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS);
+        featherCadenceTimer = OWAttacksConstants.Peacock.FEATHER_CADENCE_TICKS;
+        featherReleaseTimer = OWAttacksConstants.Peacock.FEATHER_RELEASE_TICKS;
+        featherReleaseRight = isRightWingShot(shot);
+        playSoundAt(this, SoundEvents.ARMOR_EQUIP_ELYTRA.value(), 0.6f, 1.6f + this.random.nextFloat() * 0.2f);
+        return true;
+    }
+
+    public static boolean isRightWingShot(int shot) {
+        return (shot & 1) == 1;
+    }
+
+    public boolean hasFeatherTempest() {
+        return OWPistePassives.has(this, OWPistePassives.FEATHER_TEMPEST);
+    }
+
+    public float getFeatherDamageDivisor() {
+        return hasFeatherTempest() ? OWPistePassives.FEATHER_TEMPEST_DAMAGE_DIVISOR : OWAttacksConstants.Peacock.FEATHER_DAMAGE_DIVISOR;
+    }
+
+    public int getFeatherMaxStock() {
+        int base = OWAttacksConstants.Peacock.FEATHER_MAX_STOCK;
+        return hasFeatherTempest() ? Math.round(base * OWPistePassives.FEATHER_TEMPEST_STOCK_FACTOR) : base;
+    }
+
+    private boolean fireBurstFeather() {
+        if (getFeatherStock() <= 0) return false;
+        float cost = OWAttacksConstants.Peacock.FEATHER_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return false;
         }
         setVitalEnergy(getVitalEnergy() + cost);
-        this.entityData.set(GUST_TICK, OWAttacksConstants.Peacock.GUST_ANIMATION_TICKS);
-        playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 0.8f, 1.3f);
+        featherBurstLeft--;
+        featherLastShotTick = this.tickCount;
+
+        int shot = getFeatherShot() + 1;
+        this.entityData.set(FEATHER_SHOT, shot);
+        this.entityData.set(FEATHER_STOCK, getFeatherStock() - 1);
+        this.entityData.set(FEATHER_AIM_TICK, OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS);
+        featherCadenceTimer = OWAttacksConstants.Peacock.FEATHER_CADENCE_TICKS;
+        featherPendingReleases.add(new int[]{this.tickCount + OWAttacksConstants.Peacock.FEATHER_RELEASE_TICKS, isRightWingShot(shot) ? 1 : 0});
+        playSoundAt(this, SoundEvents.ARMOR_EQUIP_ELYTRA.value(), 0.4f, 1.6f + this.random.nextFloat() * 0.3f);
         return true;
     }
 
-    private void tickGust(ServerLevel level) {
-        int tick = getGustTick();
-        if (tick <= 0) return;
+    private void tickFeatherBurst() {
+        if (!(this.getControllingPassenger() instanceof Player) || !canShootFeather() || isLinking()) {
+            featherBurstLeft = 0;
+            return;
+        }
+        float spacing = OWPistePassives.FEATHER_TEMPEST_BURST_TICKS / getFeatherMaxStock();
+        featherBurstClock += 1f;
+        while (featherBurstLeft > 0 && featherBurstClock >= spacing) {
+            featherBurstClock -= spacing;
+            if (!fireBurstFeather()) {
+                featherBurstLeft = 0;
+                return;
+            }
+        }
+    }
 
-        int elapsed = OWAttacksConstants.Peacock.GUST_ANIMATION_TICKS - tick;
-        this.entityData.set(GUST_TICK, tick - 1);
-        if (elapsed != OWAttacksConstants.Peacock.GUST_RELEASE_TICK) return;
+    private void tickFeathers(ServerLevel level) {
+        if (featherCadenceTimer > 0) featherCadenceTimer--;
 
-        float yaw = this.getYHeadRot();
-        Vec3 forward = Vec3.directionFromRotation(0f, yaw);
-        Vec3 origin = this.position().add(forward.scale(0.8 * this.getScale())).add(0, 0.2, 0);
-        WindGustEntity.launch(level, this, origin, yaw);
+        int aim = getFeatherAimTick();
+        boolean unmanned = this.getControllingPassenger() == null && !isAutoVolleyActive();
+        if ((aim > 0 || featherCharging) && (isGliding() || isCombo() || isSweeping() || isKnockedOut() || unmanned)) {
+            aim = 0;
+            featherCharging = false;
+            featherBurstLeft = 0;
+            this.entityData.set(FEATHER_AIM_TICK, 0);
+        }
+        if (featherBurstLeft > 0) {
+            tickFeatherBurst();
+            aim = getFeatherAimTick();
+        }
+        while (!featherPendingReleases.isEmpty() && featherPendingReleases.peek()[0] <= this.tickCount) {
+            releaseFeather(level, featherPendingReleases.poll()[1] == 1);
+        }
+        if (featherCharging) {
+            aim = OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS;
+            this.entityData.set(FEATHER_AIM_TICK, aim);
+            if (this.tickCount - featherChargeTick > OWAttacksConstants.Peacock.FEATHER_AIM_HOLD_TICKS) featherCharging = false;
+        }
 
-        playSoundAt(this, OWSounds.PEACOCK_WING_GUST.get(), 1.4f, (float) OWUtils.generateRandomInterval(0.95, 1.1));
-        level.sendParticles(ParticleTypes.CLOUD, origin.x, origin.y + 0.5, origin.z, 18, 0.6, 0.4, 0.6, 0.12);
+        if (featherReleaseTimer > 0 && --featherReleaseTimer == 0) releaseFeather(level, featherReleaseRight);
+
+        if (aim > 0) {
+            this.entityData.set(FEATHER_AIM_TICK, aim - 1);
+            return;
+        }
+
+        int stock = getFeatherStock();
+        if (stock >= getFeatherMaxStock()) {
+            featherRegenTimer = 0;
+            return;
+        }
+        if (++featherRegenTimer >= OWAttacksConstants.Peacock.FEATHER_REGEN_TICKS) {
+            featherRegenTimer = 0;
+            this.entityData.set(FEATHER_STOCK, stock + 1);
+        }
+    }
+
+    private void releaseFeather(ServerLevel level, boolean rightWing) {
+        if (isKnockedOut() || !this.isAlive()) return;
+
+        float yawRad = this.yBodyRot * Mth.DEG_TO_RAD;
+        Vec3 forward = new Vec3(-Mth.sin(yawRad), 0, Mth.cos(yawRad));
+        Vec3 right = new Vec3(-Mth.cos(yawRad), 0, -Mth.sin(yawRad));
+        double side = (rightWing ? 1.0 : -1.0) * 0.45 * this.getScale();
+        Vec3 origin = this.position()
+                .add(0, this.getBbHeight() * 0.62, 0)
+                .add(right.scale(side))
+                .add(forward.scale(0.2 * this.getScale()));
+
+        Entity homing = featherReleaseTargetId >= 0 ? level.getEntity(featherReleaseTargetId) : null;
+        boolean hostile = featherReleaseHostile;
+        featherReleaseTargetId = -1;
+        featherReleaseHostile = false;
+        if (hostile && homing instanceof LivingEntity prey && prey.isAlive() && this.getControllingPassenger() == null) {
+            PeacockFeatherEntity.launch(level, this, origin, leadDirection(origin, prey, forward));
+        } else if (homing instanceof LivingEntity guided && guided.isAlive() && this.getControllingPassenger() == null) {
+            Vec3 aim = guided.position().add(0, guided.getBbHeight() * 0.55, 0).subtract(origin);
+            Vec3 direction = aim.lengthSqr() < 1.0E-4 ? forward : aim.normalize();
+            PeacockFeatherEntity.launchHoming(level, this, origin, direction, guided);
+        } else {
+            Vec3 direction = aimDirection(origin, forward);
+            PeacockFeatherEntity.launch(level, this, origin, direction);
+        }
+
+        playSoundAt(this, OWSounds.PEACOCK_WING_GUST.get(), 0.45f, 1.7f + this.random.nextFloat() * 0.2f);
+        playSoundAt(this, SoundEvents.ARROW_SHOOT, 0.5f, 1.8f + this.random.nextFloat() * 0.2f);
+        level.sendParticles(FEATHER_PUFF, origin.x, origin.y, origin.z, 4, 0.1, 0.1, 0.1, 0.02);
+    }
+
+    private Vec3 leadDirection(Vec3 origin, LivingEntity prey, Vec3 fallback) {
+        Vec3 center = prey.position().add(0, prey.getBbHeight() * 0.55, 0);
+        double travel = center.distanceTo(origin) / OWAttacksConstants.Peacock.FEATHER_SPEED;
+        Vec3 motion = prey.getDeltaMovement();
+        Vec3 predicted = center.add(motion.x * travel * FEATHER_LEAD_FACTOR, 0, motion.z * travel * FEATHER_LEAD_FACTOR);
+        Vec3 aim = predicted.subtract(origin);
+        return aim.lengthSqr() < 1.0E-4 ? fallback : aim.normalize();
+    }
+
+    private boolean canRaiseFan() {
+        return !this.isTame() && !this.isBaby() && !isKnockedOut() && !isSweeping() && !isGliding()
+                && !this.isInWater() && this.getControllingPassenger() == null;
+    }
+
+    private void clearFeatherActionsForFan() {
+        interruptComboForFeathers();
+        featherReleaseTimer = 0;
+        featherReleaseTargetId = -1;
+        featherReleaseHostile = false;
+        this.entityData.set(FEATHER_AIM_TICK, 0);
+    }
+
+    public boolean startFanDisplay() {
+        return startFanDisplay(null);
+    }
+
+    public boolean startFanDisplay(@Nullable LivingEntity focus) {
+        if (this.level().isClientSide() || !canRaiseFan()) return false;
+        int phase = getFanPhase();
+        if (phase == FAN_SHAKE || phase == FAN_CLOSE) return false;
+        clearFeatherActionsForFan();
+        fanFocusId = focus != null ? focus.getId() : -1;
+        this.getNavigation().stop();
+        fanCourting = false;
+        if (phase == FAN_DANCE || phase == FAN_SHOW) {
+            int focusId = fanFocusId;
+            setFanPhase(FAN_SHAKE, FAN_SHAKE_TICKS);
+            fanFocusId = focusId;
+            playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 1.6f, 1.25f);
+            return true;
+        }
+        if (phase == FAN_OPEN) return true;
+        fanStorm = false;
+        int focusId = fanFocusId;
+        setFanPhase(FAN_OPEN, FAN_OPEN_TICKS);
+        fanFocusId = focusId;
+        playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 1.3f, 0.9f);
+        return true;
+    }
+
+    public boolean startCourtship(@Nullable LivingEntity female, int showTicks, boolean storm) {
+        if (this.level().isClientSide() || isFanDisplaying() || !canRaiseFan() || this.getTarget() != null) return false;
+        clearFeatherActionsForFan();
+        fanCourting = true;
+        fanStorm = storm;
+        fanShowTicks = Math.max(20, showTicks);
+        this.getNavigation().stop();
+        setFanPhase(FAN_OPEN, FAN_OPEN_TICKS);
+        fanFocusId = female != null ? female.getId() : -1;
+        playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 1.2f, 1.0f);
+        if (storm) playSoundAt(this, OWSounds.PEACOCK_CALL.get(), STORM_CALL_VOLUME, 0.9f);
+        return true;
+    }
+
+    public void closeFan() {
+        if (this.level().isClientSide()) return;
+        int phase = getFanPhase();
+        if (phase == FAN_NONE || phase == FAN_CLOSE) return;
+        fanCourting = false;
+        setFanPhase(FAN_CLOSE, FAN_CLOSE_TICKS);
+    }
+
+    public void stopFanDisplay() {
+        if (this.level().isClientSide()) return;
+        fanCourting = false;
+        setFanPhase(FAN_NONE, 0);
+    }
+
+    private void setFanPhase(int phase, int ticks) {
+        this.entityData.set(FAN_PHASE, phase);
+        fanPhaseTicks = ticks;
+        fanPhaseElapsed = 0;
+        if (phase == FAN_NONE) fanFocusId = -1;
+    }
+
+    public boolean isCourtingPhase() {
+        int phase = getFanPhase();
+        return fanCourting && (phase == FAN_OPEN || phase == FAN_DANCE || phase == FAN_SHOW);
+    }
+
+    public boolean isStormDance() {
+        return fanStorm && isCourtingPhase();
+    }
+
+    public @Nullable LivingEntity getFanFocus() {
+        return fanFocusId >= 0 && this.level().getEntity(fanFocusId) instanceof LivingEntity living && living.isAlive() ? living : null;
+    }
+
+    private void tickFanDisplay(ServerLevel level) {
+        int phase = getFanPhase();
+        if (phase == FAN_NONE) return;
+        if (isKnockedOut() || this.isInWater() || this.getControllingPassenger() != null || !this.isAlive()) {
+            stopFanDisplay();
+            return;
+        }
+        if (phase != FAN_SHOW) this.getNavigation().stop();
+        int elapsed = fanPhaseElapsed++;
+
+        if (phase == FAN_SHAKE) {
+            LivingEntity focus = getFanFocus();
+            if (focus != null) faceTowards(focus, 20f);
+            if (elapsed % 5 == 0) {
+                playSoundAt(this, SoundEvents.ARMOR_EQUIP_ELYTRA.value(), 0.7f, 1.8f + this.random.nextFloat() * 0.2f);
+                fanDisplayParticles(level, 6);
+            }
+            if (elapsed == FAN_FEAR_DELAY_TICKS) unleashFanFear(level);
+        } else if (phase == FAN_DANCE) {
+            int loop = elapsed % FAN_DANCE_LOOP_TICKS;
+            if (loop == FAN_DANCE_VOLTE_TICK) {
+                playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 1.2f, 1.3f);
+                fanDisplayParticles(level, 10);
+            }
+            if (loop > 44 && loop < 66 && loop % 3 == 0) {
+                playSoundAt(this, SoundEvents.ARMOR_EQUIP_ELYTRA.value(), 0.5f, 1.9f + this.random.nextFloat() * 0.1f);
+            }
+            if (fanStorm && loop == 54) playSoundAt(this, OWSounds.PEACOCK_CALL.get(), STORM_CALL_VOLUME, 0.95f);
+        }
+
+        if (--fanPhaseTicks > 0) return;
+        switch (phase) {
+            case FAN_OPEN -> {
+                if (fanCourting) {
+                    keepFocus(FAN_DANCE, FAN_DANCE_TICKS);
+                } else {
+                    keepFocus(FAN_SHAKE, FAN_SHAKE_TICKS);
+                    playSoundAt(this, OWSounds.PEACOCK_FAN.get(), 1.6f, 1.25f);
+                }
+            }
+            case FAN_DANCE -> keepFocus(FAN_SHOW, fanShowTicks);
+            case FAN_SHAKE, FAN_SHOW -> {
+                fanCourting = false;
+                setFanPhase(FAN_CLOSE, FAN_CLOSE_TICKS);
+            }
+            default -> stopFanDisplay();
+        }
+    }
+
+    private void keepFocus(int phase, int ticks) {
+        int focusId = fanFocusId;
+        setFanPhase(phase, ticks);
+        fanFocusId = focusId;
+    }
+
+    public void faceTowards(Entity entity, float maxTurn) {
+        double dx = entity.getX() - this.getX();
+        double dz = entity.getZ() - this.getZ();
+        if (dx * dx + dz * dz < 1.0E-4) return;
+        float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
+        float yaw = Mth.approachDegrees(this.getYRot(), wanted, maxTurn);
+        this.setYRot(yaw);
+        this.setYBodyRot(yaw);
+    }
+
+    public boolean isStormIncoming() {
+        return stormIncoming;
+    }
+
+    public static boolean forecastStorm(ServerLevel level) {
+        if (!level.dimensionType().hasSkyLight() || level.dimensionType().hasCeiling()) return false;
+        if (!level.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_WEATHER_CYCLE)) return false;
+        if (!(level.getLevelData() instanceof net.minecraft.world.level.storage.ServerLevelData data)) return false;
+        if (level.isThundering() || data.getClearWeatherTime() > 0) return false;
+        int thunder = data.getThunderTime();
+        int rain = data.getRainTime();
+        if (data.isThundering()) {
+            return !data.isRaining() && rain > 0 && rain <= STORM_FORECAST_TICKS && rain < thunder;
+        }
+        if (thunder <= 0 || thunder > STORM_FORECAST_TICKS) return false;
+        return data.isRaining() ? rain > thunder : rain > 0 && rain <= thunder;
+    }
+
+    private void tickStormSense(ServerLevel level) {
+        if (this.tickCount % STORM_CHECK_INTERVAL == 0) {
+            boolean incoming = forecastStorm(level);
+            if (incoming && !stormIncoming) stormCallTimer = 20 + this.random.nextInt(STORM_CALL_MIN_DELAY);
+            stormIncoming = incoming;
+        }
+        if (!stormIncoming || isKnockedOut() || isNapping() || this.isSleeping() || this.isInWater()) return;
+        if (--stormCallTimer > 0) return;
+        stormCallTimer = STORM_CALL_MIN_DELAY + this.random.nextInt(STORM_CALL_MAX_DELAY - STORM_CALL_MIN_DELAY + 1);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.PEACOCK_CALL.get(),
+                this.getSoundSource(), STORM_CALL_VOLUME, (isBaby() ? 1.5f : 1.0f) + (this.random.nextFloat() - 0.5f) * 0.1f);
+        this.entityData.set(STORM_CALL, this.entityData.get(STORM_CALL) + 1);
+    }
+
+    private void fanDisplayParticles(ServerLevel level, int count) {
+        float yawRad = this.yBodyRot * Mth.DEG_TO_RAD;
+        Vec3 back = new Vec3(Mth.sin(yawRad), 0, -Mth.cos(yawRad)).scale(0.5 * this.getScale());
+        double x = this.getX() + back.x;
+        double y = this.getY() + this.getBbHeight() * 1.1;
+        double z = this.getZ() + back.z;
+        level.sendParticles(FEATHER_PUFF, x, y, z, count, 0.9, 0.6, 0.9, 0.02);
+    }
+
+    private void unleashFanFear(ServerLevel level) {
+        playSoundAt(this, OWSounds.PEACOCK_CALL.get(), 2.0f, 0.75f);
+        fanDisplayParticles(level, 30);
+        for (LivingEntity aggressor : fanAggressors()) {
+            LivingEntity victim = aggressor.getRootVehicle() instanceof OWEntity mount && mount != this ? mount : aggressor;
+            victim.addEffect(new MobEffectInstance(OWEffects.FEAR_EFFECT.getDelegate(), FAN_FEAR_DURATION_TICKS, 0));
+            victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, FAN_SLOW_DURATION_TICKS, 0));
+            if (victim != aggressor) aggressor.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, FAN_SLOW_DURATION_TICKS, 0));
+            level.sendParticles(ParticleTypes.ANGRY_VILLAGER, victim.getX(), victim.getY() + victim.getBbHeight() + 0.3, victim.getZ(),
+                    3, 0.3, 0.15, 0.3, 0.0);
+        }
+    }
+
+    public List<LivingEntity> fanAggressors() {
+        List<LivingEntity> aggressors = new ArrayList<>();
+        LivingEntity lastAttacker = this.tickCount - this.getLastHurtByMobTimestamp() <= FAN_AGGRESSOR_MEMORY_TICKS ? this.getLastHurtByMob() : null;
+        for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(FAN_FEAR_RADIUS))) {
+            if (living == this || !living.isAlive() || living.isSpectator()) continue;
+            if (living instanceof PeacockEntity || this.isAlliedTo(living)) continue;
+            if (living instanceof Player player && player.isCreative()) continue;
+            if (this.distanceToSqr(living) > FAN_FEAR_RADIUS * FAN_FEAR_RADIUS) continue;
+            boolean aggressive = living == this.getTarget() || living == lastAttacker
+                    || living instanceof Mob mob && mob.getTarget() == this
+                    || living.getFirstPassenger() instanceof LivingEntity rider && (rider == this.getTarget() || rider == lastAttacker);
+            if (!aggressive || !this.hasLineOfSight(living)) continue;
+            aggressors.add(living);
+        }
+        return aggressors;
+    }
+
+    private Vec3 aimDirection(Vec3 origin, Vec3 fallback) {
+        if (!(this.getControllingPassenger() instanceof Player rider)) return fallback;
+
+        double distance = OWAttacksConstants.Peacock.FEATHER_AIM_DISTANCE;
+        Vec3 eye = rider.getEyePosition();
+        Vec3 look = rider.getLookAngle();
+        Vec3 end = eye.add(look.scale(distance));
+
+        HitResult block = this.level().clip(new ClipContext(eye, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, rider));
+        Vec3 target = block.getType() == HitResult.Type.MISS ? end : block.getLocation();
+
+        AABB sweep = rider.getBoundingBox().expandTowards(look.scale(distance)).inflate(1.0);
+        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(this.level(), rider, eye, target, sweep,
+                e -> e instanceof LivingEntity && e.isAlive() && !e.isSpectator() && e != this && !this.hasPassenger(e));
+        if (entityHit != null) {
+            Entity hit = entityHit.getEntity();
+            target = hit.position().add(0, hit.getBbHeight() * 0.5, 0);
+        }
+
+        Vec3 direction = target.subtract(origin);
+        if (direction.lengthSqr() < 4.0) return look;
+        return direction.normalize();
     }
 
     public boolean activateRoyalSweep() {
         if (this.level().isClientSide()) return false;
-        if (isSweeping() || isGusting()) return false;
+        if (isSweeping() || isGliding()) return false;
         if (getUltimateKillCount() < OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED) return false;
 
         float cost = OWAttacksConstants.Peacock.SWEEP_ENERGY;
@@ -772,6 +1396,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         }
         setVitalEnergy(0);
         breakLink(false);
+        this.entityData.set(FEATHER_AIM_TICK, 0);
 
         setUltimateKillCount(0);
         resetCombo(0);
@@ -910,6 +1535,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     private void tickClientEffects() {
         tickAnimationBlends();
+        tickClientFeathers();
 
         if (getLinkPhase() != LINK_ACTIVE) return;
         LivingEntity donor = getLinkDonor();
@@ -943,8 +1569,51 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         restBlendO = restBlend;
         restBlend = approach(restBlend, this.isNapping() ? 1f : 0f, REST_BLEND_RATE);
 
+        aimBlendO = aimBlend;
+        aimBlend = approach(aimBlend, isFeatherAiming() ? 1f : 0f, isFeatherAiming() ? 0.25f : 0.12f);
+
         linkBlendO = linkBlend;
         linkBlend = approach(linkBlend, isLinking() ? 1f : 0f, isLinking() ? LINK_BLEND_IN_RATE : LINK_BLEND_OUT_RATE);
+    }
+
+    private void tickClientFeathers() {
+        int stock = getFeatherStock();
+        if (clientLastStock >= 0 && stock > clientLastStock) clientFeatherRegen = 0;
+        clientLastStock = stock;
+        int maxStock = getFeatherMaxStock();
+        if (stock < maxStock && !isFeatherAiming()) {
+            clientFeatherRegen = Math.min(clientFeatherRegen + 1, OWAttacksConstants.Peacock.FEATHER_REGEN_TICKS);
+        } else if (stock >= maxStock) {
+            clientFeatherRegen = 0;
+        }
+
+        int shot = getFeatherShot();
+        if (shot != clientSeenShot) {
+            boolean first = clientSeenShot == 0 && this.tickCount < 5;
+            clientSeenShot = shot;
+            if (!first) {
+                clientShotTicks = OWAttacksConstants.Peacock.FEATHER_SHOT_ANIMATION_TICKS;
+                if (isRightWingShot(shot)) {
+                    featherShotRightState.start(this.tickCount);
+                    clientRightShotTicks = clientShotTicks;
+                } else {
+                    featherShotLeftState.start(this.tickCount);
+                    clientLeftShotTicks = clientShotTicks;
+                }
+            }
+        } else if (clientShotTicks > 0) {
+            clientShotTicks--;
+        }
+        if (clientRightShotTicks > 0 && --clientRightShotTicks == 0) featherShotRightState.stop();
+        if (clientLeftShotTicks > 0 && --clientLeftShotTicks == 0) featherShotLeftState.stop();
+    }
+
+    public float featherRegenProgress() {
+        return (float) clientFeatherRegen / OWAttacksConstants.Peacock.FEATHER_REGEN_TICKS;
+    }
+
+    public int clientShotTicksLeft() {
+        return clientShotTicks;
     }
 
     private static float approach(float value, float target, float step) {
@@ -963,7 +1632,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     protected double getBaseRiderYOffset() {
-        return this.getBbHeight() * 0.5 * this.getScale();
+        return this.getBbHeight() * RIDER_HEIGHT_FACTOR * this.getScale();
     }
 
     @Override
@@ -1017,11 +1686,35 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         createIdleAnimation(true);
         createSitAnimation(true);
 
-        this.gustAnimationState.animateWhen(isGusting(), this.tickCount);
         this.sweepAnimationState.animateWhen(isSweeping(), this.tickCount);
+        trackFanPhase();
+        trackStormCall();
 
         handleIdleGestures();
         setupComboAnimations();
+    }
+
+    private void trackFanPhase() {
+        int phase = getFanPhase();
+        if (phase == clientFanPhase) return;
+        fanPrevPhase = clientFanPhase;
+        fanPrevMs = this.fanPhaseState.isStarted() ? this.fanPhaseState.getAccumulatedTime() : 0L;
+        fanPrevMove = fanShowMove;
+        clientFanPhase = phase;
+        if (phase == FAN_NONE) this.fanPhaseState.stop();
+        else this.fanPhaseState.start(this.tickCount);
+    }
+
+    private void trackStormCall() {
+        int call = this.entityData.get(STORM_CALL);
+        if (call == clientStormCall) return;
+        boolean fresh = clientStormCall != 0 || this.tickCount > 5;
+        clientStormCall = call;
+        if (!fresh || this.isNapping() || this.isKnockedOut() || isFanLocked() || isSweeping() || isGliding()) return;
+        this.idleGestureAnimationState.stop();
+        this.peckAnimationState.stop();
+        this.callAnimationState.start(this.tickCount);
+        idleGestureTicks = 55;
     }
 
     private void handleIdleGestures() {
@@ -1060,7 +1753,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public boolean canPlayIdleGesture() {
         return this.getTarget() == null && !this.isNapping() && !this.isSitting() && !this.isMoving()
                 && !this.isVehicle() && !this.isInWater() && !this.isCombo() && !isLinking()
-                && !isGusting() && !isSweeping() && !isKnockedOut();
+                && !isFeatherAiming() && !isSweeping() && !isKnockedOut() && !isGliding() && !isFanDisplaying();
     }
 
     private void setupComboAnimations() {
@@ -1086,6 +1779,8 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public float restBlend(float partialTick) { return Mth.lerp(partialTick, restBlendO, restBlend); }
 
     public float linkBlend(float partialTick) { return Mth.lerp(partialTick, linkBlendO, linkBlend); }
+
+    public float aimBlend(float partialTick) { return Mth.lerp(partialTick, aimBlendO, aimBlend); }
 
     // ==================================================
     //                    ACCESSEURS
@@ -1162,13 +1857,26 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         return this.level().getEntity(getLinkReceiverId()) instanceof LivingEntity living ? living : null;
     }
 
-    public int getGustTick() { return this.entityData.get(GUST_TICK); }
+    public int getFeatherStock() { return this.entityData.get(FEATHER_STOCK); }
 
-    public boolean isGusting() { return getGustTick() > 0; }
+    public int getFeatherAimTick() { return this.entityData.get(FEATHER_AIM_TICK); }
+
+    public boolean isFeatherAiming() { return getFeatherAimTick() > 0; }
+
+    public int getFeatherShot() { return this.entityData.get(FEATHER_SHOT); }
 
     public int getSweepTick() { return this.entityData.get(SWEEP_TICK); }
 
     public boolean isSweeping() { return getSweepTick() > 0; }
+
+    public int getFanPhase() { return this.entityData.get(FAN_PHASE); }
+
+    public boolean isFanDisplaying() { return getFanPhase() != FAN_NONE; }
+
+    public boolean isFanLocked() {
+        int phase = getFanPhase();
+        return phase != FAN_NONE && phase != FAN_SHOW;
+    }
 
     public int getSweepLinkTick() { return this.entityData.get(SWEEP_LINK_TICK); }
 
@@ -1201,6 +1909,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putInt("ultimateKillCount", this.getUltimateKillCount());
+        tag.putInt("featherStock", this.getFeatherStock());
     }
 
     @Override
@@ -1211,6 +1920,8 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
         if (tag.contains("ultimateKillCount")) setUltimateKillCount(tag.getInt("ultimateKillCount"));
+        if (tag.contains("featherStock")) this.entityData.set(FEATHER_STOCK,
+                Mth.clamp(tag.getInt("featherStock"), 0, getFeatherMaxStock()));
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 
@@ -1279,5 +1990,15 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
+    }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 2;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 4;
     }
 }

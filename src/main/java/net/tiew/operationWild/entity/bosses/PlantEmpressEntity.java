@@ -922,7 +922,9 @@ public class PlantEmpressEntity extends OWBossEntity {
         else if (planted) damage *= EmpressBalance.MULTIPLIER_PLANTED;
         if (counter) damage *= EmpressBalance.MULTIPLIER_COUNTER;
 
-        if (now < headInvulnerableUntil[chain]) {
+        if (!melee) {
+            lastHeadDamage[chain] = Math.max(lastHeadDamage[chain], damage);
+        } else if (now < headInvulnerableUntil[chain]) {
             if (damage <= lastHeadDamage[chain]) return false;
             float extra = damage - lastHeadDamage[chain];
             lastHeadDamage[chain] = damage;
@@ -1074,11 +1076,39 @@ public class PlantEmpressEntity extends OWBossEntity {
             return true;
         }
         if (this.level().isClientSide()) return false;
-        if (source.getEntity() instanceof LivingEntity attacker && source.getDirectEntity() == attacker && attacker != this) {
+        Entity origin = source.getEntity();
+        if (origin == this || origin instanceof PlantEmpressPart) return false;
+        boolean direct = origin instanceof LivingEntity && source.getDirectEntity() == origin;
+        if (!direct && origin != null && amount > 0f && !isEnvironmentalDamage(source)) {
+            PlantEmpressPart head = closestHead(source);
+            if (head != null) return hurtPart(head, source, amount);
+        }
+        if (origin instanceof LivingEntity attacker && direct && attacker != this) {
             parry(parts[parts.length - 1], source, false);
             engage(attacker);
         }
         return false;
+    }
+
+    private @Nullable PlantEmpressPart closestHead(DamageSource source) {
+        Vec3 from = source.getSourcePosition();
+        if (from == null && source.getDirectEntity() != null) from = source.getDirectEntity().position();
+        if (from == null && source.getEntity() != null) from = source.getEntity().position();
+        if (from == null) from = this.position();
+        PlantEmpressPart best = null;
+        int bestPriority = -1;
+        double bestDistance = Double.MAX_VALUE;
+        for (PlantEmpressPart part : parts) {
+            if (!part.isHead() || isChainDead(part.chain)) continue;
+            int priority = part.strikePriority();
+            double distance = part.getBoundingBox().getCenter().distanceToSqr(from);
+            if (priority > bestPriority || (priority == bestPriority && distance < bestDistance)) {
+                best = part;
+                bestPriority = priority;
+                bestDistance = distance;
+            }
+        }
+        return best;
     }
 
     @Override

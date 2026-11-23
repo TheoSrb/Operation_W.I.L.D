@@ -1664,4 +1664,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 8;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 12;
+    }
 }

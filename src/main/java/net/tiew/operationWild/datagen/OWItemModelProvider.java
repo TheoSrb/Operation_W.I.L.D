@@ -144,6 +144,16 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.COOKED_BOA.get());
         basicItem(OWItems.RAW_PEACOCK.get());
         basicItem(OWItems.COOKED_PEACOCK.get());
+        basicItem(OWItems.RAW_ELEPHANT.get());
+        basicItem(OWItems.COOKED_ELEPHANT.get());
+        basicItem(OWItems.RAW_GIRAFFE.get());
+        basicItem(OWItems.COOKED_GIRAFFE.get());
+        basicItem(OWItems.RAW_HYENA.get());
+        basicItem(OWItems.COOKED_HYENA.get());
+        basicItem(OWItems.RAW_KANGAROO.get());
+        basicItem(OWItems.COOKED_KANGAROO.get());
+        basicItem(OWItems.RAW_RHINOCEROS.get());
+        basicItem(OWItems.COOKED_RHINOCEROS.get());
 
         simpleBlockItemBlockTexture(OWBlocks.CAMELLIA);
         simpleBlockItemBlockTexture(OWBlocks.LAVENDER);

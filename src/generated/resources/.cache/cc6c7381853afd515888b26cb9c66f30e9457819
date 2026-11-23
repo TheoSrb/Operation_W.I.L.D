@@ -1,7 +1,7 @@
-// 1.21	2026-11-11T20:17:16.7254052	Tags for minecraft:item mod id ow
-ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
-f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
-ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
+// 1.21	2026-11-22T11:32:06.8754953	Tags for minecraft:item mod id ow
+b92abfac4c9de067fab29f9b4732a719cb806e4b data/c/tags/item/foods.json
+26a434c4a2555410c3c8b33b2779d316ee9507c0 data/c/tags/item/foods/cooked_meat.json
+d6a2720e7041cdea9ac61b45bccdf0538aa57b94 data/c/tags/item/foods/raw_meat.json
 30abbc6f3a289b0e53594972404ae21a5fc9b058 data/c/tags/item/foods/vegetable.json
 a95e41043c88f7255d524b559e13744ab52905bf data/minecraft/tags/item/arrows.json
 eaf8ca4ec63ce59020fe02cb2de6fa99ae85b6b4 data/minecraft/tags/item/axes.json
@@ -14,7 +14,7 @@ f27bd701851612fbf40ce3e8891e8a2f61cc4c16 data/minecraft/tags/item/foot_armor.jso
 fcba97bcde9580dafa244fdd4254d48777a6994e data/minecraft/tags/item/hoes.json
 1a80805426be0df398ce3f983887322fbf364a55 data/minecraft/tags/item/leg_armor.json
 59b9438f0af2af799c267601108c92ccff7b4533 data/minecraft/tags/item/logs_that_burn.json
-ac26f32b2f697795a207db5976fbff7eb4c42baf data/minecraft/tags/item/meat.json
+aeec5b44225a539ee6d62ddca8257a4708ede44e data/minecraft/tags/item/meat.json
 3b4cc3aa3765e6333c8af616acd43f74ed6253b0 data/minecraft/tags/item/pickaxes.json
 5a6b6fda74029a60e1c49a42dd474acc74a5ab4f data/minecraft/tags/item/planks.json
 743b0f3104fd2af6316246e49e0c6daee8fad9c9 data/minecraft/tags/item/shovels.json

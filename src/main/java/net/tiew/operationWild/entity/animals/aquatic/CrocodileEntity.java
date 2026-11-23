@@ -2192,4 +2192,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 6;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 10;
+    }
 }

@@ -1824,4 +1824,14 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 3;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 6;
+    }
 }

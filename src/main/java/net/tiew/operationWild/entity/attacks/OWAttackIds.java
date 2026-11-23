@@ -35,7 +35,7 @@ public final class OWAttackIds {
     public static final int INK_FRENZY = 29;
     public static final int MAELSTROM = 30;
     public static final int LIFE_LINK = 31;
-    public static final int WING_GUST = 32;
+    public static final int FEATHER_VOLLEY = 32;
     public static final int ROYAL_SWEEP = 33;
 
     private static final Set<Integer> ULTIMATES = Set.of(

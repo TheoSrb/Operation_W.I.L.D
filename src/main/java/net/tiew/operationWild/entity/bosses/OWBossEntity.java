@@ -21,6 +21,8 @@ import java.util.UUID;
 
 public abstract class OWBossEntity extends Monster {
 
+    public static final float TAMED_BEAST_DAMAGE_FACTOR = 0.5f;
+
     private final Map<UUID, Long> engagement = new HashMap<>();
     private final Map<UUID, Float> threat = new HashMap<>();
 
@@ -43,6 +45,13 @@ public abstract class OWBossEntity extends Monster {
 
     public boolean isValidFighter(Player player) {
         return player.isAlive() && !player.isSpectator() && !player.isCreative();
+    }
+
+    public static boolean isBossDamage(DamageSource source) {
+        if (source == null) return false;
+        if (source.getEntity() instanceof OWBossEntity || source.getDirectEntity() instanceof OWBossEntity) return true;
+        return source.is(net.tiew.operationWild.entity.bosses.plantempress.EmpressDamage.BITE)
+                || source.is(net.tiew.operationWild.entity.bosses.plantempress.EmpressDamage.ROOTS);
     }
 
     public static Entity credit(Entity entity) {
@@ -91,7 +100,7 @@ public abstract class OWBossEntity extends Monster {
     protected boolean isEnvironmentalDamage(DamageSource source) {
         return source.is(DamageTypes.FALL) || source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DROWN)
                 || source.is(DamageTypes.CRAMMING) || source.is(DamageTypes.CACTUS) || source.is(DamageTypes.SWEET_BERRY_BUSH)
-                || source.is(DamageTypes.WITHER) || source.is(DamageTypes.MAGIC) || source.is(DamageTypes.FREEZE)
+                || source.is(DamageTypes.WITHER) || (source.is(DamageTypes.MAGIC) && source.getEntity() == null) || source.is(DamageTypes.FREEZE)
                 || source.is(DamageTypes.HOT_FLOOR) || source.is(DamageTypes.LIGHTNING_BOLT) || source.is(DamageTypeTags.IS_FIRE);
     }
 

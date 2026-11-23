@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_kangaroo": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:raw_kangaroo"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:cooked_kangaroo_from_campfire_cooking"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_kangaroo"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:cooked_kangaroo_from_campfire_cooking"
+    ]
+  }
+}

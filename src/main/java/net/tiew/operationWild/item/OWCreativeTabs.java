@@ -107,6 +107,16 @@ public class OWCreativeTabs {
                         output.accept(OWItems.COOKED_PEACOCK.get());
                         output.accept(OWItems.RAW_TIGER.get());
                         output.accept(OWItems.COOKED_TIGER.get());
+                        output.accept(OWItems.RAW_ELEPHANT.get());
+                        output.accept(OWItems.COOKED_ELEPHANT.get());
+                        output.accept(OWItems.RAW_GIRAFFE.get());
+                        output.accept(OWItems.COOKED_GIRAFFE.get());
+                        output.accept(OWItems.RAW_HYENA.get());
+                        output.accept(OWItems.COOKED_HYENA.get());
+                        output.accept(OWItems.RAW_KANGAROO.get());
+                        output.accept(OWItems.COOKED_KANGAROO.get());
+                        output.accept(OWItems.RAW_RHINOCEROS.get());
+                        output.accept(OWItems.COOKED_RHINOCEROS.get());
                         output.accept(OWItems.SAVAGE_BERRIES.get());
                         output.accept(OWItems.EMPTY_SYRINGE.get());
                         output.accept(OWItems.BATTERY.get());

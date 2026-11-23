@@ -1,5 +1,10 @@
 {
   "values": [
+    "ow:raw_elephant",
+    "ow:raw_giraffe",
+    "ow:raw_hyena",
+    "ow:raw_kangaroo",
+    "ow:raw_rhinoceros",
     "ow:raw_kodiak",
     "ow:raw_peacock",
     "ow:raw_tiger",

@@ -1538,4 +1538,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 4;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 7;
+    }
 }

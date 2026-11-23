@@ -140,6 +140,11 @@ public class OWAttacksOverlay {
             // ── Éléphant Jet de Trompe (maintien) ─────────────────────────────
             boolean isWaterSpray = attack.getId() == OWAttacksHandler.WATER_SPRAY_ID;
 
+            net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity featherPeacock =
+                    attack.getId() == OWAttacksHandler.FEATHER_VOLLEY_ID
+                            && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity fp ? fp : null;
+            boolean glideBlocked = entity.isGliding() && (featherPeacock != null || attack.isUltimate());
+
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
@@ -170,6 +175,15 @@ public class OWAttacksOverlay {
             } else if (isHippoRolling) {
                 fillProgress = 1.0f;
                 isGlowing    = true;
+            } else if (featherPeacock != null) {
+                float featherCharge = OWAttackLogic.getFeatherChargeProgress();
+                if (featherCharge >= 0f) {
+                    fillProgress = featherCharge;
+                    isGlowing    = featherCharge >= 1f;
+                } else {
+                    fillProgress = featherPeacock.getFeatherStock() > 0 ? 1.0f : featherPeacock.featherRegenProgress();
+                    isGlowing    = featherPeacock.isFeatherAiming();
+                }
             } else if (sharedCooldown > 0f) {
                 fillProgress = 1.0f - sharedCooldown;
             } else if (isVenomFangs && entity instanceof BoaEntity boa) {
@@ -265,7 +279,7 @@ public class OWAttacksOverlay {
                     : 0;
             boolean isClanCallEmpty = isClanCall && callableLionesses <= 0 && !isCharging;
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked) {
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;
@@ -338,6 +352,10 @@ public class OWAttacksOverlay {
 
             if (isDistressCall) {
                 drawClanCallBadge(g, cardX, baseY, lioness.getDistressResponderCount());
+            }
+
+            if (featherPeacock != null) {
+                drawClanCallBadge(g, cardX, baseY, featherPeacock.getFeatherStock());
             }
         }
 

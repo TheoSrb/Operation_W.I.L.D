@@ -2470,4 +2470,14 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     protected int getDefaultSkinIndex() {
         return 0;
     }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 14;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 20;
+    }
 }

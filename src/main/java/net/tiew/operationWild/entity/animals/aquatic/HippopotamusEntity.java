@@ -111,6 +111,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final double DRIVER_SEAT_FORWARD = 0.0;
     private static final double PASSENGER_SEAT_FORWARD = -0.8;
     private static final double SEAT_PIVOT_BACK = 0.125;
+    private static final double SADDLED_DRIVER_FORWARD = 0.25;
+    private static final double SADDLED_PASSENGER_FORWARD = 0.2;
+    private static final double SADDLED_SEAT_LIFT = 0.45;
     private static final float CAMERA_TILT_FOLLOW_LAND = 0.6f;
     private static final float FULL_TURN = (float) (Math.PI * 2.0);
     private static final float SWIM_DEPTH = 0.9f;
@@ -1368,12 +1371,16 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         float roll = this.level().isClientSide() ? smoothStep(rollBlend(seatPartialTick)) : (isRolling() ? 1f : 0f);
         double scale = this.getScale();
 
-        double forward = (driver ? DRIVER_SEAT_FORWARD : PASSENGER_SEAT_FORWARD) * scale * (1f - roll);
+        boolean saddled = this.isSaddled();
+        double seatForward = driver ? DRIVER_SEAT_FORWARD : PASSENGER_SEAT_FORWARD;
+        if (saddled) seatForward += driver ? SADDLED_DRIVER_FORWARD : SADDLED_PASSENGER_FORWARD;
+        double forward = seatForward * scale * (1f - roll);
         double side = rollSeatSide(passenger, roll);
         double pitch = Math.toRadians(this.getBodyXRot()) * (1f - roll);
         double tilt = (forward + SEAT_PIVOT_BACK * scale) * Math.sin(pitch);
 
         double seatY = getBaseRiderYOffset() + getRiderAnimYOffset() + tilt
+                + (saddled ? SADDLED_SEAT_LIFT * scale * (1f - roll) : 0.0)
                 + OWAttacksConstants.Hippopotamus.ROLL_SEAT_LIFT * scale * roll
                 + OWAttacksConstants.Hippopotamus.ROLL_STAND_LIFT * roll;
         Vec3 shift = bodyAnimShift(forward).scale(1f - roll);
@@ -1832,5 +1839,15 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     @Override
     public List<OWSedationImpact> sedationImpacts() {
         return SEDATION_IMPACTS;
+    }
+
+    @Override
+    protected int experienceRewardMin() {
+        return 9;
+    }
+
+    @Override
+    protected int experienceRewardMax() {
+        return 14;
     }
 }

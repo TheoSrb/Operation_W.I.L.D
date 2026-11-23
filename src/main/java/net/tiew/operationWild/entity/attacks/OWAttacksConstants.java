@@ -848,16 +848,23 @@ public class OWAttacksConstants {
         public static final float LINK_BREAK_DAMAGE = 6f;
         public static final int LINK_COOLDOWN_TICKS = 60;
 
-        public static final float GUST_ENERGY = 60f;
-        public static final int GUST_COOLDOWN_TICKS = 100;
-        public static final int GUST_ANIMATION_TICKS = 20;
-        public static final int GUST_RELEASE_TICK = 9;
-        public static final double GUST_SPEED = 0.9;
-        public static final int GUST_LIFETIME_TICKS = 18;
-        public static final double GUST_START_RADIUS = 0.9;
-        public static final double GUST_END_RADIUS = 2.6;
-        public static final double GUST_PUSH = 1.7;
-        public static final double GUST_LIFT = 0.35;
+        public static final int FEATHER_MAX_STOCK = 10;
+        public static final float FEATHER_ENERGY = 8f;
+        public static final int FEATHER_REGEN_TICKS = 80;
+        public static final long FEATHER_MIN_CHARGE_MS = Kangaroo.WHIRLWIND_HOLD_TO_START_MS;
+        public static final int FEATHER_MIN_CHARGE_TICKS = 2;
+        public static final int FEATHER_CHARGE_SLACK_TICKS = 2;
+        public static final int FEATHER_CADENCE_TICKS = 10;
+        public static final int FEATHER_CADENCE_SLACK_TICKS = 2;
+        public static final int FEATHER_RELEASE_TICKS = 5;
+        public static final int FEATHER_AIM_HOLD_TICKS = 40;
+        public static final int FEATHER_SHOT_ANIMATION_TICKS = 12;
+        public static final double FEATHER_SPEED = 0.95;
+        public static final int FEATHER_LIFETIME_TICKS = 21;
+        public static final double FEATHER_AIM_DISTANCE = 24.0;
+        public static final float FEATHER_HEAL = 5f;
+        public static final float FEATHER_DAMAGE_DIVISOR = 1.5f;
+        public static final float FEATHER_AIM_SPEED_FACTOR = 0.6f;
 
         public static final int SWEEP_KILLS_REQUIRED = 5;
         public static final int SWEEP_COOLDOWN_TICKS = 1200;
@@ -872,6 +879,32 @@ public class OWAttacksConstants {
         public static final double SWEEP_LIFT = 0.45;
         public static final double SWEEP_SHARE_RADIUS = 32.0;
         public static final long SWEEP_DURATION_MS = SWEEP_ANIMATION_TICKS * 50L;
+    }
+
+    public static class Glide {
+        public static final double TAKEOFF_LIFT = 0.62;
+        public static final double TAKEOFF_FORWARD = 0.12;
+        public static final int TAKEOFF_COOLDOWN_TICKS = 14;
+        public static final double ENTRY_MIN_FALL = -0.02;
+        public static final double BASE_SINK = 0.055;
+        public static final double MIN_SPEED = 0.14;
+        public static final double CRUISE_SPEED = 0.32;
+        public static final double MAX_SPEED = 0.78;
+        public static final double DIVE_GAIN = 0.045;
+        public static final double CLIMB_LOSS = 0.06;
+        public static final double DRAG = 0.012;
+        public static final double LIFT_FACTOR = 0.55;
+        public static final double STALL_SPEED = 0.2;
+        public static final double VERTICAL_RESPONSE = 0.22;
+        public static final float PITCH_MIN = -25f;
+        public static final float PITCH_MAX = 55f;
+        public static final float PITCH_RESPONSE = 0.18f;
+        public static final float TURN_DEGREES = 7f;
+        public static final float MAX_BANK = 38f;
+        public static final double WILD_SINK = 0.09;
+        public static final double WILD_MIN_FALL = 0.1;
+        public static final int FALL_GRACE_TICKS = 12;
+        public static final float FOV_GAIN = 0.12f;
     }
 
     public static class Slide {

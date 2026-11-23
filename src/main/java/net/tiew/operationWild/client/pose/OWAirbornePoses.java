@@ -50,7 +50,7 @@ public final class OWAirbornePoses {
         protected boolean tick(Player player, FlightData data, OWPlayerPoseState state) {
             Vec3 velocity = state.velocity();
             if (state.justDismounted() && state.previousVehicle() instanceof GorillaEntity gorilla
-                    && (gorilla.getRiderLaunchTick() > 0 || velocity.y > 0.25)) {
+                    && gorilla.getRiderLaunchTick() > 0) {
                 data.ticks = MAX_TICKS;
                 data.air = 0;
                 data.climb.snap((float) velocity.y);

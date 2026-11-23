@@ -310,6 +310,7 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         applyArrival(lion, ageInTicks);
         applyRespond(lion, ageInTicks);
         applyHuntingPosture(lion, ageInTicks, pt, land);
+        applyWildPose(lion, ageInTicks, pt, land);
         applyEarFlick(lion, pt, land);
 
         if (lion.isMad() || lion.isEmpowered() || lion.isRallied() || lion.isLatchActive()) hideEyeBalls();
@@ -460,6 +461,43 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         this.right_ear.xRot -= 0.35f * hunt;
         this.tail_1.yRot += Mth.sin(ageInTicks * 0.45f) * 0.35f * hunt;
         this.tail_2.yRot += Mth.sin(ageInTicks * 0.45f - 0.9f) * 0.5f * hunt;
+    }
+
+    private void applyWildPose(T lion, float ageInTicks, float pt, float stance) {
+        float stalk = smoothStep(lion.stalkBlend(pt)) * stance;
+        float threat = smoothStep(lion.threatBlend(pt)) * stance;
+        float eat = smoothStep(lion.eatBlend(pt)) * stance;
+
+        if (stalk > 0.001f) {
+            crouch(3.2f * stalk);
+            this.head.xRot += 0.22f * stalk;
+            this.head.y += 1.4f * stalk;
+            this.left_ear.xRot -= 0.55f * stalk;
+            this.right_ear.xRot -= 0.55f * stalk;
+            this.tail_1.xRot += 0.45f * stalk;
+            this.tail_2.yRot += Mth.sin(ageInTicks * 0.35f) * 0.18f * stalk;
+        }
+
+        if (threat > 0.001f) {
+            crouch(1.6f * threat);
+            this.head.xRot += 0.32f * threat;
+            this.head.y += 0.9f * threat;
+            this.left_ear.xRot -= 0.8f * threat;
+            this.right_ear.xRot -= 0.8f * threat;
+            this.left_ear.zRot -= 0.35f * threat;
+            this.right_ear.zRot += 0.35f * threat;
+            this.tail_1.yRot += Mth.sin(ageInTicks * 0.65f) * 0.55f * threat;
+            this.tail_2.yRot += Mth.sin(ageInTicks * 0.65f - 1.1f) * 0.75f * threat;
+            bristleMane(0.06f * threat);
+        }
+
+        if (eat > 0.001f) {
+            crouch(2.6f * eat);
+            this.ALL.xRot += 0.16f * eat;
+            this.head.xRot += 0.85f * eat + Mth.sin(ageInTicks * 0.9f) * 0.12f * eat;
+            this.head.y += 1.6f * eat;
+            this.tail_1.yRot += Mth.sin(ageInTicks * 0.2f) * 0.2f * eat;
+        }
     }
 
     private void applyEarFlick(T lion, float pt, float stance) {
