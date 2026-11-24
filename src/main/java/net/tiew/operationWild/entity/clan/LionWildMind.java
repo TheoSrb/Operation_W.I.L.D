@@ -6,7 +6,6 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
 
 public class LionWildMind {
 
@@ -21,7 +20,7 @@ public class LionWildMind {
     private int warnTicks;
 
     @Nullable
-    private UUID intruder;
+    private Player intruder;
     private long intruderUntil;
 
     @Nullable
@@ -49,6 +48,7 @@ public class LionWildMind {
         }
         if (intruder != null && level.getGameTime() >= intruderUntil) intruder = null;
         if (lion.isSitting() && !perchedWatch) lion.setSitting(false);
+        if (lion.getTarget() instanceof LionEntity rival && rival.wild.isConceding()) lion.setTarget(null);
     }
 
     public float aggression() {
@@ -67,15 +67,14 @@ public class LionWildMind {
     }
 
     public void designateIntruder(Player player, long until) {
-        intruder = player.getUUID();
+        intruder = player;
         intruderUntil = until;
     }
 
     @Nullable
     public Player intruder() {
-        if (intruder == null) return null;
-        Player player = lion.level().getPlayerByUUID(intruder);
-        return player != null && player.isAlive() ? player : null;
+        if (intruder == null || !intruder.isAlive() || intruder.isRemoved()) return null;
+        return intruder;
     }
 
     public void forgetIntruder() {

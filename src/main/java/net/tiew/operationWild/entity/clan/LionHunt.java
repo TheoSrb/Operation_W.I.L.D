@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.clan;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
@@ -202,8 +201,8 @@ public class LionHunt {
             }
         }
         if (hunger == LionPride.Hunger.STARVING) {
-            for (ServerPlayer player : level.players()) {
-                if (!LionPride.isIntrudable(player) || player.position().distanceTo(centroid) > PLAYER_SCAN_RADIUS) continue;
+            for (Player player : level.getEntitiesOfClass(Player.class, new AABB(centroid, centroid).inflate(PLAYER_SCAN_RADIUS), LionPride::isIntrudable)) {
+                if (player.position().distanceTo(centroid) > PLAYER_SCAN_RADIUS) continue;
                 double score = player.position().distanceTo(centroid) * 0.9;
                 if (score < bestScore) {
                     bestScore = score;

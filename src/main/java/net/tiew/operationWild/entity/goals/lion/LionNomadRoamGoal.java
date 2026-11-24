@@ -48,7 +48,14 @@ public class LionNomadRoamGoal extends Goal {
     private boolean eligible() {
         if (!lion.isMale() || lion.isBaby() || !LionGoals.isCalm(lion) || lion.isNapping() || lion.isSitting()) return false;
         LionClanData.Clan clan = lion.wildClan();
-        return clan != null && clan.isNomad() && lion.getUUID().equals(clan.male);
+        if (clan == null || !lion.getUUID().equals(clan.male)) return false;
+        return clan.isNomad() || isMarchingToWar(clan);
+    }
+
+    public static boolean isMarchingToWar(LionClanData.Clan clan) {
+        LionPrideState state = clan.state;
+        return !clan.isNomad() && state.waypointIsChallenge && state.waypoint != null
+                && state.rival != null;
     }
 
     @Nullable
@@ -57,6 +64,7 @@ public class LionNomadRoamGoal extends Goal {
         if (clan == null) return null;
         LionPrideState state = clan.state;
         long now = level.getGameTime();
+        if (!clan.isNomad()) return state.waypoint != null && now < state.waypointUntil ? Vec3.atBottomCenterOf(state.waypoint) : null;
         if (state.waypoint == null || now >= state.waypointUntil) {
             float yaw = lion.getRandom().nextFloat() * 360f;
             double distance = ROAM_MIN + lion.getRandom().nextDouble() * ROAM_SPREAD;

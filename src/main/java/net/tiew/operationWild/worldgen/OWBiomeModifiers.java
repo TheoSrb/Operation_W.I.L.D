@@ -43,6 +43,7 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_GORILLA = registerKey("spawn_gorilla");
     public static final ResourceKey<BiomeModifier> SPAWN_GORILLA_SPARSE = registerKey("spawn_gorilla_sparse");
     public static final ResourceKey<BiomeModifier> SPAWN_RED_PANDA = registerKey("spawn_red_panda");
+    public static final ResourceKey<BiomeModifier> SPAWN_CHAMELEON = registerKey("spawn_chameleon");
     public static final ResourceKey<BiomeModifier> SPAWN_ORCA = registerKey("spawn_orca");
     public static final ResourceKey<BiomeModifier> SPAWN_HIPPOPOTAMUS = registerKey("spawn_hippopotamus");
 
@@ -94,6 +95,10 @@ public class OWBiomeModifiers {
             List.of(Biomes.BAMBOO_JUNGLE)
     );
 
+    public static final ArrayList<ResourceKey<Biome>> CHAMELEON_BIOMES = new ArrayList<>(
+            List.of(Biomes.JUNGLE, Biomes.SPARSE_JUNGLE, Biomes.BAMBOO_JUNGLE)
+    );
+
     public static final ArrayList<ResourceKey<Biome>> ORCA_BIOMES = new ArrayList<>(
             List.of(Biomes.DEEP_COLD_OCEAN, Biomes.DEEP_FROZEN_OCEAN)
     );
@@ -126,6 +131,7 @@ public class OWBiomeModifiers {
             new SpawnRule(SPAWN_GORILLA, OWEntityRegistry.GORILLA, GORILLA_BIOMES, 18, 1, 1),
             new SpawnRule(SPAWN_GORILLA_SPARSE, OWEntityRegistry.GORILLA, GORILLA_SPARSE_BIOMES, 22, 1, 2),
             new SpawnRule(SPAWN_RED_PANDA, OWEntityRegistry.RED_PANDA, RED_PANDA_BIOMES, 100, 1, 1),
+            new SpawnRule(SPAWN_CHAMELEON, OWEntityRegistry.CHAMELEON, CHAMELEON_BIOMES, 25, 1, 1),
             new SpawnRule(SPAWN_ORCA, OWEntityRegistry.ORCA, ORCA_BIOMES, 10, 1, 3, OrcaEntity.SPAWN_CHUNK_ONE_IN),
             new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4),
             new SpawnRule(SPAWN_PEACOCK, OWEntityRegistry.PEACOCK, PEACOCK_BIOMES, 10, 2, 4),

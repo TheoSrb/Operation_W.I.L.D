@@ -650,7 +650,7 @@ public class OWAttacksInformation {
 
                 null,
 
-                new AttackSlot(216, 80, "RMB",
+                new AttackSlot(216, 79, "RMB",
                         title("ow.attacks.red_panda.heal_snack.title"),
                         e -> desc("ow.attacks.red_panda.heal_snack.desc",
                                 val((int) (OWAttacksConstants.RedPanda.HEAL_SNACK_INSTANT_RATIO * 100)),
@@ -660,7 +660,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(236, 80, "X",
+                new AttackSlot(236, 79, "X",
                         title("ow.attacks.red_panda.feast.title"),
                         e -> desc("ow.attacks.red_panda.feast.desc",
                                 val((int) OWAttacksConstants.RedPanda.FEAST_RADIUS),
@@ -677,6 +677,34 @@ public class OWAttacksInformation {
                         title("ow.attacks.red_panda.vital_sense.title"),
                         e -> desc("ow.attacks.red_panda.vital_sense.desc",
                                 val((int) OWAttacksConstants.RedPanda.VITAL_SENSE_RADIUS))
+                )
+
+        ));
+
+        PROFILES.put(net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.class, new EntityProfile(
+
+                null,
+
+                new AttackSlot(216, 119, "RMB",
+                        title("ow.attacks.chameleon.tongue_vine.title"),
+                        e -> desc("ow.attacks.chameleon.tongue_vine.desc",
+                                val((int) OWAttacksConstants.Chameleon.TONGUE_RANGE),
+                                val(OWAttacksConstants.Chameleon.VINE_MAX_TICKS / 20),
+                                val(OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(236, 119, "X",
+                        title("ow.attacks.chameleon.mimicry.title"),
+                        e -> desc("ow.attacks.chameleon.mimicry.desc",
+                                val(OWAttacksConstants.Chameleon.MIMICRY_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Chameleon.MIMICRY_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.chameleon.watchful_tongue.title"),
+                        e -> desc("ow.attacks.chameleon.watchful_tongue.desc",
+                                val((int) OWAttacksConstants.Chameleon.WATCH_RADIUS),
+                                val(OWAttacksConstants.Chameleon.WATCH_STRIKE_INTERVAL_TICKS / 20))
                 )
 
         ));

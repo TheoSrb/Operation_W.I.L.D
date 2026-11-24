@@ -13,7 +13,9 @@
     "PlayerModelRotationMixin",
     "SubmarineArmMixin",
     "SubmarineMixin",
-    "CameraMixin"
+    "CameraMixin",
+    "MimicryArmorLayerMixin",
+    "MimicryPlayerPoseMixin"
   ],
   "mixins": [
     "VehicleMovedWronglyMixin",

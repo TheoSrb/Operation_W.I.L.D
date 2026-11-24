@@ -1247,5 +1247,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s fue devorado por %2$s",
   "death.attack.ow.plant_empress_bite.player": "%1$s fue devorado por %2$s",
   "death.attack.ow.plant_empress_roots": "%1$s fue empalado por las raíces de %2$s",
-  "death.attack.ow.plant_empress_roots.player": "%1$s fue empalado por las raíces de %2$s"
+  "death.attack.ow.plant_empress_roots.player": "%1$s fue empalado por las raíces de %2$s",
+  "ow.attacks.chameleon.tongue_vine.title": "Lengua-Liana",
+  "ow.attacks.chameleon.tongue_vine.desc": "Clic derecho: sube a tu cabeza y lanza la lengua hasta %s bloques. Una criatura: daño. Un objeto: lo trae. Un bloque: te columpias %s s, otro clic para soltar. Recarga de %s s.",
+  "ow.attacks.chameleon.mimicry.title": "Mimetismo",
+  "ow.attacks.chameleon.mimicry.desc": "Adoptas la textura del bloque cercano y obtienes Camuflaje durante %s s. Golpear lo termina. Recarga de %s s.",
+  "ow.attacks.chameleon.watchful_tongue.title": "Lengua Vigilante",
+  "ow.attacks.chameleon.watchful_tongue.desc": "Clic derecho para llevarlo a la espalda. Azota lo que te persigue sin que lo veas a %s bloques, cada %s s, y te avisa.",
+  "ow.advancements.master_of_disguise.title": "Maestro del disfraz",
+  "ow.advancements.master_of_disguise.description": "¡Has domesticado un Camaleón !",
+  "piste.attack.6.name": "Lengua Larga",
+  "piste.attack.6.desc": "La Lengua-Liana llega a 32 bloques y la Lengua Vigilante vigila hasta 10 bloques.",
+  "piste.attack.7.name": "Muda Lenta",
+  "piste.attack.7.desc": "El Mimetismo dura 5 segundos más."
 }

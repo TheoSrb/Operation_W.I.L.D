@@ -88,7 +88,7 @@ import java.util.UUID;
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
-public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
+public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable, net.tiew.operationWild.entity.IOWCarriedCompanion {
 
     public static final double TAMING_EXPERIENCE = 40.0;
     private static final int SEDATION_WAKE_TICKS = 40;
@@ -1193,9 +1193,17 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     public static @Nullable OWEntity resolveControlledEntity(@Nullable Player player) {
-        if (player == null) return null;
-        if (player.getRootVehicle() instanceof OWEntity mount) return mount;
-        return getShoulderPanda(player);
+        return net.tiew.operationWild.entity.OWCarriedCompanions.resolveControlledEntity(player);
+    }
+
+    @Override
+    public boolean isCarried() {
+        return isOnShoulder();
+    }
+
+    @Override
+    public void dismountFromCarrier() {
+        dismountFromShoulder();
     }
 
     public @Nullable Player getCarrier() {

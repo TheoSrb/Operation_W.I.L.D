@@ -2,7 +2,6 @@ package net.tiew.operationWild.entity.clan;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.core.OWUtils;
@@ -95,6 +93,8 @@ public final class LionPride {
     private static final long RIVAL_TICKS = 6000L;
     private static final double CHORUS_PUSH_DISTANCE = 20.0;
     private static final double NOMAD_AVOID_DISTANCE = 48.0;
+    private static final int SURFACE_SCAN_UP = 8;
+    private static final int SURFACE_SCAN_DOWN = 12;
     private static final long NOMAD_AVOID_TICKS = 2400L;
 
     private static final float KILL_SATIETY_PER_HEALTH = 500f;
@@ -245,8 +245,8 @@ public final class LionPride {
         DayPhase phase = phase(level);
         Set<UUID> seen = new HashSet<>();
 
-        for (ServerPlayer player : level.players()) {
-            if (!isIntrudable(player)) continue;
+        double scan = radius * TERRITORY_NOTICE_FACTOR;
+        for (Player player : level.getEntitiesOfClass(Player.class, new AABB(home, home).inflate(scan, 32, scan), LionPride::isIntrudable)) {
             double distance = horizontalDistance(player.position(), home);
             if (distance > radius * TERRITORY_NOTICE_FACTOR) continue;
             seen.add(player.getUUID());
@@ -488,7 +488,22 @@ public final class LionPride {
     public static BlockPos surface(Level level, Vec3 point) {
         BlockPos column = BlockPos.containing(point.x, point.y, point.z);
         if (!level.hasChunkAt(column)) return column;
-        return level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column);
+        BlockPos ground = groundAt(level, column.getX(), column.getZ(), column.getY() + SURFACE_SCAN_UP, column.getY() - SURFACE_SCAN_DOWN);
+        return ground == null ? column : ground;
+    }
+
+    @Nullable
+    public static BlockPos groundAt(Level level, int x, int z, int fromY, int toY) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, fromY, z);
+        for (int y = fromY; y >= toY; y--) {
+            cursor.setY(y);
+            BlockPos below = cursor.below();
+            if (!level.getBlockState(cursor).getCollisionShape(level, cursor).isEmpty()) continue;
+            if (!level.getBlockState(cursor.above()).getCollisionShape(level, cursor.above()).isEmpty()) continue;
+            if (!level.getFluidState(cursor).isEmpty()) return null;
+            if (level.getBlockState(below).isFaceSturdy(level, below, net.minecraft.core.Direction.UP)) return cursor.immutable();
+        }
+        return null;
     }
 
     public static void onKill(ServerLevel level, LionEntity killer, LivingEntity prey) {

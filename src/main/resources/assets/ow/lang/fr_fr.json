@@ -1258,5 +1258,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s a été dévoré par %2$s",
   "death.attack.ow.plant_empress_bite.player": "%1$s a été dévoré par %2$s",
   "death.attack.ow.plant_empress_roots": "%1$s a été empalé par les racines de %2$s",
-  "death.attack.ow.plant_empress_roots.player": "%1$s a été empalé par les racines de %2$s"
+  "death.attack.ow.plant_empress_roots.player": "%1$s a été empalé par les racines de %2$s",
+  "ow.attacks.chameleon.tongue_vine.title": "Langue-Liane",
+  "ow.attacks.chameleon.tongue_vine.desc": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Une bête : des dégâts. Un objet : rapporté. Un bloc : on s'y balance %s s, re-clic pour lâcher. Recharge %s s.",
+  "ow.attacks.chameleon.mimicry.title": "Mimétisme",
+  "ow.attacks.chameleon.mimicry.desc": "Vous prenez la texture du bloc voisin et gagnez l'effet Camouflage pendant %s s. Frapper y met fin. Recharge de %s s.",
+  "ow.attacks.chameleon.watchful_tongue.title": "Langue Vigilante",
+  "ow.attacks.chameleon.watchful_tongue.desc": "Clic droit pour le porter dans le dos. Il fouette ce qui vous chasse hors de votre vue à %s blocs, toutes les %s s, et vous alerte.",
+  "ow.advancements.master_of_disguise.title": "Maître du déguisement",
+  "ow.advancements.master_of_disguise.description": "Vous avez apprivoisé un Caméléon !",
+  "piste.attack.6.name": "Langue Longue",
+  "piste.attack.6.desc": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
+  "piste.attack.7.name": "Mue Lente",
+  "piste.attack.7.desc": "Le Mimétisme dure 5 secondes de plus."
 }

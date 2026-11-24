@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_chameleon": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:chameleon"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.master_of_disguise.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:chameleon_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.master_of_disguise.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_chameleon"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

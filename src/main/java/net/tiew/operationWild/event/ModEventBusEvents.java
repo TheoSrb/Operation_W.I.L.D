@@ -39,6 +39,7 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.PEACOCK.get(), PeacockEntity.createAttributes().build());
         event.put(OWEntityRegistry.COLOSSAL_SQUID.get(), ColossalSquidEntity.createAttributes().build());
         event.put(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.createAttributes().build());
+        event.put(OWEntityRegistry.CHAMELEON.get(), net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.createAttributes().build());
         event.put(OWEntityRegistry.BOA_TAIL_PART.get(), BoaTailPart.bakeAttributes().build());
         event.put(OWEntityRegistry.SEABUG.get(), SeaBugEntity.createAttributes().build());
         event.put(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.createAttributes().build());
@@ -68,6 +69,8 @@ public class ModEventBusEvents {
                 Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.RED_PANDA.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 RedPandaEntity::checkRedPandaSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.CHAMELEON.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.ORCA.get(), SpawnPlacementTypes.IN_WATER, Heightmap.Types.OCEAN_FLOOR,
                 OrcaEntity::checkOrcaSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.HIPPOPOTAMUS.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,

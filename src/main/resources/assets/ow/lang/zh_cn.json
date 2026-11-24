@@ -1247,5 +1247,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s 被 %2$s 吞噬了",
   "death.attack.ow.plant_empress_bite.player": "%1$s 被 %2$s 吞噬了",
   "death.attack.ow.plant_empress_roots": "%1$s 被 %2$s 的根须刺穿了",
-  "death.attack.ow.plant_empress_roots.player": "%1$s 被 %2$s 的根须刺穿了"
+  "death.attack.ow.plant_empress_roots.player": "%1$s 被 %2$s 的根须刺穿了",
+  "ow.attacks.chameleon.tongue_vine.title": "舌藤",
+  "ow.attacks.chameleon.tongue_vine.desc": "右键：它爬到你头上，把舌头射出最远%s格。命中生物造成伤害，命中物品会取回，命中方块可摆荡%s秒，再次右键松开。冷却%s秒。",
+  "ow.attacks.chameleon.mimicry.title": "拟态",
+  "ow.attacks.chameleon.mimicry.desc": "你会披上邻近方块的外观，并获得%s秒伪装效果。攻击会解除。冷却%s秒。",
+  "ow.attacks.chameleon.watchful_tongue.title": "警觉之舌",
+  "ow.attacks.chameleon.watchful_tongue.desc": "右键把它背在背上。它会每%2$s秒抽打%1$s格内视野外追击你的敌人，并提醒你。",
+  "ow.advancements.master_of_disguise.title": "伪装大师",
+  "ow.advancements.master_of_disguise.description": "你驯服了一只变色龙！",
+  "piste.attack.6.name": "长舌",
+  "piste.attack.6.desc": "舌藤射程增至32格，警觉之舌警戒范围增至10格。",
+  "piste.attack.7.name": "缓慢褪色",
+  "piste.attack.7.desc": "拟态多持续5秒。"
 }

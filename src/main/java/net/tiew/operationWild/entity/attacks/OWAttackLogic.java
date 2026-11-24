@@ -1530,6 +1530,17 @@ public class OWAttackLogic {
             return;
         }
 
+        if (attack.getId() == OWAttacksHandler.MIMICRY_ID
+                && owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity mimicking
+                && mimicking.isMimicryActive()) {
+            removeUltimateStart(mimicking.getId(), attack.getId());
+            setCooldownEnd(mimicking.getId(), attack.getId(),
+                    System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+            PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+
         // Orque — Grande Gueule : gueule pleine, le second appui recrache. Il passe AVANT le
         // délai de récupération, sinon celui-ci, armé dès la happe, condamnerait la proie à rester
         // dedans jusqu'au bout du transport sans qu'on puisse la libérer.
@@ -1664,7 +1675,35 @@ public class OWAttackLogic {
      * sur l'épaule. Le contrôle de rang de passager ne le concerne pas — il n'a pas de cavalier.
      */
     public static boolean isCarriedOnShoulder(OWEntity owEntity) {
-        return owEntity instanceof RedPandaEntity redPanda && redPanda.isOnShoulder();
+        return net.tiew.operationWild.entity.OWCarriedCompanions.isCarried(owEntity);
+    }
+
+    private static long chameleonTonguePressMs = -1L;
+
+    private static boolean handleChameleonTongue(net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleon) {
+        OWAttack tongue = OWAttacksHandler.ChameleonAttacks.TONGUE_VINE;
+
+        long endMs = getCooldownEnd(chameleon.getId(), tongue.getId());
+        if (chameleon.isTongueOut() || (endMs != -1L && System.currentTimeMillis() < endMs)) {
+            recordAttackClick(tongue.getId(), true);
+            return false;
+        }
+
+        if (chameleon.getVitalEnergy() > chameleon.getVitalEnergyCapacity() - tongue.getEnergyRequired()) {
+            chameleon.canShowVitalEnergyLack = true;
+            recordAttackClick(tongue.getId(), true);
+            return false;
+        }
+
+        PacketDistributor.sendToServer(new OWAttackPacket(tongue.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(tongue.getId(), false);
+        return true;
+    }
+
+    public static void startChameleonTongueCooldown(net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleon) {
+        OWAttack tongue = OWAttacksHandler.ChameleonAttacks.TONGUE_VINE;
+        setCooldownEnd(chameleon.getId(), tongue.getId(),
+                System.currentTimeMillis() + (long) tongue.getCooldownTicks() * 50L);
     }
 
     private static void handleRedPandaHealOrb(RedPandaEntity redPanda) {
@@ -1792,6 +1831,42 @@ public class OWAttackLogic {
             if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) return;
 
             handleRedPandaHealOrb(redPanda);
+            event.setCanceled(true);
+            return;
+        }
+
+        if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleon && chameleon.isCarried()) {
+            if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT) return;
+
+            if (event.getAction() == GLFW.GLFW_RELEASE) {
+                long heldMs = chameleonTonguePressMs < 0 ? -1L : System.currentTimeMillis() - chameleonTonguePressMs;
+                chameleonTonguePressMs = -1L;
+                if (heldMs >= OWAttacksConstants.Chameleon.TONGUE_HOLD_RELEASE_MS) {
+                    PacketDistributor.sendToServer(new OWAttackPacket(OWAttacksHandler.TONGUE_VINE_ID, OWAttackPacket.ACTION_CHARGE_RELEASE, 0f));
+                }
+                return;
+            }
+            if (event.getAction() != GLFW.GLFW_PRESS) return;
+
+            if (chameleon.getTongueState() == net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.TONGUE_ATTACHED) {
+                chameleonTonguePressMs = -1L;
+                PacketDistributor.sendToServer(new OWAttackPacket(OWAttacksHandler.TONGUE_VINE_ID, OWAttackPacket.ACTION_EXECUTE, 0f));
+                recordAttackClick(OWAttacksHandler.TONGUE_VINE_ID, false);
+                event.setCanceled(true);
+                return;
+            }
+
+            if (playerHoldsUsableItem(mc.player)) return;
+            if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) return;
+            if (mc.player.isShiftKeyDown()) {
+                if (!mc.player.getMainHandItem().isEmpty()) return;
+                PacketDistributor.sendToServer(new net.tiew.operationWild.networking.packets.to_server.RedPandaDismountPacket());
+                event.setCanceled(true);
+                return;
+            }
+            if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+
+            chameleonTonguePressMs = handleChameleonTongue(chameleon) ? System.currentTimeMillis() : -1L;
             event.setCanceled(true);
             return;
         }

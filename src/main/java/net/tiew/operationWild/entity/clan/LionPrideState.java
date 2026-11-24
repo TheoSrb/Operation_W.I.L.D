@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class LionPrideState {
 
-    public long lastBrainTick = Long.MIN_VALUE;
+    public long lastBrainTick = -1_000_000L;
     public final Map<UUID, Float> intrusion = new HashMap<>();
     public long disturbedUntil;
 
@@ -34,7 +34,7 @@ public class LionPrideState {
     @Nullable
     public BlockPos perch;
     public long perchExpiry;
-    public long perchSearchedAt = Long.MIN_VALUE;
+    public long perchSearchedAt = -1_000_000L;
 
     @Nullable
     public BlockPos waypoint;

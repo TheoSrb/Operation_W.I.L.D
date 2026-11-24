@@ -251,6 +251,12 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.APPLE)
                 .add(Items.CARROT);
 
+        tag(OWTags.Items.CHAMELEON_FOOD)
+                .add(Items.SPIDER_EYE)
+                .add(Items.FERMENTED_SPIDER_EYE)
+                .add(Items.COD)
+                .add(Items.SALMON);
+
         tag(OWTags.Items.ELEPHANT_FOOD)
                 .add(Items.APPLE)
                 .add(Items.MELON_SLICE)

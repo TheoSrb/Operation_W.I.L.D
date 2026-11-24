@@ -178,6 +178,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
             case "RedPandaEntity" -> entityScale = 32;
+            case "ChameleonEntity" -> entityScale = 40;
             case "GorillaEntity" -> entityScale = 20;
             case "HippopotamusEntity" -> entityScale = 16;
             case "LionEntity" -> entityScale = 20;
@@ -322,12 +323,14 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
         net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = true;
         net.tiew.operationWild.entity.client.model.RedPandaModel.RENDER_AS_GROUNDED = true;
+        net.tiew.operationWild.entity.client.model.ChameleonModel.RENDER_AS_GROUNDED = true;
         try {
             InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 18 - boaUp, i + 78, j + 70 - boaUp, previewScale, 0.25F, this.xMouse, this.yMouse, this.entity);
         } finally {
             net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
             net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = false;
             net.tiew.operationWild.entity.client.model.RedPandaModel.RENDER_AS_GROUNDED = false;
+            net.tiew.operationWild.entity.client.model.ChameleonModel.RENDER_AS_GROUNDED = false;
         }
 
         renderTexts(guiGraphics, i, j);

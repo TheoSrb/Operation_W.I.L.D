@@ -31,8 +31,7 @@ public class OWEntityHud {
 
         if (rider != null) {
             if (rider.getVehicle() == null) {
-                net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity shoulderPanda =
-                        net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(rider);
+                OWEntity shoulderPanda = net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(rider);
                 if (shoulderPanda != null && shoulderPanda.isTame()) {
                     createHUD(guiGraphics, shoulderPanda, screenWidth, screenHeight);
                 }
@@ -148,6 +147,7 @@ public class OWEntityHud {
             case "GorillaEntity": return 14;
             case "HippopotamusEntity": return 15;
             case "ColossalSquidEntity": return 16;
+            case "ChameleonEntity": return 27;
             default: return 0;
         }
     }
@@ -224,6 +224,8 @@ public class OWEntityHud {
             return new EntityIconData(188, 237, 23, 19, -(23 / 2), -10);
         } else if (entity instanceof ElephantEntity) {
             return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
+        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity) {
+            return new EntityIconData(189, 124, 18, 20, -(18 / 2), -10);
         } else if (entity instanceof ColossalSquidEntity) {
             return new EntityIconData(166, 215, 22, 41, -(22 / 2), -32);
         }

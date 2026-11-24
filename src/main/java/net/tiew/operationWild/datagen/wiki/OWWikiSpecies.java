@@ -36,6 +36,7 @@ public record OWWikiSpecies(EntityType<?> type, Class<? extends OWEntity> implem
                 of(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.class),
                 of(OWEntityRegistry.KANGAROO.get(), KangarooEntity.class),
                 of(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.class),
+                of(OWEntityRegistry.CHAMELEON.get(), net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.class),
                 of(OWEntityRegistry.GORILLA.get(), GorillaEntity.class),
                 of(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.class),
                 of(OWEntityRegistry.LION.get(), LionEntity.class),

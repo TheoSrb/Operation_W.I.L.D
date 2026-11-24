@@ -1247,5 +1247,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s は %2$s に喰われた",
   "death.attack.ow.plant_empress_bite.player": "%1$s は %2$s に喰われた",
   "death.attack.ow.plant_empress_roots": "%1$s は %2$s の根に貫かれた",
-  "death.attack.ow.plant_empress_roots.player": "%1$s は %2$s の根に貫かれた"
+  "death.attack.ow.plant_empress_roots.player": "%1$s は %2$s の根に貫かれた",
+  "ow.attacks.chameleon.tongue_vine.title": "舌のつる",
+  "ow.attacks.chameleon.tongue_vine.desc": "右クリック：頭に乗って最大%sブロック先へ舌を伸ばす。生物にはダメージ、アイテムは回収、ブロックなら%s秒ぶら下がれる（再クリックで離す）。クールダウン%s秒。",
+  "ow.attacks.chameleon.mimicry.title": "擬態",
+  "ow.attacks.chameleon.mimicry.desc": "近くのブロックの見た目をまとい、%s秒間カモフラージュを得る。攻撃すると解除。クールダウン%s秒。",
+  "ow.attacks.chameleon.watchful_tongue.title": "見張りの舌",
+  "ow.attacks.chameleon.watchful_tongue.desc": "右クリックで背中に乗せる。視界外から追ってくる%sブロック以内の敵を%s秒ごとに舌で打ち、知らせてくれる。",
+  "ow.advancements.master_of_disguise.title": "変装の達人",
+  "ow.advancements.master_of_disguise.description": "カメレオンを手なずけた！",
+  "piste.attack.6.name": "長い舌",
+  "piste.attack.6.desc": "舌のつるは32ブロック、見張りの舌は10ブロックまで届く。",
+  "piste.attack.7.name": "ゆっくり色あせ",
+  "piste.attack.7.desc": "擬態が5秒長く続く。"
 }

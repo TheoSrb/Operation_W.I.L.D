@@ -73,8 +73,7 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
                     .resolveControlledEntity(player);
             if (entity == null) return;
-            boolean carriedOnShoulder = entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda
-                    && redPanda.isOnShoulder();
+            boolean carriedOnShoulder = net.tiew.operationWild.entity.OWCarriedCompanions.isCarried(entity);
             if (!carriedOnShoulder && entity.getPassengers().indexOf(player) != 0) return;
             // Le propriétaire OU tout membre de sa tribu doté du Contrôle peut piloter les attaques
             // de l'entité (cf. OWEntity#canPilotAttacks, garde commune client/serveur).
@@ -114,6 +113,13 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (packet.attackId() == OWAttackIds.MAELSTROM
                     && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squidMaelstrom) {
                 if (packet.action() == ACTION_EXECUTE) squidMaelstrom.startMaelstrom();
+                return;
+            }
+
+            if (packet.attackId() == OWAttackIds.TONGUE_VINE
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleonTongue) {
+                if (packet.action() == ACTION_EXECUTE) chameleonTongue.useTongue();
+                else if (packet.action() == ACTION_CHARGE_RELEASE) chameleonTongue.releaseHeldTongue();
                 return;
             }
 
@@ -211,6 +217,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.FEAST ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaAura
                                         && redPandaAura.activateFeast();
+                        case OWAttackIds.MIMICRY ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleonMimicry
+                                        && chameleonMimicry.activateMimicry();
                         case OWAttackIds.CHEST_BEAT ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorillaBeat
                                         && gorillaBeat.activateChestBeat();

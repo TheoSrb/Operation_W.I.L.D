@@ -93,6 +93,16 @@
       "id": "ow:tiger_shark_advancement"
     },
     {
+      "constant": "CHAMELEON_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Caméléon !"
+      },
+      "id": "ow:master_of_disguise",
+      "title": {
+        "fr_fr": "Maître du déguisement"
+      }
+    },
+    {
       "constant": "RED_PANDA_TAMED_ADVANCEMENT",
       "description": {
         "fr_fr": "Vous avez apprivoisé un Panda roux !"
@@ -1695,9 +1705,9 @@
           {
             "desc": {
               "key": "ow.attacks.tiger.combo.desc",
-              "plain": "Faites mordre votre tigre toutes les %s s : %s dégâts par morsure.",
+              "plain": "Faites mordre votre tigre toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites mordre votre tigre toutes les %s s : %s dégâts par morsure."
+                "fr_fr": "Faites mordre votre tigre toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -3120,9 +3130,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.048,
-            "individuals_per_100_chunks": 1.048,
-            "pool_weight": 318,
+            "groups_per_100_chunks": 0.972,
+            "individuals_per_100_chunks": 0.972,
+            "pool_weight": 343,
             "species_weight": 30,
             "tier": "rare"
           },
@@ -3130,15 +3140,15 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 2.033,
-            "individuals_per_100_chunks": 2.033,
-            "pool_weight": 164,
+            "groups_per_100_chunks": 1.764,
+            "individuals_per_100_chunks": 1.764,
+            "pool_weight": 189,
             "species_weight": 30,
             "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 2.033,
-        "individuals_per_100_chunks": 2.033,
+        "groups_per_100_chunks": 1.764,
+        "individuals_per_100_chunks": 1.764,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -3594,9 +3604,9 @@
           {
             "desc": {
               "key": "ow.attacks.kodiak.combo.desc",
-              "plain": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup de patte.",
+              "plain": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup de patte."
+                "fr_fr": "Faites frapper votre kodiak toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -5279,9 +5289,9 @@
           {
             "desc": {
               "key": "ow.attacks.crocodile.combo.desc",
-              "plain": "Faites broyer votre proie par le crocodile toutes les %s s : %s dégâts par morsure.",
+              "plain": "Faites broyer votre crocodile toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites broyer votre proie par le crocodile toutes les %s s : %s dégâts par morsure."
+                "fr_fr": "Faites broyer votre crocodile toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -6730,9 +6740,9 @@
           {
             "desc": {
               "key": "ow.attacks.boa.combo.desc",
-              "plain": "Faites mordre votre boa toutes les %s s : %s dégâts par morsure.",
+              "plain": "Faites mordre votre boa toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites mordre votre boa toutes les %s s : %s dégâts par morsure."
+                "fr_fr": "Faites mordre votre boa toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -8000,9 +8010,9 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.694,
-            "individuals_per_100_chunks": 2.541,
-            "pool_weight": 164,
+            "groups_per_100_chunks": 1.47,
+            "individuals_per_100_chunks": 2.205,
+            "pool_weight": 189,
             "species_weight": 25,
             "tier": "rare"
           },
@@ -8350,9 +8360,9 @@
           {
             "desc": {
               "key": "ow.attacks.orca.combo.desc",
-              "plain": "Faites mordre votre orque toutes les %s s : %s dégâts par morsure.",
+              "plain": "Faites mordre votre orque toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites mordre votre orque toutes les %s s : %s dégâts par morsure."
+                "fr_fr": "Faites mordre votre orque toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -9717,9 +9727,9 @@
           {
             "desc": {
               "key": "ow.attacks.kangaroo.combo.desc",
-              "plain": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup de poing.",
+              "plain": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup de poing."
+                "fr_fr": "Faites boxer votre kangourou toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -10534,7 +10544,8 @@
         ],
         "interfaces": [
           "IOWEntity",
-          "IOWTamable"
+          "IOWTamable",
+          "IOWCarriedCompanion"
         ],
         "max_instances_per_chunk": 10,
         "mob_category": "creature",
@@ -10726,9 +10737,9 @@
         "created": "2026-10-17T21:51:56.435674+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-11-22T12:09:45.1450593+01:00",
-        "last_modified_date": "2026-11-22",
-        "size_bytes": 80272
+        "last_modified": "2026-11-24T16:53:04.7503923+01:00",
+        "last_modified_date": "2026-11-24",
+        "size_bytes": 80448
       },
       "id": "ow:red_panda",
       "loot": {
@@ -11294,15 +11305,15 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.494,
-            "individuals_per_100_chunks": 3.494,
-            "pool_weight": 318,
+            "groups_per_100_chunks": 3.239,
+            "individuals_per_100_chunks": 3.239,
+            "pool_weight": 343,
             "species_weight": 100,
             "tier": "uncommon"
           }
         ],
-        "groups_per_100_chunks": 3.494,
-        "individuals_per_100_chunks": 3.494,
+        "groups_per_100_chunks": 3.239,
+        "individuals_per_100_chunks": 3.239,
         "spawns_naturally": true,
         "tier": "uncommon"
       },
@@ -11533,10 +11544,1066 @@
         "cards": [
           {
             "desc": {
-              "key": "ow.attacks.gorilla.combo.desc",
-              "plain": "Faites cogner votre gorille : une droite, une gauche, puis les deux poings au sol en onde de choc. Portée de %s bloc, %s dégâts par coup.",
+              "key": "ow.attacks.chameleon.tongue_vine.desc",
+              "plain": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Une bête : des dégâts. Un objet : rapporté. Un bloc : on s'y balance %s s, re-clic pour lâcher. Recharge %s s.",
               "translations": {
-                "fr_fr": "Faites cogner votre gorille : une droite, une gauche, puis les deux poings au sol en onde de choc. Portée de %s bloc, %s dégâts par coup."
+                "fr_fr": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Une bête : des dégâts. Un objet : rapporté. Un bloc : on s'y balance %s s, re-clic pour lâcher. Recharge %s s."
+              }
+            },
+            "slug": "tongue_vine",
+            "title": {
+              "key": "ow.attacks.chameleon.tongue_vine.title",
+              "plain": "Langue-Liane",
+              "translations": {
+                "fr_fr": "Langue-Liane"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.chameleon.mimicry.desc",
+              "plain": "Vous prenez la texture du bloc voisin et gagnez l'effet Camouflage pendant %s s. Frapper y met fin. Recharge de %s s.",
+              "translations": {
+                "fr_fr": "Vous prenez la texture du bloc voisin et gagnez l'effet Camouflage pendant %s s. Frapper y met fin. Recharge de %s s."
+              }
+            },
+            "slug": "mimicry",
+            "title": {
+              "key": "ow.attacks.chameleon.mimicry.title",
+              "plain": "Mimétisme",
+              "translations": {
+                "fr_fr": "Mimétisme"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.chameleon.watchful_tongue.desc",
+              "plain": "Clic droit pour le porter dans le dos. Il fouette ce qui vous chasse hors de votre vue à %s blocs, toutes les %s s, et vous alerte.",
+              "translations": {
+                "fr_fr": "Clic droit pour le porter dans le dos. Il fouette ce qui vous chasse hors de votre vue à %s blocs, toutes les %s s, et vous alerte."
+              }
+            },
+            "slug": "watchful_tongue",
+            "title": {
+              "key": "ow.attacks.chameleon.watchful_tongue.title",
+              "plain": "Langue Vigilante",
+              "translations": {
+                "fr_fr": "Langue Vigilante"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "MIMICRY_CAST_TICKS": 20,
+        "MIMICRY_COOLDOWN_TICKS": 1800,
+        "MIMICRY_DURATION_MS": 20000,
+        "MIMICRY_DURATION_TICKS": 400,
+        "MIMICRY_ENERGY": 100.0,
+        "MIMICRY_FADE_TICKS": 10,
+        "MIMICRY_OPACITY": 0.82,
+        "MIMICRY_SLOW_FADE_BONUS_TICKS": 100,
+        "TONGUE_COOLDOWN_TICKS": 60,
+        "TONGUE_ENERGY": 15.0,
+        "TONGUE_ENTITY_PICK_RADIUS": 0.3,
+        "TONGUE_EXTEND_SPEED": 3.0,
+        "TONGUE_ITEM_PICK_RADIUS": 0.45,
+        "TONGUE_PERCH_RETURN_DELAY": 10,
+        "TONGUE_RANGE": 24.0,
+        "TONGUE_RANGE_LONG_TONGUE": 32.0,
+        "TONGUE_RETRACT_SPEED": 3.6,
+        "TONGUE_SHOT_TICKS": 12,
+        "VINE_DAMPING": 0.995,
+        "VINE_MAX_TICKS": 600,
+        "VINE_MIN_LENGTH": 2.0,
+        "VINE_REEL_SPEED": 0.18,
+        "VINE_RELEASE_SLACK": 6.0,
+        "WATCH_ALERT_TICKS": 30,
+        "WATCH_BLIND_DOT": -0.1736,
+        "WATCH_RADIUS": 7.0,
+        "WATCH_RADIUS_LONG_TONGUE": 10.0,
+        "WATCH_SCAN_INTERVAL_TICKS": 5,
+        "WATCH_STRIKE_INTERVAL_TICKS": 40
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 2.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 16.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.0,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 10.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.13,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Caméléon"
+      },
+      "class": "net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "ChameleonEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWCarriedCompanion"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_IDLE_2",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_TONGUE",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.6667
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_SIT",
+            "seconds": 0.6667
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_SIT_IDLE",
+            "seconds": 0.6667
+          },
+          {
+            "looping": true,
+            "name": "NAP",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_NAP",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_NAP_IDLE",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "BACK_IDLE",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_BACK_HEAD",
+            "seconds": 0.4167
+          },
+          {
+            "looping": true,
+            "name": "HEAD_IDLE",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_HEAD_BACK",
+            "seconds": 0.4167
+          },
+          {
+            "looping": false,
+            "name": "TONGUE_SHOT",
+            "seconds": 0.625
+          },
+          {
+            "looping": true,
+            "name": "TONGUE_HOLD",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "CAMOUFLAGE_CAST",
+            "seconds": 1.0
+          }
+        ],
+        "layers": [
+          "ChameleonCamouflageLayer"
+        ],
+        "model": "ChameleonModel",
+        "renderer": "ChameleonRenderer"
+      },
+      "constants": {
+        "CROUCH_BLEND": 0.35,
+        "DEFAULT_SKIN_INDEX": 0,
+        "ENTITY_COLOR": 9611334,
+        "MAX_SOMNOLENCE": 120,
+        "PERCH_BACK": 0,
+        "PERCH_BLEND_STEP": 0.125,
+        "PERCH_HEAD": 1,
+        "SOMNOLENCE_LOSS_INTERVAL": 2,
+        "TAMING_EXPERIENCE": 20.0,
+        "TONGUE_ATTACHED": 2,
+        "TONGUE_EXTENDING": 1,
+        "TONGUE_IDLE": 0,
+        "TONGUE_RETRACTING": 3
+      },
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 0.8,
+          "energy_multiplier": 1.4,
+          "health_multiplier": 1.0,
+          "name": "SCOUT",
+          "speed_multiplier": 1.4
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 34.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 0,
+        "diet": {
+          "name": "CARNIVOROUS",
+          "saturation_multiplier": 1.0
+        },
+        "entity_color": 9611334,
+        "entity_color_hex": "#92A846",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 12.0,
+        "initial_variant": 0,
+        "mounted_speed_blocks_per_second": 2.6,
+        "nap_particle_forward": 0.45,
+        "nap_particle_height": 0.1,
+        "pitch_max_angle": 45.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": true,
+        "prefers_vegetables": false,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.2,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 0,
+        "taming_experience": 20.0,
+        "teleports_to_owner": false,
+        "temperament": "PASSIVE",
+        "theoretical_scale": 2.0,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 2.6
+      },
+      "history": {
+        "created": "2026-11-24T17:02:09.7203162+01:00",
+        "created_date": "2026-11-24",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ChameleonEntity.java",
+        "last_modified": "2026-11-24T17:02:09.7203162+01:00",
+        "last_modified_date": "2026-11-24",
+        "size_bytes": 56789
+      },
+      "id": "ow:chameleon",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/chameleon",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 0.4125000089406967,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 0.0,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 250.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": 0.0,
+        "run_speed_multiplier": 0.0,
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.225,
+        "walk_speed_multiplier": 0.0,
+        "water_speed_divider": 0.0
+      },
+      "names": {
+        "fr_fr": "Caméléon"
+      },
+      "path": "chameleon",
+      "piste": {
+        "available": true,
+        "node_count": 35,
+        "nodes": [
+          {
+            "type": "START",
+            "children": [
+              1,
+              2
+            ],
+            "cost": 0,
+            "exclusive_fork": false,
+            "id": 0,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 33,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 0
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 27,
+            "required_level": 26,
+            "requires_all": false,
+            "reward": 68,
+            "x": 105,
+            "y": 30
+          },
+          {
+            "type": "STEP",
+            "children": [
+              33
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 31,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 30,
+            "required_level": 13,
+            "requires_all": false,
+            "reward": 42,
+            "x": 202,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 25,
+            "required_level": 32,
+            "requires_all": false,
+            "reward": 82,
+            "x": 60,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              25,
+              26,
+              27
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 20,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 82
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 26,
+            "required_level": 4,
+            "requires_all": false,
+            "reward": 30,
+            "x": 140,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              20
+            ],
+            "cost": 18,
+            "exclusive_fork": false,
+            "id": 14,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 123
+          },
+          {
+            "type": "STEP",
+            "children": [
+              23
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 18,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [
+              29,
+              30
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 23,
+            "required_level": 9,
+            "requires_all": false,
+            "reward": 4,
+            "x": 202,
+            "y": 123
+          },
+          {
+            "type": "XP",
+            "children": [
+              32
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 29,
+            "required_level": 20,
+            "requires_all": false,
+            "reward": 55,
+            "x": 284,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 12,
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 6,
+            "x": 60,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              12,
+              13,
+              14
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 7,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [
+              18,
+              19
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 13,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 3,
+            "x": 153,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              34
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 32,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 34,
+            "required_level": 16,
+            "requires_all": false,
+            "reward": 5,
+            "x": 324,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              7
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 4,
+            "required_level": 38,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 19,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 8,
+            "exclusive_fork": false,
+            "id": 24,
+            "required_level": 6,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24,
+              28
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 22,
+            "required_level": 11,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              32
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 28,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              3,
+              4
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 1,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 250
+          },
+          {
+            "type": "COINS",
+            "children": [
+              6
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 3,
+            "required_level": 22,
+            "requires_all": false,
+            "reward": 5,
+            "x": 153,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              21,
+              22
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 16,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 250
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 70,
+            "exclusive_fork": false,
+            "id": 21,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.6.desc",
+                  "plain": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
+                  "translations": {
+                    "fr_fr": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_0.png",
+                "id": 6,
+                "name": {
+                  "key": "piste.attack.6.name",
+                  "plain": "Langue Longue",
+                  "translations": {
+                    "fr_fr": "Langue Longue"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.7.desc",
+                  "plain": "Le Mimétisme dure 5 secondes de plus.",
+                  "translations": {
+                    "fr_fr": "Le Mimétisme dure 5 secondes de plus."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_1.png",
+                "id": 7,
+                "name": {
+                  "key": "piste.attack.7.name",
+                  "plain": "Mue Lente",
+                  "translations": {
+                    "fr_fr": "Mue Lente"
+                  }
+                }
+              }
+            ],
+            "required_level": 38,
+            "requires_all": false,
+            "reward": 0,
+            "x": 324,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 6,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 11,
+            "required_level": 18,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11,
+              15,
+              16
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 9,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 299
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 15,
+            "required_level": 28,
+            "requires_all": false,
+            "reward": 6,
+            "x": 284,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              5
+            ],
+            "cost": 25,
+            "exclusive_fork": false,
+            "id": 2,
+            "required_level": 44,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              8,
+              9,
+              10
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 5,
+            "required_level": 42,
+            "requires_all": false,
+            "reward": 7,
+            "x": 239,
+            "y": 334
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 8,
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 140,
+            "x": 324,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              17
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 10,
+            "required_level": 48,
+            "requires_all": false,
+            "reward": 8,
+            "x": 239,
+            "y": 371
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 17,
+            "required_level": 50,
+            "requires_all": true,
+            "reward": 250,
+            "x": 239,
+            "y": 408
+          }
+        ],
+        "start_node": 0,
+        "total_cost": 414
+      },
+      "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:sparse_jungle",
+        "biomes": [
+          {
+            "biome": "minecraft:bamboo_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 0.81,
+            "individuals_per_100_chunks": 0.81,
+            "pool_weight": 343,
+            "species_weight": 25,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.47,
+            "individuals_per_100_chunks": 1.47,
+            "pool_weight": 189,
+            "species_weight": 25,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:sparse_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 2.646,
+            "individuals_per_100_chunks": 2.646,
+            "pool_weight": 105,
+            "species_weight": 25,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 2.646,
+        "individuals_per_100_chunks": 2.646,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
+      "simple_class": "ChameleonEntity",
+      "size": {
+        "eye_height": 0.46750003,
+        "fixed": false,
+        "height": 0.55,
+        "theoretical_scale": 2.0,
+        "width": 0.55
+      },
+      "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_chameleon",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:sparse_jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 25
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_chameleon",
+          "biomes": [
+            "minecraft:jungle",
+            "minecraft:sparse_jungle",
+            "minecraft:bamboo_jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 1,
+          "min_count": 1,
+          "weight": 25
+        }
+      ],
+      "taming": {
+        "advancement": "ow:master_of_disguise",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": -1,
+          "level_name": "none",
+          "respects_mob_griefing": true
+        },
+        "experience": 20.0,
+        "food_tags": [
+          {
+            "constant": "CHAMELEON_FOOD",
+            "id": "ow:chameleon_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:salmon",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:spider_eye",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": false,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 24.0,
+          "full_bar_awake_seconds": 12.0,
+          "loss_interval_ticks_asleep": 4,
+          "loss_interval_ticks_awake": 2,
+          "loss_per_second_asleep": 5.0,
+          "loss_per_second_awake": 10.0,
+          "max": 120,
+          "max_max": 144,
+          "max_min": 96,
+          "spread_percent": 20
+        },
+        "tameable": true,
+        "valid_projectiles": [
+          "ow:tranquilizer_arrow",
+          "ow:tranquilizer_wooden_stinger",
+          "ow:slingshot_projectile",
+          "ow:tranquilizer_dart"
+        ]
+      },
+      "textures": [
+        "textures/entity/chameleon/chameleon_default.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/chameleon",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.chameleon",
+      "variants": [
+        {
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        }
+      ]
+    },
+    {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.combo.desc",
+              "plain": "Faites marteler votre gorille : %s bloc de portée, %s dégâts par coup.",
+              "translations": {
+                "fr_fr": "Faites marteler votre gorille : %s bloc de portée, %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -11904,9 +12971,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.629,
-            "individuals_per_100_chunks": 0.629,
-            "pool_weight": 318,
+            "groups_per_100_chunks": 0.583,
+            "individuals_per_100_chunks": 0.583,
+            "pool_weight": 343,
             "species_weight": 18,
             "tier": "very_rare"
           },
@@ -11914,9 +12981,9 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.22,
-            "individuals_per_100_chunks": 1.22,
-            "pool_weight": 164,
+            "groups_per_100_chunks": 1.058,
+            "individuals_per_100_chunks": 1.058,
+            "pool_weight": 189,
             "species_weight": 18,
             "tier": "rare"
           },
@@ -11924,17 +12991,17 @@
             "biome": "minecraft:sparse_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.056,
-            "individuals_per_100_chunks": 4.583,
-            "pool_weight": 80,
+            "groups_per_100_chunks": 2.328,
+            "individuals_per_100_chunks": 3.492,
+            "pool_weight": 105,
             "species_weight": 22,
-            "tier": "uncommon"
+            "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 3.056,
-        "individuals_per_100_chunks": 4.583,
+        "groups_per_100_chunks": 2.328,
+        "individuals_per_100_chunks": 3.492,
         "spawns_naturally": true,
-        "tier": "uncommon"
+        "tier": "rare"
       },
       "simple_class": "GorillaEntity",
       "size": {
@@ -12131,9 +13198,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.combo.desc",
-              "plain": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par morsure. Le troisième coup est un coup de tête qui projette.",
+              "plain": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par morsure. Le troisième coup est un coup de tête qui projette."
+                "fr_fr": "Faites mordre votre hippopotame toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -12496,10 +13563,10 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-11-22T12:02:40.30042+01:00",
+        "created": "2026-11-22T12:22:13.5682115+01:00",
         "created_date": "2026-11-22",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-11-22T12:09:44.5111143+01:00",
+        "last_modified": "2026-11-22T14:51:10.2721163+01:00",
         "last_modified_date": "2026-11-22",
         "size_bytes": 76707
       },
@@ -13119,6 +14186,10 @@
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
         "TAMING_EXPERIENCE": 140.0,
+        "WILD_POSE_EAT": 3,
+        "WILD_POSE_NONE": 0,
+        "WILD_POSE_STALK": 1,
+        "WILD_POSE_THREAT": 2,
         "ZONE_FLANK": 1,
         "ZONE_RUMP": 2,
         "ZONE_THROAT": 0
@@ -13174,9 +14245,9 @@
         "created": "2026-11-03T17:14:57.0062291+01:00",
         "created_date": "2026-11-03",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-11-22T12:09:19.4366159+01:00",
-        "last_modified_date": "2026-11-22",
-        "size_bytes": 122604
+        "last_modified": "2026-11-23T20:58:03.2763261+01:00",
+        "last_modified_date": "2026-11-23",
+        "size_bytes": 132836
       },
       "id": "ow:lion",
       "loot": {
@@ -13343,6 +14414,21 @@
           "name": "ALBINO",
           "ordinal": 1
         }
+      ],
+      "wild_behaviors": [
+        "LionClanRestGoal",
+        "LionConcedeFleeGoal",
+        "LionDuelTargetGoal",
+        "LionDuelWatchGoal",
+        "LionFeastGoal",
+        "LionGoals",
+        "LionHuntGoal",
+        "LionIntruderTargetGoal",
+        "LionNomadRoamGoal",
+        "LionPerchGoal",
+        "LionRivalPredatorTargetGoal",
+        "LionStayHomeGoal",
+        "LionWarnGoal"
       ]
     },
     {
@@ -13351,9 +14437,9 @@
           {
             "desc": {
               "key": "ow.attacks.peacock.combo.desc",
-              "plain": "Faites picorer votre paon toutes les %s s : %s dégâts par coup de bec ou d'ergot.",
+              "plain": "Faites picorer votre paon toutes les %s s : %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Faites picorer votre paon toutes les %s s : %s dégâts par coup de bec ou d'ergot."
+                "fr_fr": "Faites picorer votre paon toutes les %s s : %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -13749,6 +14835,11 @@
             "looping": false,
             "name": "DEFINITION",
             "seconds": 0.45
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 3.5
           }
         ],
         "layers": [
@@ -13764,6 +14855,22 @@
         "BASE_SPEED": 0.19,
         "DEFAULT_SKIN_INDEX": 1,
         "ENTITY_COLOR": 2649795,
+        "FAN_CLOSE": 5,
+        "FAN_CLOSE_TICKS": 30,
+        "FAN_DANCE": 3,
+        "FAN_DANCE_LOOP_TICKS": 70,
+        "FAN_DANCE_TICKS": 140,
+        "FAN_DANCE_VOLTE_TICK": 40,
+        "FAN_FEAR_DELAY_TICKS": 4,
+        "FAN_FEAR_DURATION_TICKS": 100,
+        "FAN_FEAR_RADIUS": 10.0,
+        "FAN_NONE": 0,
+        "FAN_OPEN": 1,
+        "FAN_OPEN_TICKS": 45,
+        "FAN_SHAKE": 2,
+        "FAN_SHAKE_TICKS": 40,
+        "FAN_SHOW": 4,
+        "FAN_SLOW_DURATION_TICKS": 60,
         "FOOD_WANTED_MAX": 10,
         "FOOD_WANTED_MIN": 6,
         "LINK_ACTIVE": 2,
@@ -13874,12 +14981,12 @@
         "walk_speed_blocks_per_second": 3.8
       },
       "history": {
-        "created": "2026-11-22T11:36:05.0332817+01:00",
-        "created_date": "2026-11-22",
+        "created": "2026-11-23T17:27:28.8400206+01:00",
+        "created_date": "2026-11-23",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/PeacockEntity.java",
-        "last_modified": "2026-11-22T12:09:45.0793741+01:00",
-        "last_modified_date": "2026-11-22",
-        "size_bytes": 62310
+        "last_modified": "2026-11-23T17:27:28.8415878+01:00",
+        "last_modified_date": "2026-11-23",
+        "size_bytes": 84528
       },
       "id": "ow:peacock",
       "loot": {
@@ -14355,14 +15462,52 @@
             "y": 250
           },
           {
-            "type": "XP",
+            "type": "ATTACK",
             "children": [],
-            "cost": 15,
+            "cost": 70,
             "exclusive_fork": false,
             "id": 21,
-            "required_level": 34,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.4.desc",
+                  "plain": "13 plumes tirées d'une traite en 1 s, sans temps mort, mais 25 % moins fortes.",
+                  "translations": {
+                    "fr_fr": "13 plumes tirées d'une traite en 1 s, sans temps mort, mais 25 % moins fortes."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/peacock_upgrading_skill_0.png",
+                "id": 4,
+                "name": {
+                  "key": "piste.attack.4.name",
+                  "plain": "Tempête de Plumes",
+                  "translations": {
+                    "fr_fr": "Tempête de Plumes"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.5.desc",
+                  "plain": "Le Lien de Vie coûte 50 % de vie en moins au donneur et soigne le receveur 25 % de plus.",
+                  "translations": {
+                    "fr_fr": "Le Lien de Vie coûte 50 % de vie en moins au donneur et soigne le receveur 25 % de plus."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/peacock_upgrading_skill_1.png",
+                "id": 5,
+                "name": {
+                  "key": "piste.attack.5.name",
+                  "plain": "Lien Apaisé",
+                  "translations": {
+                    "fr_fr": "Lien Apaisé"
+                  }
+                }
+              }
+            ],
+            "required_level": 42,
             "requires_all": false,
-            "reward": 95,
+            "reward": 0,
             "x": 324,
             "y": 250
           },
@@ -14490,7 +15635,7 @@
           }
         ],
         "start_node": 0,
-        "total_cost": 359
+        "total_cost": 414
       },
       "probe_resolved": true,
       "rarity": {
@@ -14786,6 +15931,12 @@
           "name": "ALBINO",
           "ordinal": 4
         }
+      ],
+      "wild_behaviors": [
+        "PeacockAutoHealGoal",
+        "PeacockCourtshipGoal",
+        "PeacockFanDisplayGoal",
+        "PeacockWildFeatherGoal"
       ]
     },
     {
@@ -14794,9 +15945,9 @@
           {
             "desc": {
               "key": "ow.attacks.colossal_squid.combo.desc",
-              "plain": "Faites fouetter votre calamar : ses bras s'abattent en salve toutes les %s s, %s dégâts par salve. %s d'énergie par salve, sans fin tant que vous relancez.",
+              "plain": "Faites fouetter votre calamar toutes les %s s : %s dégâts par coup, %s d'énergie à chaque fois.",
               "translations": {
-                "fr_fr": "Faites fouetter votre calamar : ses bras s'abattent en salve toutes les %s s, %s dégâts par salve. %s d'énergie par salve, sans fin tant que vous relancez."
+                "fr_fr": "Faites fouetter votre calamar toutes les %s s : %s dégâts par coup, %s d'énergie à chaque fois."
               }
             },
             "slug": "combo",
@@ -16148,6 +17299,7 @@
       "INK_FRENZY": 29,
       "LIFE_LINK": 31,
       "MAELSTROM": 30,
+      "MIMICRY": 35,
       "MOUTH_SLAM": 3,
       "NAP_ULTIMATE": 6,
       "PAW_SLAM": 5,
@@ -16161,6 +17313,7 @@
       "SHOULDER_BASH": 13,
       "TELLURIC_STOMP": 12,
       "TIDAL_RUSH": 7,
+      "TONGUE_VINE": 34,
       "VENOM_FANGS": 9,
       "WATER_SPRAY": 15,
       "WHIRLWIND_FISTS": 11
@@ -16686,6 +17839,78 @@
             "plain": "Grande Tablée",
             "translations": {
               "fr_fr": "Grande Tablée"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.4.desc",
+            "plain": "13 plumes tirées d'une traite en 1 s, sans temps mort, mais 25 % moins fortes.",
+            "translations": {
+              "fr_fr": "13 plumes tirées d'une traite en 1 s, sans temps mort, mais 25 % moins fortes."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/peacock_upgrading_skill_0.png",
+          "id": 4,
+          "name": {
+            "key": "piste.attack.4.name",
+            "plain": "Tempête de Plumes",
+            "translations": {
+              "fr_fr": "Tempête de Plumes"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.5.desc",
+            "plain": "Le Lien de Vie coûte 50 % de vie en moins au donneur et soigne le receveur 25 % de plus.",
+            "translations": {
+              "fr_fr": "Le Lien de Vie coûte 50 % de vie en moins au donneur et soigne le receveur 25 % de plus."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/peacock_upgrading_skill_1.png",
+          "id": 5,
+          "name": {
+            "key": "piste.attack.5.name",
+            "plain": "Lien Apaisé",
+            "translations": {
+              "fr_fr": "Lien Apaisé"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.6.desc",
+            "plain": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
+            "translations": {
+              "fr_fr": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_0.png",
+          "id": 6,
+          "name": {
+            "key": "piste.attack.6.name",
+            "plain": "Langue Longue",
+            "translations": {
+              "fr_fr": "Langue Longue"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.7.desc",
+            "plain": "Le Mimétisme dure 5 secondes de plus.",
+            "translations": {
+              "fr_fr": "Le Mimétisme dure 5 secondes de plus."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_1.png",
+          "id": 7,
+          "name": {
+            "key": "piste.attack.7.name",
+            "plain": "Mue Lente",
+            "translations": {
+              "fr_fr": "Mue Lente"
             }
           }
         }
@@ -18266,6 +19491,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:chameleon_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de caméléon"
+      },
+      "path": "chameleon_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.chameleon_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:peacock_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -18781,7 +20019,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1254
+      "fr_fr": 1272
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -22257,6 +23495,10 @@
           "minecraft:carrot"
         ],
         "id": "ow:red_panda_food"
+      },
+      {
+        "constant": "CHAMELEON_FOOD",
+        "id": "ow:chameleon_food"
       },
       {
         "constant": "GORILLA_FOOD",
@@ -27390,6 +28632,18 @@
           ]
         },
         {
+          "archetype": "SCOUT",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:chameleon",
+          "path": "chameleon",
+          "probe_resolved": true,
+          "terrain_mask": 1,
+          "terrains": [
+            "TERRESTRIAL"
+          ]
+        },
+        {
           "archetype": "BERSERKER",
           "danger": 1.0,
           "fights_in_arena": true,
@@ -28068,6 +29322,11 @@
           "carries_flag": false,
           "id": "ow:red_panda",
           "model": "RedPandaModel"
+        },
+        {
+          "carries_flag": false,
+          "id": "ow:chameleon",
+          "model": "ChameleonModel"
         },
         {
           "carries_flag": false,
@@ -32363,6 +33622,19 @@
         },
         {
           "danger": 1.0,
+          "id": "ow:chameleon",
+          "path": "chameleon",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
           "id": "ow:gorilla",
           "path": "gorilla",
           "value_by_level": {
@@ -32663,6 +33935,19 @@
         "max_count": 1,
         "min_count": 1,
         "weight": 100
+      },
+      {
+        "biome_modifier": "ow:spawn_chameleon",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:sparse_jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:chameleon",
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 25
       },
       {
         "biome_modifier": "ow:spawn_orca",

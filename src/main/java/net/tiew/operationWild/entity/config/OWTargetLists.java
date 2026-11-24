@@ -80,7 +80,8 @@ public final class OWTargetLists {
             Pig.class, Cow.class, Sheep.class, Goat.class, Chicken.class, Rabbit.class,
             Horse.class, Donkey.class, Mule.class, Llama.class,
             Panda.class, Parrot.class, Ocelot.class, Cat.class, Fox.class,
-            BoaEntity.class, CrocodileEntity.class, RedPandaEntity.class, PeacockEntity.class
+            BoaEntity.class, CrocodileEntity.class, RedPandaEntity.class, PeacockEntity.class,
+            net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.class
     );
 
     /**
@@ -93,7 +94,7 @@ public final class OWTargetLists {
             Chicken.class, Rabbit.class, Parrot.class, Bat.class,
             Ocelot.class, Cat.class, Fox.class,
             Frog.class, Turtle.class,
-            RedPandaEntity.class
+            RedPandaEntity.class, net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.class
     );
 
     /**
@@ -107,7 +108,8 @@ public final class OWTargetLists {
             Salmon.class, Cod.class, TropicalFish.class,
             Turtle.class, Frog.class,
             Drowned.class, Zombie.class,
-            KangarooEntity.class, BoaEntity.class, TigerEntity.class, RedPandaEntity.class
+            KangarooEntity.class, BoaEntity.class, TigerEntity.class, RedPandaEntity.class,
+            net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.class
     );
 
     /**

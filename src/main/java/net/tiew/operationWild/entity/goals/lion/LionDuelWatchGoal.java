@@ -15,7 +15,7 @@ public class LionDuelWatchGoal extends Goal {
     private static final int CHECK_INTERVAL = 10;
     private static final double DUEL_RANGE = 40.0;
     private static final double RING_RADIUS = 7.0;
-    private static final double SLOT_REACHED = 1.5;
+    private static final double SLOT_REACHED = 2.5;
     private static final int REPATH_TICKS = 10;
 
     private final LionEntity lion;

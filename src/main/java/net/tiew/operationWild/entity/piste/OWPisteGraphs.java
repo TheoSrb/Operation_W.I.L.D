@@ -19,6 +19,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("BoaEntity", buildBoa());
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
         BY_SPECIES.put("PeacockEntity", buildPeacock());
+        BY_SPECIES.put("ChameleonEntity", buildChameleon());
     }
 
     public static OWPisteGraph forEntity(OWEntity entity) {
@@ -205,7 +206,15 @@ public final class OWPisteGraphs {
         return buildHealerMaze(false);
     }
 
+    private static OWPisteGraph buildChameleon() {
+        return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.LONG_TONGUE, net.tiew.operationWild.entity.attacks.OWPistePassives.SLOW_FADE, 38);
+    }
+
     private static OWPisteGraph buildHealerMaze(boolean redPandaPassives) {
+        return redPandaPassives ? buildCompanionMaze(2, 3, 34) : buildCompanionMaze(4, 5, 42);
+    }
+
+    private static OWPisteGraph buildCompanionMaze(int firstPassive, int secondPassive, int passiveLevel) {
         OWPisteMaze maze = OWPisteMaze.create(U)
                 .map("""
                        o
@@ -255,8 +264,7 @@ public final class OWPisteGraphs {
                 .xp('X', 140, 15, 46)
                 .coins('Y', 8, 20, 48)
                 .xp('Z', 250, 15, 50).requireAll('Z');
-        if (redPandaPassives) maze.attack('R', 2, 3, 70, 34);
-        else maze.attack('R', 4, 5, 70, 42);
+        maze.attack('R', firstPassive, secondPassive, 70, passiveLevel);
         return maze.build();
     }
 

@@ -66,8 +66,15 @@ public class ServerEvents {
      */
     @SubscribeEvent
     public static void onAttackShoulderCompanion(net.neoforged.neoforge.event.entity.player.AttackEntityEvent event) {
-        if (!(event.getTarget() instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda)) return;
-        if (redPanda.getVehicle() == event.getEntity()) event.setCanceled(true);
+        if (!(event.getTarget() instanceof net.tiew.operationWild.entity.IOWCarriedCompanion)) return;
+        if (event.getTarget().getVehicle() == event.getEntity()) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onMimickingCarrierStrike(LivingIncomingDamageEvent event) {
+        if (event.getSource().getEntity() instanceof Player attacker && attacker != event.getEntity()) {
+            net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.breakCarrierMimicry(attacker);
+        }
     }
 
 

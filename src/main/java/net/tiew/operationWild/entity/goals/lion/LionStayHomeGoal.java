@@ -30,6 +30,7 @@ public class LionStayHomeGoal extends Goal {
         if (!LionGoals.onSchedule(lion, CHECK_INTERVAL) || !LionGoals.isCalm(lion) || lion.isNapping() || lion.isSitting()) return false;
         LionClanData.Clan clan = lion.wildClan();
         if (clan == null || clan.home == null || LionGoals.huntRole(lion, clan) != null) return false;
+        if (lion.getUUID().equals(clan.male) && LionNomadRoamGoal.isMarchingToWar(clan)) return false;
         double radius = LionPride.territoryRadius(clan);
         return LionGoals.horizontalDistance(lion, LionPride.homeCenter(clan)) > radius * LEAVE_FRACTION;
     }

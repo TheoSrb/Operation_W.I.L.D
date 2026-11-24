@@ -34,7 +34,10 @@ public class OWArmorItem extends ArmorItem {
         if(!level.isClientSide() && entity instanceof Player player) {
             if (hasFullSuitOfArmorOn(player)) {
                 evaluateArmorEffects(player);
-            } else player.removeEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate());
+            } else {
+                MobEffectInstance worn = player.getEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate());
+                if (worn != null && worn.isInfiniteDuration()) player.removeEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate());
+            }
         }
     }
 

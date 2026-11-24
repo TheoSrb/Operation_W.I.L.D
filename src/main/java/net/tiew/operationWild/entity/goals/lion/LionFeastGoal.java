@@ -29,7 +29,8 @@ public class LionFeastGoal extends Goal {
     private static final double FEAST_SEARCH_RANGE = 48.0;
     private static final double FEAST_SPOT_RADIUS = 6.0;
     private static final double NEXT_ITEM_RADIUS = 4.0;
-    private static final double EAT_RANGE = 1.6;
+    private static final double EAT_RANGE = 1.1;
+    private static final double FINAL_APPROACH = 3.0;
     private static final int EAT_INTERVAL = 30;
     private static final double WAIT_RING = 3.5;
     private static final int MALE_SHARE = 3;
@@ -70,7 +71,14 @@ public class LionFeastGoal extends Goal {
         if (!LionGoals.isFreeWild(lion) || lion.getTarget() != null || lion.isNapping() || lion.isInWater()) return false;
         LionClanData.Clan clan = lion.wildClan();
         if (clan != null && clan.satietyRatio() >= FULL_RATIO) return false;
+        if (clan != null && lion.isMale() && clan.state.maleShare >= MALE_SHARE && lionessesWaiting(clan)) return false;
         return clan == null || LionGoals.huntRole(lion, clan) == null;
+    }
+
+    private boolean lionessesWaiting(LionClanData.Clan clan) {
+        Vec3 around = meat != null ? meat.position() : lion.position();
+        return !lion.level().getEntitiesOfClass(LionEntity.class, new AABB(around, around).inflate(WAIT_RING + 4.0),
+                other -> other != lion && other.isFemale() && !other.wild.eating && clan.id.equals(other.getClanId())).isEmpty();
     }
 
     @Nullable
@@ -144,10 +152,13 @@ public class LionFeastGoal extends Goal {
         }
 
         lion.getLookControl().setLookAt(food.x, food.y, food.z, 30f, 30f);
-        if (lion.distanceToSqr(meat) > EAT_RANGE * EAT_RANGE) {
+        double reach = lion.getBbWidth() * 0.5 + EAT_RANGE;
+        if (LionGoals.horizontalDistance(lion, food) > reach || Math.abs(lion.getY() - food.y) > 1.5) {
             lion.wild.eating = false;
             lion.setWildPose(LionEntity.WILD_POSE_NONE);
-            if (--repath <= 0) {
+            if (lion.getNavigation().isDone() && LionGoals.horizontalDistance(lion, food) <= reach + FINAL_APPROACH) {
+                lion.getMoveControl().setWantedPosition(food.x, food.y, food.z, 0.8);
+            } else if (--repath <= 0) {
                 repath = REPATH_TICKS;
                 lion.getNavigation().moveTo(meat, 1.1);
             }

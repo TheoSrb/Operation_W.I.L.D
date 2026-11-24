@@ -1258,5 +1258,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s was devoured by %2$s",
   "death.attack.ow.plant_empress_bite.player": "%1$s was devoured by %2$s",
   "death.attack.ow.plant_empress_roots": "%1$s was impaled by the roots of %2$s",
-  "death.attack.ow.plant_empress_roots.player": "%1$s was impaled by the roots of %2$s"
+  "death.attack.ow.plant_empress_roots.player": "%1$s was impaled by the roots of %2$s",
+  "ow.attacks.chameleon.tongue_vine.title": "Tongue Vine",
+  "ow.attacks.chameleon.tongue_vine.desc": "Right click: it climbs onto your head and shoots its tongue up to %s blocks. A creature: damage. An item: fetched. A block: swing from it %s s, click again to let go. %s s cooldown.",
+  "ow.attacks.chameleon.mimicry.title": "Mimicry",
+  "ow.attacks.chameleon.mimicry.desc": "You take on the texture of the nearby block and gain Camouflage for %s s. Striking ends it. %s s cooldown.",
+  "ow.attacks.chameleon.watchful_tongue.title": "Watchful Tongue",
+  "ow.attacks.chameleon.watchful_tongue.desc": "Right click to carry it on your back. It lashes whatever hunts you out of sight within %s blocks, every %s s, and warns you.",
+  "ow.advancements.master_of_disguise.title": "Master of disguise",
+  "ow.advancements.master_of_disguise.description": "You've tamed a Chameleon !",
+  "piste.attack.6.name": "Long Tongue",
+  "piste.attack.6.desc": "Tongue Vine reaches 32 blocks and Watchful Tongue watches up to 10 blocks.",
+  "piste.attack.7.name": "Slow Fade",
+  "piste.attack.7.desc": "Mimicry lasts 5 more seconds."
 }

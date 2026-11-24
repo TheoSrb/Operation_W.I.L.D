@@ -54,7 +54,8 @@ public class OWTabsRenderer {
      * objectifs hors de portee.</p>
      */
     private static boolean hasDailyQuests(OWEntity entity) {
-        return !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity);
+        return !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity)
+                && !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity);
     }
 
     /**

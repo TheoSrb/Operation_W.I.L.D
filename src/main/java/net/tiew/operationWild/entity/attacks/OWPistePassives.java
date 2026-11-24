@@ -27,6 +27,8 @@ public final class OWPistePassives {
     public static final int LONG_TABLE = 3;
     public static final int FEATHER_TEMPEST = 4;
     public static final int GENTLE_BOND = 5;
+    public static final int LONG_TONGUE = 6;
+    public static final int SLOW_FADE = 7;
 
     public static final float FEATHER_TEMPEST_STOCK_FACTOR = 1.3f;
     public static final float FEATHER_TEMPEST_BURST_TICKS = 20f;

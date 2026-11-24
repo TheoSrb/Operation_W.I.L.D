@@ -37,8 +37,7 @@ public record OpenOWInventoryPacket() implements CustomPacketPayload {
                 if (owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid
                         && squid.getGrabbedTarget() == player) return;
                 if (owEntity != null) {
-                    boolean carriedOnShoulder = owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda
-                            && redPanda.isOnShoulder();
+                    boolean carriedOnShoulder = net.tiew.operationWild.entity.OWCarriedCompanions.isCarried(owEntity);
 
                     List<Entity> passengers = owEntity.getPassengers();
                     boolean isDriver = !passengers.isEmpty() && passengers.get(0) == player;

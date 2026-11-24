@@ -8,7 +8,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
@@ -29,6 +28,7 @@ public class LionPerchGoal extends Goal {
     private static final int CHECK_INTERVAL = 40;
     private static final int SEARCH_RADIUS = 14;
     private static final int MIN_RISE = 2;
+    private static final int MAX_RISE = 10;
     private static final long PERCH_LIFETIME = 12000L;
     private static final long SEARCH_COOLDOWN = 2400L;
     private static final int PROBE_CANDIDATES = 4;
@@ -90,15 +90,16 @@ public class LionPerchGoal extends Goal {
     @Nullable
     private BlockPos findPerch(ServerLevel level, BlockPos home) {
         if (!level.hasChunkAt(home)) return null;
-        int baseY = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, home).getY();
+        BlockPos homeGround = LionPride.groundAt(level, home.getX(), home.getZ(), home.getY() + 3, home.getY() - 6);
+        int baseY = homeGround == null ? home.getY() : homeGround.getY();
         List<BlockPos> candidates = new ArrayList<>();
         for (int dx = -SEARCH_RADIUS; dx <= SEARCH_RADIUS; dx++) {
             for (int dz = -SEARCH_RADIUS; dz <= SEARCH_RADIUS; dz++) {
                 if (dx * dx + dz * dz > SEARCH_RADIUS * SEARCH_RADIUS) continue;
                 BlockPos column = home.offset(dx, 0, dz);
                 if (!level.hasChunkAt(column)) continue;
-                BlockPos stand = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column);
-                if (stand.getY() - baseY < MIN_RISE) continue;
+                BlockPos stand = LionPride.groundAt(level, column.getX(), column.getZ(), baseY + MAX_RISE, baseY + MIN_RISE);
+                if (stand == null) continue;
                 if (isStandable(level, stand) && hasRoom(level, stand)) candidates.add(stand);
             }
         }
@@ -126,8 +127,8 @@ public class LionPerchGoal extends Goal {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos neighbour = stand.relative(direction);
             if (!level.hasChunkAt(neighbour)) continue;
-            int y = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, neighbour).getY();
-            if (y >= stand.getY() - 1 && y <= stand.getY()) flat++;
+            BlockPos ground = LionPride.groundAt(level, neighbour.getX(), neighbour.getZ(), stand.getY() + 1, stand.getY() - 1);
+            if (ground != null) flat++;
         }
         return flat >= 2;
     }
@@ -165,7 +166,10 @@ public class LionPerchGoal extends Goal {
         ticks++;
         Vec3 top = Vec3.atBottomCenterOf(perch);
         if (!arrived) {
-            boolean close = LionGoals.horizontalDistance(lion, top) <= ARRIVE_HORIZONTAL && Math.abs(lion.getY() - top.y) <= ARRIVE_VERTICAL;
+            double horizontal = LionGoals.horizontalDistance(lion, top);
+            boolean onTop = lion.getY() >= top.y - 0.5 && Math.abs(lion.getY() - top.y) <= ARRIVE_VERTICAL;
+            boolean close = onTop && (horizontal <= ARRIVE_HORIZONTAL || (lion.getNavigation().isDone() && horizontal <= ARRIVE_HORIZONTAL + 1.0));
+            if (onTop && !close && lion.getNavigation().isDone()) lion.getMoveControl().setWantedPosition(top.x, top.y, top.z, 0.7);
             if (close) {
                 arrived = true;
                 LionGoals.holdStill(lion);

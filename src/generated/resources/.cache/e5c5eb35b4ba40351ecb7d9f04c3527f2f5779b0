@@ -1,4 +1,4 @@
-// 1.21	2026-11-11T20:17:16.7249013	Advancements
+// 1.21	2026-11-24T17:16:59.2474275	Advancements
 5f4a990ce4ac0c73c205a14ee552ff4870dbf3c9 data/ow/advancement/abyssal_terror.json
 f6c2913288d4873232a96b7ab12ccd25760f41d3 data/ow/advancement/big_fuzzball.json
 0561a09af04e7411f4c10c0a5a46e3662ff0e489 data/ow/advancement/captain.json
@@ -8,6 +8,7 @@ ca2878723c68a855f447cf25c29df51ce9d824fc data/ow/advancement/good_night.json
 c6aeba4f73c57a98816847fdb8d0274abdf4fc56 data/ow/advancement/king_of_the_savanna.json
 6c9342f84193c7268489c3ec5d9fb21a3250ef71 data/ow/advancement/legendary_tamer.json
 ab2107052ef1740e4a1635ad087fced15246a723 data/ow/advancement/little_fire_fox.json
+fee09259152681fe8b21627f2bba5fd696927978 data/ow/advancement/master_of_disguise.json
 02796ec57caf19aa4347e03cbf63561ca0f40d11 data/ow/advancement/novice_tamer.json
 ccb5f3fedc52136a3ebb3dd7bf132970e41bb2e2 data/ow/advancement/ow.json
 134315bb24d4782fbd435163ca2ea7646fc65e4e data/ow/advancement/ow_taming.json

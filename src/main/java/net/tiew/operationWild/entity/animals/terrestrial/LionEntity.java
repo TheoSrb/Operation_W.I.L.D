@@ -177,8 +177,8 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final float DISTRESS_BLEND_RATE = 0.2f;
     private static final float GUARD_BLEND_RATE = 0.1f;
     private static final float WILD_POSE_BLEND_RATE = 0.12f;
-    private static final int COALITION_CHANCE = 10;
-    private static final double COALITION_RADIUS = 24.0;
+    private static final int COALITION_CHANCE = 4;
+    private static final double COALITION_RADIUS = 32.0;
     private static final double KILL_CALL_RADIUS = 48.0;
 
     public static final int WILD_POSE_NONE = 0;
@@ -694,7 +694,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public void setTarget(@Nullable LivingEntity target) {
         if (target != null && (isSedatedFleeing() || isNapping())) return;
         if (target != null && isClanmate(target)) return;
-        if (target instanceof LionEntity && !this.isTame() && wild.isConceding()) return;
+        if (target instanceof LionEntity rival && !this.isTame() && (wild.isConceding() || rival.wild.isConceding())) return;
 
         if (!isTame()) {
             setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting());
@@ -2803,7 +2803,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         @Override
         public boolean canUse() {
-            if ((LionEntity.this.tickCount + LionEntity.this.getId()) % 20 != 0) return false;
+            if ((LionEntity.this.tickCount / 2 + LionEntity.this.getId()) % 10 != 0) return false;
             if (!isFree()) return false;
             this.male = LionEntity.this.findClanMale();
             return this.male != null && LionEntity.this.distanceToSqr(this.male) > radius() * radius();

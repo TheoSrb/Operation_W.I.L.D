@@ -27,7 +27,7 @@ public final class LionGoals {
     }
 
     public static boolean onSchedule(LionEntity lion, int interval) {
-        return (lion.tickCount + lion.getId()) % interval == 0;
+        return (lion.tickCount / 2 + lion.getId()) % Math.max(1, interval / 2) == 0;
     }
 
     @Nullable

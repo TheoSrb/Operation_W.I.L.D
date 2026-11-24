@@ -1247,5 +1247,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s wurde von %2$s verschlungen",
   "death.attack.ow.plant_empress_bite.player": "%1$s wurde von %2$s verschlungen",
   "death.attack.ow.plant_empress_roots": "%1$s wurde von den Wurzeln von %2$s aufgespießt",
-  "death.attack.ow.plant_empress_roots.player": "%1$s wurde von den Wurzeln von %2$s aufgespießt"
+  "death.attack.ow.plant_empress_roots.player": "%1$s wurde von den Wurzeln von %2$s aufgespießt",
+  "ow.attacks.chameleon.tongue_vine.title": "Zungeliane",
+  "ow.attacks.chameleon.tongue_vine.desc": "Rächtsklick: Es chlätteret uf din Chopf und schüsst d Zunge bis %s Blöck wiit. Es Tier: Schade. En Gägestand: gholt. En Block: %s s schwinge, nomal klicke zum Loslah. %s s Abchüehlziit.",
+  "ow.attacks.chameleon.mimicry.title": "Mimikry",
+  "ow.attacks.chameleon.mimicry.desc": "Du nimmsch d Textur vom Block näbedra a und überchunnsch %s s Tarnig. En Schlag beändet si. %s s Abchüehlziit.",
+  "ow.attacks.chameleon.watchful_tongue.title": "Wachsami Zunge",
+  "ow.attacks.chameleon.watchful_tongue.desc": "Rächtsklick, zum s uf em Rugge träge. Es peitscht, was di unbemerkt jagt, im Umkreis vo %s Blöck all %s s und warnt di.",
+  "ow.advancements.master_of_disguise.title": "Meischter vo de Tarnig",
+  "ow.advancements.master_of_disguise.description": "Du häsch es Chamäleon zähmt !",
+  "piste.attack.6.name": "Langi Zunge",
+  "piste.attack.6.desc": "D Zungeliane langt 32 Blöck, d Wachsami Zunge bewacht bis 10 Blöck.",
+  "piste.attack.7.name": "Langsams Verblasse",
+  "piste.attack.7.desc": "Mimikry hebt 5 Sekunde länger."
 }

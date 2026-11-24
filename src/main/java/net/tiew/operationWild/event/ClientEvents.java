@@ -592,7 +592,7 @@ public class ClientEvents {
         if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.FOOD_LEVEL)) {
             Player player = Minecraft.getInstance().player;
             if (player != null
-                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(player) != null) {
+                    && net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null) {
                 event.setCanceled(true);
             }
         }
@@ -1052,7 +1052,7 @@ public class ClientEvents {
             // jamais l'écran, la garde ci-dessous ne regardant que la monture.
             boolean ridingOwEntity = player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine);
             boolean carryingRedPanda = player.getVehicle() == null
-                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(player) != null;
+                    && net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null;
 
             if (ridingOwEntity || carryingRedPanda) {
                 if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
@@ -1302,7 +1302,7 @@ public class ClientEvents {
         // Le panda roux pilote ses attaques SANS etre monte : il est passager du joueur, pas sa
         // monture. La bordure ne testait que le vehicule, elle ne pouvait donc jamais le voir.
         OWEntity controlled = ridden != null ? ridden : (mc.player.getVehicle() == null
-                ? net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(mc.player)
+                ? net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(mc.player)
                 : null);
 
         if (controlled == null) return;

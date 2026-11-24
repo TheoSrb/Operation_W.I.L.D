@@ -1247,5 +1247,17 @@
   "death.attack.ow.plant_empress_bite": "%1$s wurde von %2$s verschlungen",
   "death.attack.ow.plant_empress_bite.player": "%1$s wurde von %2$s verschlungen",
   "death.attack.ow.plant_empress_roots": "%1$s wurde von den Wurzeln von %2$s aufgespießt",
-  "death.attack.ow.plant_empress_roots.player": "%1$s wurde von den Wurzeln von %2$s aufgespießt"
+  "death.attack.ow.plant_empress_roots.player": "%1$s wurde von den Wurzeln von %2$s aufgespießt",
+  "ow.attacks.chameleon.tongue_vine.title": "Zungenliane",
+  "ow.attacks.chameleon.tongue_vine.desc": "Rechtsklick: Es klettert auf deinen Kopf und schießt die Zunge bis %s Blöcke weit. Ein Tier: Schaden. Ein Gegenstand: geholt. Ein Block: %s s schwingen, erneut klicken zum Loslassen. %s s Abklingzeit.",
+  "ow.attacks.chameleon.mimicry.title": "Mimikry",
+  "ow.attacks.chameleon.mimicry.desc": "Du nimmst die Textur des Blocks neben dir an und erhältst %s s Tarnung. Ein Schlag beendet sie. %s s Abklingzeit.",
+  "ow.attacks.chameleon.watchful_tongue.title": "Wachsame Zunge",
+  "ow.attacks.chameleon.watchful_tongue.desc": "Rechtsklick, um es auf dem Rücken zu tragen. Es peitscht, was dich ungesehen jagt, im Umkreis von %s Blöcken alle %s s und warnt dich.",
+  "ow.advancements.master_of_disguise.title": "Meister der Tarnung",
+  "ow.advancements.master_of_disguise.description": "Du hast ein Chamäleon gezähmt !",
+  "piste.attack.6.name": "Lange Zunge",
+  "piste.attack.6.desc": "Die Zungenliane reicht 32 Blöcke, die Wachsame Zunge bewacht bis zu 10 Blöcke.",
+  "piste.attack.7.name": "Langsames Verblassen",
+  "piste.attack.7.desc": "Mimikry hält 5 Sekunden länger."
 }

@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 
 /**
  * Descente du panda roux de l'épaule.
@@ -37,10 +36,10 @@ public record RedPandaDismountPacket() implements CustomPacketPayload {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
 
-            RedPandaEntity redPanda = RedPandaEntity.getShoulderPanda(player);
-            if (redPanda == null) return;
-
-            redPanda.dismountFromShoulder();
+            if (net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player)
+                    instanceof net.tiew.operationWild.entity.IOWCarriedCompanion companion) {
+                companion.dismountFromCarrier();
+            }
         });
     }
 }

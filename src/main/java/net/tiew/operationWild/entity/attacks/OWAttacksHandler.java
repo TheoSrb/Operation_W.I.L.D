@@ -15,6 +15,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
@@ -80,6 +81,8 @@ public class OWAttacksHandler {
     public static final int LIFE_LINK_ID = OWAttackIds.LIFE_LINK;
     public static final int FEATHER_VOLLEY_ID = OWAttackIds.FEATHER_VOLLEY;
     public static final int ROYAL_SWEEP_ID = OWAttackIds.ROYAL_SWEEP;
+    public static final int TONGUE_VINE_ID = OWAttackIds.TONGUE_VINE;
+    public static final int MIMICRY_ID = OWAttackIds.MIMICRY;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -146,10 +149,15 @@ public class OWAttacksHandler {
         register(ElephantEntity.class, ElephantAttacks.WATER_SPRAY);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
 
-        registerCardOrigin(RedPandaEntity.class, 196, 80);
+        registerCardOrigin(RedPandaEntity.class, 196, 79);
         register(RedPandaEntity.class, RedPandaAttacks.HEAL_SNACK);
         register(RedPandaEntity.class, RedPandaAttacks.FEAST);
         registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
+
+        registerCardOrigin(ChameleonEntity.class, 196, 119);
+        register(ChameleonEntity.class, ChameleonAttacks.TONGUE_VINE);
+        register(ChameleonEntity.class, ChameleonAttacks.MIMICRY);
+        registerPassive(ChameleonEntity.class, ChameleonPassives.WATCHFUL_TONGUE);
 
         registerCardOrigin(GorillaEntity.class, 0, 120);
         registerComboMaxTimer(GorillaEntity.class, 13);
@@ -668,6 +676,41 @@ public class OWAttacksHandler {
                 entity -> entity instanceof RedPandaEntity panda ? panda.getFeastOvercharge() : 0,
                 OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX
         ).withUltimateDuration(OWAttacksConstants.RedPanda.FEAST_DURATION_MS);
+    }
+
+    public static class ChameleonAttacks {
+
+        public static final OWAttack TONGUE_VINE = new OWAttack(
+                TONGUE_VINE_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Chameleon.TONGUE_ENERGY,
+                entity -> ((ChameleonEntity) entity).useTongue(),
+                OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS
+        );
+
+        public static final OWAttack MIMICRY = new OWAttack(
+                MIMICRY_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Chameleon.MIMICRY_ENERGY,
+                entity -> ((ChameleonEntity) entity).activateMimicry(),
+                OWAttacksConstants.Chameleon.MIMICRY_COOLDOWN_TICKS
+        ).withUnlockCondition(entity -> true)
+                .withUltimateDuration(OWAttacksConstants.Chameleon.MIMICRY_DURATION_MS);
+    }
+
+    public static class ChameleonPassives {
+
+        public static final OWPassive WATCHFUL_TONGUE = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of();
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0x92A846;
+            }
+        };
     }
 
     public static class RedPandaPassives {
