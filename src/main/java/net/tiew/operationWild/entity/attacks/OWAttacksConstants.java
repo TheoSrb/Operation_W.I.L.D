@@ -1019,14 +1019,15 @@ public class OWAttacksConstants {
         public static final double WATCH_RADIUS = 7.0;
         public static final double WATCH_RADIUS_LONG_TONGUE = 10.0;
         public static final int WATCH_SCAN_INTERVAL_TICKS = 5;
-        public static final int WATCH_STRIKE_INTERVAL_TICKS = 40;
         public static final int WATCH_ALERT_TICKS = 30;
         public static final double WATCH_BLIND_DOT = -0.1736;
 
-        public static final double TONGUE_RANGE = 24.0;
-        public static final double TONGUE_RANGE_LONG_TONGUE = 32.0;
-        public static final float TONGUE_ENERGY = 15f;
-        public static final int TONGUE_COOLDOWN_TICKS = 60;
+        public static final double TONGUE_RANGE = 20.0;
+        public static final double TONGUE_RANGE_LONG_TONGUE = 22.0;
+        public static final float TONGUE_DAMAGE_RATIO = 0.5f;
+        public static final float SHOT_PERCH_THRESHOLD = 0.5f;
+        public static final float TONGUE_ENERGY = 35f;
+        public static final int TONGUE_COOLDOWN_TICKS = 30;
         public static final double TONGUE_EXTEND_SPEED = 5.0;
         public static final int TONGUE_EXTEND_MAX_TICKS = 6;
         public static final double TONGUE_RETRACT_SPEED = 2.4;
@@ -1035,31 +1036,37 @@ public class OWAttacksConstants {
         public static final long TONGUE_HOLD_RELEASE_MS = 280L;
         public static final double TONGUE_ITEM_PICK_RADIUS = 0.45;
         public static final double TONGUE_ENTITY_PICK_RADIUS = 0.3;
-        public static final int TONGUE_SHOT_TICKS = 16;
-        public static final int SHOT_WINDUP_TICKS = 5;
+        public static final int TONGUE_SHOT_TICKS = 9;
+        public static final int SHOT_WINDUP_TICKS = 3;
         public static final int TONGUE_CATCH_TICKS = 10;
         public static final int TONGUE_PERCH_RETURN_DELAY = 10;
 
         public static final int VINE_MAX_TICKS = 600;
+        public static final float VINE_ENERGY_PER_TICK = 0.45f;
         public static final double VINE_MIN_LENGTH = 2.0;
         public static final double VINE_REEL_SPEED = 0.18;
         public static final double VINE_RELEASE_SLACK = 6.0;
         public static final double VINE_DAMPING = 1.0;
-        public static final double VINE_AIR_KEEP = 0.99;
-        public static final double VINE_RELEASE_AIR_KEEP = 0.975;
-        public static final int VINE_RELEASE_GRACE_TICKS = 30;
-        public static final double VINE_PUMP = 0.03;
+        public static final double VINE_AIR_KEEP = 0.945;
+        public static final double VINE_RELEASE_AIR_KEEP = 0.93;
+        public static final int VINE_RELEASE_GRACE_TICKS = 10;
+        public static final double VINE_PUMP = 0.016;
         public static final double VINE_MAX_SPEED = 1.8;
         public static final double AIR_FRICTION = 0.91;
         public static final double VINE_HARD_SLACK = 0.3;
+        public static final double VINE_LAUNCH_LIFT = 0.32;
+        public static final double VINE_LAUNCH_SPEED_REFERENCE = 0.8;
+        public static final double VINE_LAUNCH_MIN_LIFT_SHARE = 0.35;
+        public static final double VINE_LAUNCH_VERTICAL_KEEP = 1.15;
+        public static final double VINE_LAUNCH_MIN_VERTICAL = -0.25;
+        public static final int VINE_PREDICTION_TIMEOUT_TICKS = 10;
 
         public static final float MIMICRY_ENERGY = 100f;
         public static final int MIMICRY_COOLDOWN_TICKS = 1800;
         public static final int MIMICRY_DURATION_TICKS = 400;
         public static final int MIMICRY_SLOW_FADE_BONUS_TICKS = 100;
         public static final int MIMICRY_CAST_TICKS = 20;
-        public static final int MIMICRY_FADE_TICKS = 10;
-        public static final float MIMICRY_OPACITY = 0.82f;
+        public static final int MIMICRY_FADE_TICKS = 20;
         public static final long MIMICRY_DURATION_MS = MIMICRY_DURATION_TICKS * 50L;
     }
 }

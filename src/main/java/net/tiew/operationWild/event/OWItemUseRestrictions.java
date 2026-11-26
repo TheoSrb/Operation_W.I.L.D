@@ -47,6 +47,27 @@ public class OWItemUseRestrictions {
                 || item instanceof FishingRodItem || stack.has(DataComponents.FOOD);
     }
 
+    private static final java.util.Map<Class<?>, Boolean> OVERRIDES_USE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static boolean hasRightClickUse(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        if (isUsableItem(stack)) return true;
+        return OVERRIDES_USE.computeIfAbsent(stack.getItem().getClass(), OWItemUseRestrictions::overridesUse);
+    }
+
+    private static boolean overridesUse(Class<?> type) {
+        try {
+            return type.getMethod("use", net.minecraft.world.level.Level.class, Player.class, net.minecraft.world.InteractionHand.class)
+                    .getDeclaringClass() != Item.class;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    public static boolean holdsRightClickItem(Player player) {
+        return hasRightClickUse(player.getMainHandItem()) || hasRightClickUse(player.getOffhandItem());
+    }
+
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         if (!isRestrained(event.getEntity())) return;

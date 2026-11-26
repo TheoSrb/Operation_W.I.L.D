@@ -1,6 +1,7 @@
 package net.tiew.operationWild.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -25,6 +26,8 @@ public final class ChameleonVineController {
     private static double ropeLength = 0.0;
     private static int lastTongueState = ChameleonEntity.TONGUE_IDLE;
     private static int releaseGraceTicks = 0;
+    private static int predictedReleaseTicks = 0;
+    private static boolean launched = false;
 
     private ChameleonVineController() {
     }
@@ -35,12 +38,14 @@ public final class ChameleonVineController {
         if (!player.level().isClientSide() || !player.isLocalPlayer()) return;
 
         ChameleonEntity chameleon = carriedChameleon(player);
-        trackTongueCooldown(chameleon);
+        trackTongueCooldown(chameleon, player);
+        if (predictedReleaseTicks > 0) predictedReleaseTicks--;
         if (chameleon == null || player.getVehicle() != null
-                || chameleon.getTongueState() != ChameleonEntity.TONGUE_ATTACHED) {
-            anchoredChameleonId = -1;
+                || chameleon.getTongueState() != ChameleonEntity.TONGUE_ATTACHED || predictedReleaseTicks > 0) {
+            if (predictedReleaseTicks <= 0) anchoredChameleonId = -1;
             return;
         }
+        launched = false;
 
         Vec3 anchor = chameleon.tongueEnd();
         Vec3 rope = ChameleonEntity.ropePoint(player);
@@ -84,7 +89,7 @@ public final class ChameleonVineController {
 
         ChameleonEntity chameleon = carriedChameleon(player);
         boolean attached = anchoredChameleonId >= 0 && chameleon != null && chameleon.getId() == anchoredChameleonId
-                && chameleon.getTongueState() == ChameleonEntity.TONGUE_ATTACHED;
+                && chameleon.getTongueState() == ChameleonEntity.TONGUE_ATTACHED && predictedReleaseTicks <= 0;
         if (!attached) {
             if (releaseGraceTicks > 0) {
                 releaseGraceTicks--;
@@ -112,6 +117,28 @@ public final class ChameleonVineController {
         player.resetFallDistance();
     }
 
+    public static void predictRelease(ChameleonEntity chameleon, Player player) {
+        if (chameleon.getTongueState() != ChameleonEntity.TONGUE_ATTACHED || chameleon.getId() != anchoredChameleonId) return;
+        predictedReleaseTicks = OWAttacksConstants.Chameleon.VINE_PREDICTION_TIMEOUT_TICKS;
+        launch(player);
+    }
+
+    private static void launch(Player player) {
+        if (launched) return;
+        launched = true;
+        releaseGraceTicks = OWAttacksConstants.Chameleon.VINE_RELEASE_GRACE_TICKS;
+        if (player.onGround() || player.isInWater()) return;
+
+        Vec3 velocity = player.getDeltaMovement();
+        if (velocity.y < OWAttacksConstants.Chameleon.VINE_LAUNCH_MIN_VERTICAL) return;
+        double share = Mth.clamp(velocity.length() / OWAttacksConstants.Chameleon.VINE_LAUNCH_SPEED_REFERENCE,
+                OWAttacksConstants.Chameleon.VINE_LAUNCH_MIN_LIFT_SHARE, 1.0);
+        double rise = Math.max(velocity.y, 0.0) * OWAttacksConstants.Chameleon.VINE_LAUNCH_VERTICAL_KEEP
+                + OWAttacksConstants.Chameleon.VINE_LAUNCH_LIFT * share;
+        player.setDeltaMovement(velocity.x, rise, velocity.z);
+        player.resetFallDistance();
+    }
+
     private static void keepMomentum(Player player, double keep) {
         Vec3 velocity = player.getDeltaMovement();
         double factor = keep / OWAttacksConstants.Chameleon.AIR_FRICTION;
@@ -134,16 +161,20 @@ public final class ChameleonVineController {
 
         ChameleonEntity chameleon = carriedChameleon(player);
         if (chameleon == null || chameleon.getTongueState() != ChameleonEntity.TONGUE_ATTACHED) return;
+        predictRelease(chameleon, player);
 
         PacketDistributor.sendToServer(new OWAttackPacket(OWAttackIds.TONGUE_VINE, OWAttackPacket.ACTION_EXECUTE, 0f));
         event.setSwingHand(false);
         event.setCanceled(true);
     }
 
-    private static void trackTongueCooldown(@Nullable ChameleonEntity chameleon) {
+    private static void trackTongueCooldown(@Nullable ChameleonEntity chameleon, Player player) {
         int state = chameleon == null ? ChameleonEntity.TONGUE_IDLE : chameleon.getTongueState();
-        if (chameleon != null && lastTongueState != ChameleonEntity.TONGUE_IDLE && state == ChameleonEntity.TONGUE_IDLE
-                && chameleon.getPerch() == ChameleonEntity.PERCH_HEAD) {
+        if (lastTongueState == ChameleonEntity.TONGUE_ATTACHED && state != ChameleonEntity.TONGUE_ATTACHED) {
+            if (!launched && player.getVehicle() == null) launch(player);
+            predictedReleaseTicks = 0;
+        }
+        if (chameleon != null && lastTongueState != ChameleonEntity.TONGUE_IDLE && state == ChameleonEntity.TONGUE_IDLE) {
             OWAttackLogic.startChameleonTongueCooldown(chameleon);
         }
         lastTongueState = state;

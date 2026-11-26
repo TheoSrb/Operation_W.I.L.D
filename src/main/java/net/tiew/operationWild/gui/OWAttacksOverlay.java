@@ -279,7 +279,11 @@ public class OWAttacksOverlay {
                     : 0;
             boolean isClanCallEmpty = isClanCall && callableLionesses <= 0 && !isCharging;
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked) {
+            boolean isTongueBlocked = attack.getId() == OWAttacksHandler.TONGUE_VINE_ID
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleon
+                    && chameleon.isMimicryActive();
+
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked || isTongueBlocked) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

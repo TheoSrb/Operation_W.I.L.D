@@ -72,6 +72,22 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> BOA_HITTING = registerSoundEvent("boa_hitting");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOA_SLITHER = registerSoundEvent("boa_slither");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_AMBIENT = registerSoundEvent("chameleon_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_HURT = registerSoundEvent("chameleon_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_DEATH = registerSoundEvent("chameleon_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_HISS = registerSoundEvent("chameleon_hiss");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_EAT = registerSoundEvent("chameleon_eat");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_SCUTTLE = registerSoundEvent("chameleon_scuttle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_HOP = registerSoundEvent("chameleon_hop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_WINDUP = registerSoundEvent("chameleon_tongue_windup");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_SHOT = registerSoundEvent("chameleon_tongue_shot");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_IMPACT = registerSoundEvent("chameleon_tongue_impact");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_STICK = registerSoundEvent("chameleon_tongue_stick");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_UNSTICK = registerSoundEvent("chameleon_tongue_unstick");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_MISS = registerSoundEvent("chameleon_tongue_miss");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_CAMOUFLAGE = registerSoundEvent("chameleon_camouflage");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_CAMOUFLAGE_BREAK = registerSoundEvent("chameleon_camouflage_break");
+
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_IDLE = registerSoundEvent("peacock_idle");
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_HURT = registerSoundEvent("peacock_hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_DEATH = registerSoundEvent("peacock_death");

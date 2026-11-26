@@ -272,6 +272,9 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         if (entity.isVegetarian() && !this.menu.getSlot(FOOD_SLOT_INDEX).hasItem()) {
             guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + foodSlotFrameY() + 1,
                     VEGETARIAN_ICON_U, VEGETARIAN_ICON_V, 16, 16);
+        } else if (!entity.isVegetarian() && !entity.requiresSaddleToRide() && !this.menu.getSlot(FOOD_SLOT_INDEX).hasItem()) {
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + foodSlotFrameY() + 1,
+                    FOOD_ICON_U, FOOD_ICON_V, 16, 16);
         }
 
         // 3e slot (gants de boxe) du kangourou : cadre dessine manuellement (absent du fond).
@@ -409,6 +412,8 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private static final int FOOD_SLOT_INDEX = 1;
     private static final int VEGETARIAN_ICON_U = 20;
     private static final int VEGETARIAN_ICON_V = 225;
+    private static final int FOOD_ICON_U = 6;
+    private static final int FOOD_ICON_V = 36;
 
     private int foodSlotFrameY() {
         return entity.requiresSaddleToRide() ? 35 : 17;

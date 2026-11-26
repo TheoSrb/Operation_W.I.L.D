@@ -225,7 +225,7 @@ public class OWEntityHud {
         } else if (entity instanceof ElephantEntity) {
             return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity) {
-            return new EntityIconData(189, 124, 18, 20, -(18 / 2), -10);
+            return new EntityIconData(189, 124, 18, 20, -(18 / 2), -11);
         } else if (entity instanceof ColossalSquidEntity) {
             return new EntityIconData(166, 215, 22, 41, -(22 / 2), -32);
         }

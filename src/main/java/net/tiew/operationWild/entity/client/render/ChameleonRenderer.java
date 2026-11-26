@@ -27,8 +27,19 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
 
     private static final float TONGUE_WIDTH = 1f / 16f;
     private static final float TONGUE_TIP_SIZE = 2f / 16f;
-    private static final float TONGUE_ITEM_SCALE = 0.45f;
+    private static final float TONGUE_ITEM_SCALE = 1f;
+    private static final float TONGUE_ITEM_SPIN = 12f;
+    private static final double TONGUE_ITEM_HANG = 0.125;
     private static final double TONGUE_OVERSHOOT_LIMIT = 1.12;
+    private static final float FIRST_PERSON_MIN_WEIGHT = 0.02f;
+    private static final double FIRST_PERSON_FORWARD = 0.42;
+    private static final double FIRST_PERSON_HIDDEN_LIFT = 0.62;
+    private static final double FIRST_PERSON_SHOWN_LIFT = 0.31;
+    private static final float FIRST_PERSON_SCALE = 0.5f;
+    private static final float FIRST_PERSON_BODY_PITCH_LIMIT = 1.25f;
+    private static final float WALL_PIVOT_HEIGHT = 5f / 16f;
+    private static final float WALL_BELLY_DEPTH = 5f / 16f;
+    private static final float FIRST_PERSON_HEAD_PITCH_LIMIT = 1.2f;
     private static final double TONGUE_WHIP_AMPLITUDE = 0.45;
     private static final float TONGUE_WHIP_SPEED = 1.6f;
     private static final int TONGUE_WHIP_SEGMENTS = 10;
@@ -59,14 +70,7 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
         Player carrier = chameleon.getCarrier();
 
         if (carrier == null || ChameleonModel.RENDER_AS_GROUNDED) {
-            float climbPitch = ChameleonModel.RENDER_AS_GROUNDED ? 0f : chameleon.climbPitchDegrees(partialTicks);
             poseStack.pushPose();
-            if (climbPitch != 0f) {
-                float yaw = Mth.rotLerp(partialTicks, chameleon.yBodyRotO, chameleon.yBodyRot);
-                poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
-                poseStack.mulPose(Axis.XP.rotationDegrees(climbPitch));
-                poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
-            }
             super.render(chameleon, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
             poseStack.popPose();
             if (!ChameleonModel.RENDER_AS_GROUNDED) renderTongue(chameleon, partialTicks, poseStack, bufferSource, packedLight, false);
@@ -74,13 +78,96 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
         }
 
         boolean firstPerson = isCarrierView(carrier);
+        chameleon.renderedMouth = null;
         if (!firstPerson) {
             poseStack.pushPose();
             applyPerch(chameleon, carrier, partialTicks, poseStack);
             super.render(chameleon, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
             poseStack.popPose();
+        } else {
+            float shown = Mth.lerp(partialTicks, chameleon.aimWeightO, chameleon.aimWeight);
+            if (shown > FIRST_PERSON_MIN_WEIGHT) {
+                poseStack.pushPose();
+                applyFirstPersonPeek(chameleon, carrier, partialTicks, poseStack, shown);
+                super.render(chameleon, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+                chameleon.aimOverride = null;
+                poseStack.popPose();
+            }
         }
         renderTongue(chameleon, partialTicks, poseStack, bufferSource, packedLight, firstPerson);
+    }
+
+    @Override
+    protected void setupRotations(ChameleonEntity chameleon, PoseStack poseStack, float bob, float yBodyRot, float partialTicks, float scale) {
+        if (!ChameleonModel.RENDER_AS_GROUNDED && chameleon.getCarrier() == null) {
+            float units = poseStack.last().pose().getScale(new org.joml.Vector3f()).y;
+            applyWallCling(chameleon, partialTicks, poseStack, yBodyRot, units);
+            float climbPitch = chameleon.climbPitchDegrees(partialTicks);
+            if (climbPitch != 0f) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(-yBodyRot));
+                poseStack.mulPose(Axis.XP.rotationDegrees(climbPitch));
+                poseStack.mulPose(Axis.YP.rotationDegrees(yBodyRot));
+            }
+        }
+        super.setupRotations(chameleon, poseStack, bob, yBodyRot, partialTicks, scale);
+    }
+
+    private static void applyWallCling(ChameleonEntity chameleon, float partialTicks, PoseStack poseStack, float yaw, float units) {
+        float pitch = chameleon.wallPitchDegrees(partialTicks);
+        if (Math.abs(pitch) < 0.01f || chameleon.lastWallFace < 0 || units <= 0f) return;
+
+        float hug = Math.abs(pitch) / 90f;
+        net.minecraft.core.Direction face = net.minecraft.core.Direction.from2DDataValue(chameleon.lastWallFace);
+        double reach = Math.max(0.0, chameleon.getBbWidth() * 0.5 - WALL_BELLY_DEPTH * units) * hug / units;
+        poseStack.translate(face.getStepX() * reach, 0.0, face.getStepZ() * reach);
+
+        poseStack.translate(0.0, WALL_PIVOT_HEIGHT, 0.0);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
+        poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.translate(0.0, -WALL_PIVOT_HEIGHT, 0.0);
+    }
+
+    private void applyFirstPersonPeek(ChameleonEntity chameleon, Player carrier, float partialTicks, PoseStack poseStack, float shown) {
+        net.minecraft.client.Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        org.joml.Vector3f look = camera.getLookVector();
+        org.joml.Vector3f up = camera.getUpVector();
+        float eased = 1f - (1f - shown) * (1f - shown);
+        double lift = Mth.lerp(eased, FIRST_PERSON_HIDDEN_LIFT, FIRST_PERSON_SHOWN_LIFT);
+        Vec3 anchor = camera.getPosition()
+                .add(look.x * FIRST_PERSON_FORWARD, look.y * FIRST_PERSON_FORWARD, look.z * FIRST_PERSON_FORWARD)
+                .add(up.x * lift, up.y * lift, up.z * lift);
+        Vec3 entity = chameleon.getPosition(partialTicks);
+        poseStack.translate(anchor.x - entity.x, anchor.y - entity.y, anchor.z - entity.z);
+        org.joml.Quaternionf view = Axis.YP.rotationDegrees(-camera.getYRot()).mul(Axis.XP.rotationDegrees(camera.getXRot()));
+        poseStack.mulPose(view);
+        poseStack.scale(FIRST_PERSON_SCALE, FIRST_PERSON_SCALE, FIRST_PERSON_SCALE);
+
+        float[] aim = firstPersonAim(chameleon, anchor, view, partialTicks);
+        chameleon.aimOverride = aim;
+        if (aim != null) {
+            poseStack.mulPose(Axis.YP.rotation(-aim[0]));
+            poseStack.mulPose(Axis.XP.rotation(aim[1]));
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(rendererBodyYaw(chameleon, carrier, partialTicks)));
+    }
+
+    private static float[] firstPersonAim(ChameleonEntity chameleon, Vec3 anchor, org.joml.Quaternionf view, float partialTicks) {
+        float weight = Mth.lerp(partialTicks, chameleon.aimWeightO, chameleon.aimWeight);
+        Vec3 point = chameleon.aimTarget(partialTicks);
+        if (weight <= 0.001f || point == null) return null;
+
+        Vec3 toTarget = point.subtract(anchor);
+        if (toTarget.lengthSqr() < 1.0e-6) return null;
+        org.joml.Vector3f local = view.conjugate(new org.joml.Quaternionf())
+                .transform(new org.joml.Vector3f((float) toTarget.x, (float) toTarget.y, (float) toTarget.z));
+        float forward = local.z;
+        float right = -local.x;
+        float yaw = (float) Mth.atan2(right, forward);
+        float pitch = (float) Mth.atan2(-local.y, Math.sqrt(right * right + forward * forward));
+        float bodyPitch = Mth.clamp(pitch, -FIRST_PERSON_BODY_PITCH_LIMIT, FIRST_PERSON_BODY_PITCH_LIMIT);
+        float headPitch = Mth.clamp(pitch - bodyPitch, -FIRST_PERSON_HEAD_PITCH_LIMIT, FIRST_PERSON_HEAD_PITCH_LIMIT);
+        return new float[]{yaw * weight, bodyPitch * weight, 0f, headPitch * weight};
     }
 
     private static boolean isCarrierView(Player carrier) {
@@ -89,19 +176,13 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
     }
 
     private void applyPerch(ChameleonEntity chameleon, Player carrier, float partialTicks, PoseStack poseStack) {
-        float blend = Mth.lerp(partialTicks, chameleon.perchBlendO, chameleon.perchBlend);
-        float crouch = Mth.lerp(partialTicks, chameleon.crouchAmountO, chameleon.crouchAmount);
-        float bodyYaw = Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
-        float headYaw = Mth.rotLerp(partialTicks, carrier.yHeadRotO, carrier.yHeadRot);
-
-        Vec3 offset = ChameleonEntity.perchOffset(bodyYaw, headYaw, blend, chameleon.getScale(), crouch);
-        poseStack.translate(
-                Mth.lerp(partialTicks, carrier.xo, carrier.getX()) + offset.x - Mth.lerp(partialTicks, chameleon.xo, chameleon.getX()),
-                Mth.lerp(partialTicks, carrier.yo, carrier.getY()) + offset.y - Mth.lerp(partialTicks, chameleon.yo, chameleon.getY()),
-                Mth.lerp(partialTicks, carrier.zo, carrier.getZ()) + offset.z - Mth.lerp(partialTicks, chameleon.zo, chameleon.getZ()));
-
-        poseStack.mulPose(Axis.YP.rotationDegrees(-ChameleonEntity.perchYaw(bodyYaw, headYaw, blend)));
-        poseStack.mulPose(Axis.XP.rotationDegrees(ChameleonEntity.perchPitchDegrees(blend)));
+        ChameleonEntity.PerchPose pose = chameleon.currentPerchPose(carrier, partialTicks);
+        Vec3 entity = chameleon.getPosition(partialTicks);
+        poseStack.translate(pose.position().x - entity.x, pose.position().y - entity.y, pose.position().z - entity.z);
+        if (carrier.getVehicle() instanceof net.tiew.operationWild.entity.OWEntity mount) {
+            applyCarrierRidingTransform(carrier, mount, partialTicks, poseStack, pose.position().subtract(carrier.getPosition(partialTicks)));
+        }
+        poseStack.mulPose(pose.rotation());
 
         float[] aim = chameleon.aimShare(partialTicks);
         if (aim != null) {
@@ -110,6 +191,20 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
         }
 
         poseStack.mulPose(Axis.YP.rotationDegrees(rendererBodyYaw(chameleon, carrier, partialTicks)));
+    }
+
+    private static void applyCarrierRidingTransform(Player carrier, net.tiew.operationWild.entity.OWEntity mount, float partialTicks,
+                                                    PoseStack poseStack, Vec3 offset) {
+        Vec3 seatFix = net.tiew.operationWild.client.OWRiderSmoothing.seatCorrection(carrier, mount, partialTicks);
+        org.joml.Quaternionf tilt = net.tiew.operationWild.event.ClientEvents.riderBodyRotation(carrier, mount, partialTicks);
+
+        poseStack.translate(-offset.x, -offset.y, -offset.z);
+        if (seatFix != null) poseStack.translate(seatFix.x, seatFix.y, seatFix.z);
+        if (tilt != null) poseStack.mulPose(tilt);
+        if (mount instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+            net.tiew.operationWild.client.HippopotamusRiderBalance.applyBodySway(poseStack, carrier, hippo, partialTicks);
+        }
+        poseStack.translate(offset.x, offset.y, offset.z);
     }
 
     private static float rendererBodyYaw(ChameleonEntity chameleon, Player carrier, float partialTicks) {
@@ -127,7 +222,8 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
 
         Vec3 origin = chameleon.getPosition(partialTicks);
         Vec3 end = tongueEnd(chameleon, partialTicks);
-        Vec3 mouth = firstPerson ? firstPersonMouth(chameleon.getCarrier(), partialTicks) : chameleon.tongueOrigin(partialTicks, end);
+        Vec3 mouth = chameleon.renderedMouth != null ? chameleon.renderedMouth
+                : firstPerson ? firstPersonMouth(chameleon.getCarrier(), partialTicks) : chameleon.tongueOrigin(partialTicks, end);
 
         Vec3 toEnd = end.subtract(mouth);
         double reach = toEnd.length();
@@ -155,7 +251,8 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
         ItemStack caught = chameleon.getTongueItem();
         if (!caught.isEmpty()) {
             poseStack.pushPose();
-            poseStack.translate(tip.x, tip.y - 0.1, tip.z);
+            poseStack.translate(tip.x, tip.y - TONGUE_ITEM_HANG, tip.z);
+            poseStack.mulPose(Axis.YP.rotationDegrees((chameleon.tickCount + partialTicks) * TONGUE_ITEM_SPIN));
             poseStack.scale(TONGUE_ITEM_SCALE, TONGUE_ITEM_SCALE, TONGUE_ITEM_SCALE);
             Minecraft.getInstance().getItemRenderer().renderStatic(caught, ItemDisplayContext.GROUND, packedLight,
                     OverlayTexture.NO_OVERLAY, poseStack, bufferSource, chameleon.level(), chameleon.getId());
@@ -244,6 +341,12 @@ public class ChameleonRenderer extends OWEntityRenderer<ChameleonEntity, Chamele
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)
                 .setNormal(pose, (float) normal.x, (float) normal.y, (float) normal.z);
+    }
+
+    @Override
+    protected void renderEntityInfo(ChameleonEntity chameleon, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, Player player) {
+        if (chameleon.isMimicryActive()) return;
+        super.renderEntityInfo(chameleon, poseStack, bufferSource, packedLight, player);
     }
 
     @Override

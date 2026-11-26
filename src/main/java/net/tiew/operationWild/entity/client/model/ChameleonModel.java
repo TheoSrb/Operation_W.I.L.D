@@ -3,7 +3,6 @@ package net.tiew.operationWild.entity.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.animation.AnimationDefinition;
-import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -19,13 +18,12 @@ import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "chameleon"), "main");
 
-    private static final float WALK_SPEED = 4.0f;
+    private static final float WALK_SPEED = 8.0f;
     private static final float WALK_AMOUNT_GAIN = 12f;
     private static final long STEP_RIGHT_MS = 0L;
     private static final long STEP_LEFT_MS = 1000L;
-    private static final float TONGUE_HOLD_FADE_MS = 200f;
     private static final float PERCH_TRANSITION_SPEED = 2.08f;
-    private static final org.joml.Vector3f FROZEN_VECTOR = new org.joml.Vector3f();
+    private static final float TONGUE_SHOT_SPEED = 2.0f;
 
     private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
             ChameleonAnimations.SEDATED_FALL, ChameleonAnimations.SEDATED_REST, ChameleonAnimations.SEDATED_WAKE);
@@ -47,6 +45,10 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
     private final ModelPart right_leg;
 
     private float prevLimbSwing = 0f;
+    private T currentEntity;
+    private static final float MOUTH_X = 0f;
+    private static final float MOUTH_Y = 0.5f / 16f;
+    private static final float MOUTH_Z = -5.2f / 16f;
 
     public ChameleonModel(ModelPart root) {
         this.ALL2 = root.getChild("ALL2");
@@ -110,21 +112,17 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
     @Override
     public void setupAnim(T chameleon, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
+        this.currentEntity = chameleon;
 
         float sedation = OWSedationAnimator.weight(chameleon, SEDATION, ageInTicks);
         boolean carried = !RENDER_AS_GROUNDED && chameleon.isCarried();
 
-        if (!RENDER_AS_GROUNDED && chameleon.isMimicryFrozen()) {
-            AnimationDefinition still = !carried ? ChameleonAnimations.MISC_IDLE
-                    : chameleon.getPerch() == ChameleonEntity.PERCH_HEAD ? ChameleonAnimations.HEAD_IDLE : ChameleonAnimations.BACK_IDLE;
-            KeyframeAnimations.animate(this, still, 0L, 1.0f, FROZEN_VECTOR);
-            this.prevLimbSwing = limbSwing;
-            return;
-        }
-
         if (sedation < 1f) {
             if (RENDER_AS_GROUNDED || carried) limbSwingAmount = 0f;
-            if (!carried && !chameleon.isNapping()) this.applyHeadRotation(netHeadYaw, headPitch);
+            if (!carried && !chameleon.isNapping()) {
+                float freedom = RENDER_AS_GROUNDED ? 1f : chameleon.wallLookFreedom(Mth.clamp(ageInTicks - chameleon.tickCount, 0f, 1f));
+                this.applyHeadRotation(netHeadYaw * freedom, headPitch * freedom);
+            }
 
             if (carried) setupCarriedAnim(chameleon, ageInTicks);
             else setupGroundAnim(chameleon, limbSwing, limbSwingAmount, ageInTicks);
@@ -142,19 +140,20 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
     }
 
     private void setupCarriedAnim(T chameleon, float ageInTicks) {
-        if (chameleon.transitionBackHeadAnimationState.isStarted()) {
-            this.animate(chameleon.transitionBackHeadAnimationState, ChameleonAnimations.TRANSITION_BACK_HEAD, ageInTicks, PERCH_TRANSITION_SPEED);
-            return;
-        }
-        if (chameleon.transitionHeadBackAnimationState.isStarted()) {
-            this.animate(chameleon.transitionHeadBackAnimationState, ChameleonAnimations.TRANSITION_HEAD_BACK, ageInTicks, PERCH_TRANSITION_SPEED);
-            return;
-        }
-        if (chameleon.headIdleAnimationState.isStarted()) {
-            this.animate(chameleon.headIdleAnimationState, ChameleonAnimations.HEAD_IDLE, ageInTicks, 1.0f);
-            return;
-        }
-        this.animate(chameleon.backIdleAnimationState, ChameleonAnimations.BACK_IDLE, ageInTicks, 1.0f);
+        float partialTicks = Mth.clamp(ageInTicks - chameleon.tickCount, 0f, 1f);
+        float blend = Mth.lerp(partialTicks, chameleon.perchBlendO, chameleon.perchBlend);
+        float onHead = blend * blend * (3f - 2f * blend);
+        boolean towardHead = chameleon.transitionBackHeadAnimationState.isStarted();
+        boolean towardBack = chameleon.transitionHeadBackAnimationState.isStarted();
+        float transition = towardHead || towardBack ? Mth.sin(blend * Mth.PI) : 0f;
+        float idle = 1f - transition;
+
+        this.animateWeighted(chameleon.backIdleAnimationState, ChameleonAnimations.BACK_IDLE, ageInTicks, 1.0f, (1f - onHead) * idle);
+        this.animateWeighted(chameleon.headIdleAnimationState, ChameleonAnimations.HEAD_IDLE, ageInTicks, 1.0f, onHead * idle);
+        this.animateWeighted(chameleon.transitionBackHeadAnimationState, ChameleonAnimations.TRANSITION_BACK_HEAD, ageInTicks,
+                PERCH_TRANSITION_SPEED, towardHead ? transition : 0f);
+        this.animateWeighted(chameleon.transitionHeadBackAnimationState, ChameleonAnimations.TRANSITION_HEAD_BACK, ageInTicks,
+                PERCH_TRANSITION_SPEED, towardBack && !towardHead ? transition : 0f);
     }
 
     private void setupGroundAnim(T chameleon, float limbSwing, float limbSwingAmount, float ageInTicks) {
@@ -213,11 +212,12 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
 
     private void setupActionAnims(T chameleon, float ageInTicks) {
         if (chameleon.tongueHoldAnimationState.isStarted()) {
-            float weight = Mth.clamp(chameleon.tongueHoldAnimationState.getAccumulatedTime() / TONGUE_HOLD_FADE_MS, 0f, 1f);
+            float partialTicks = Mth.clamp(ageInTicks - chameleon.tickCount, 0f, 1f);
+            float weight = Mth.lerp(partialTicks, chameleon.tongueHoldWeightO, chameleon.tongueHoldWeight);
             this.animateWeighted(chameleon.tongueHoldAnimationState, ChameleonAnimations.TONGUE_HOLD, ageInTicks, 1.0f,
                     weight * weight * (3f - 2f * weight));
         }
-        this.animate(chameleon.tongueShotAnimationState, ChameleonAnimations.TONGUE_SHOT, ageInTicks, 1.0f);
+        this.animate(chameleon.tongueShotAnimationState, ChameleonAnimations.TONGUE_SHOT, ageInTicks, TONGUE_SHOT_SPEED);
         this.animate(chameleon.tongueCatchAnimationState, ChameleonAnimations.TONGUE_CATCH, ageInTicks, 1.0f);
         this.animate(chameleon.camouflageCastAnimationState, ChameleonAnimations.CAMOUFLAGE_CAST, ageInTicks, 1.0f);
     }
@@ -231,8 +231,16 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
             this.ALL.yRot += share[0];
             this.ALL.xRot += share[1];
         }
-        this.head.yRot += share[2];
-        this.head.xRot += share[3];
+
+        float lock = Mth.lerp(partialTicks, chameleon.tongueLockO, chameleon.tongueLock);
+        this.ALL.xRot *= 1f - lock;
+        this.ALL.yRot *= 1f - lock;
+        this.ALL.zRot *= 1f - lock;
+        this.body.xRot *= 1f - lock;
+        this.body.yRot *= 1f - lock;
+        this.head.xRot = Mth.lerp(lock, this.head.xRot + share[3], share[3]);
+        this.head.yRot = Mth.lerp(lock, this.head.yRot + share[2], share[2]);
+        this.head.zRot *= 1f - lock;
     }
 
     private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
@@ -261,6 +269,21 @@ public class ChameleonModel<T extends ChameleonEntity> extends OWComboModel<T> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
         renderGeometryOnly(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        captureMouth(poseStack);
+    }
+
+    private void captureMouth(PoseStack poseStack) {
+        if (RENDER_AS_GROUNDED || currentEntity == null || !currentEntity.isTongueOut()) return;
+        poseStack.pushPose();
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        this.head.translateAndRotate(poseStack);
+        poseStack.translate(MOUTH_X, MOUTH_Y, MOUTH_Z);
+        org.joml.Vector3f mouth = poseStack.last().pose().transformPosition(new org.joml.Vector3f());
+        poseStack.popPose();
+        net.minecraft.world.phys.Vec3 camera = net.minecraft.client.Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        currentEntity.renderedMouth = camera.add(mouth.x, mouth.y, mouth.z);
     }
 
     @Override

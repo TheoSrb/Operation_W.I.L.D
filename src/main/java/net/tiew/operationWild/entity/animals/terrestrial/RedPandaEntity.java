@@ -770,6 +770,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable, n
     }
 
     @Override
+    public boolean requiresSaddleToRide() {
+        return false;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return Items.AIR;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return 0.3f;
     }

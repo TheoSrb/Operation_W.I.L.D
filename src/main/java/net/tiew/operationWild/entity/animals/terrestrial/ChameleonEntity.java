@@ -82,7 +82,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 20.0;
-    public static final int MAX_SOMNOLENCE = 120;
+    public static final int MAX_SOMNOLENCE = 80;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
     public static final int ENTITY_COLOR = 0x92a846;
     public static final int DEFAULT_SKIN_INDEX = 0;
@@ -104,13 +104,20 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private static final int FOOD_WANTED_MAX = 6;
     private static final float MAX_VITAL_ENERGY = 250f;
 
-    private static final double BACK_FORWARD = -0.13;
-    private static final double CROUCH_BACK_FORWARD = 0.22;
-    private static final double BACK_HEIGHT = 1.10;
-    private static final double HEAD_FORWARD = 0.02;
-    private static final double HEAD_HEIGHT = 1.84;
-    private static final double PERCH_ARC_LIFT = 0.28;
-    private static final double CROUCH_DROP = 0.30;
+    private static final double SHOULDER_HEIGHT = 1.406;
+    private static final double SHOULDER_HEIGHT_CROUCH = 1.094;
+    private static final double NECK_HEIGHT_CROUCH = 1.035;
+    private static final double BACK_DROP = 0.30;
+    private static final double BACK_SURFACE = 0.133;
+    private static final double BACK_GAP = -0.07;
+    private static final double HEAD_TOP = 0.49;
+    private static final double HEAD_FORWARD = 0.0;
+    private static final float CROUCH_LEAN = 0.5f;
+    private static final float HEAD_PITCH_MIN = -45f;
+    private static final float HEAD_PITCH_MAX = 60f;
+    private static final double PERCH_ARC_LIFT = 0.25;
+    private static final double HEAD_PIVOT_UP = 5.0 / 16.0;
+    private static final double HEAD_PIVOT_FORWARD = 5.0 / 16.0;
     private static final double MOUTH_UP = 0.28;
     private static final double MOUTH_FORWARD = 0.625;
 
@@ -118,9 +125,10 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private static final double HOP_ARC = 0.45;
     private static final double HOP_DISTANCE = 1.1;
     private static final float AIM_RESPONSE = 0.45f;
+    private static final float TONGUE_HOLD_RESPONSE = 0.3f;
     private static final float AIM_BACK_YAW_LIMIT = 1.4f;
     private static final float AIM_BODY_PITCH_LIMIT = 1.25f;
-    private static final float AIM_HEAD_LIMIT = 1.0f;
+    private static final float AIM_HEAD_LIMIT = 1.2f;
 
     private static final int SHOT_NONE = 0;
     private static final int SHOT_AIMED = 1;
@@ -133,6 +141,35 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private static final double CARRIER_RESTORE_RANGE = 8.0;
     private static final int MISC_IDLE_DURATION = 60;
 
+    private static final double ITEM_GRAB_LIFT = 0.25;
+    private static final double WALL_PROBE = 0.12;
+    private static final double WALL_PROBE_DEFLATE = 0.05;
+    private static final double WALL_STICK = 0.04;
+    private static final double WALL_FACING_DOT = 0.6;
+    private static final double WALL_DESCENT_INTENT = 0.05;
+    private static final double WALL_MANTLE_REACH = 0.5;
+    private static final double WALL_MANTLE_PUSH = 0.1;
+    private static final double WALL_BEYOND_DOT = 0.3;
+    private static final double WALL_SLIDE_DAMPING = 0.6;
+    private static final double WALL_CLIMB_UP_SPEED = 0.07;
+    private static final double WALL_CLIMB_DOWN_SPEED = 0.07;
+    private static final double WALL_TREND_SPEED = 0.02;
+    private static final int WALL_TREND_LIMIT = 4;
+    private static final int WALL_TREND_FLIP = 3;
+    private static final float WALL_TURN_STEP = 20f;
+    private static final float WALL_PITCH_RESPONSE = 0.28f;
+    private static final int WALL_MAX_FALL_DISTANCE = 12;
+    private static final int WILD_CAMOUFLAGE_MIN_TICKS = 300;
+    private static final int WILD_CAMOUFLAGE_MAX_TICKS = 700;
+    private static final int WILD_CAMOUFLAGE_COOLDOWN_MIN = 400;
+    private static final int WILD_CAMOUFLAGE_COOLDOWN_MAX = 1200;
+    private static final int WILD_CAMOUFLAGE_CHANCE = 40;
+    private static final float WILD_CAMOUFLAGE_VOLUME = 0.6f;
+    private static final Vector3f[] CAMOUFLAGE_PARTICLE_COLORS = {
+            new Vector3f(0.57f, 0.66f, 0.27f), new Vector3f(0.85f, 0.78f, 0.29f), new Vector3f(0.25f, 0.68f, 0.60f)};
+    private static final float CAMOUFLAGE_PARTICLE_SIZE = 0.9f;
+    private static final int CAMOUFLAGE_PARTICLES_PER_COLOR = 7;
+    private static final int CAMOUFLAGE_SPARKLES = 6;
     private static final int OUTCOME_MISS = 0;
     private static final int OUTCOME_ENTITY = 1;
     private static final int OUTCOME_ITEM = 2;
@@ -154,6 +191,8 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private static final EntityDataAccessor<Integer> WATCH_TARGET = SynchedEntityData.defineId(ChameleonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MIMICRY_TIMER = SynchedEntityData.defineId(ChameleonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MIMICRY_CAST_TIMER = SynchedEntityData.defineId(ChameleonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> WALL_FACE = SynchedEntityData.defineId(ChameleonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> WALL_DESCENDING = SynchedEntityData.defineId(ChameleonEntity.class, EntityDataSerializers.BOOLEAN);
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
@@ -189,6 +228,12 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private int lastClimbTimer = 0;
     public float aimWeight = 0f;
     public float aimWeightO = 0f;
+    public float tongueLock = 0f;
+    public float tongueLockO = 0f;
+    public float tongueHoldWeight = 0f;
+    public float tongueHoldWeightO = 0f;
+    private @Nullable Vec3 lastAimPoint = null;
+    public @Nullable float[] aimOverride = null;
     private int lastMimicryCastTimer = 0;
     private int miscIdleCooldown = (int) OWUtils.generateRandomInterval(300, 700);
 
@@ -207,6 +252,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private boolean retractOnAttach = false;
     private int tongueItemEntityId = -1;
     private BlockPos tongueAnchorBlock = null;
+    private net.minecraft.core.Direction tongueAnchorFace = null;
     private int vineTicks = 0;
     private int perchReturnDelay = 0;
     private int pendingShot = SHOT_NONE;
@@ -214,7 +260,12 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private int shotWindup = -1;
 
     private int watchScanTimer = 0;
-    private int watchStrikeCooldown = 0;
+    private int wallTrend = 0;
+    private boolean wildCamouflaging = false;
+    private int wildCamouflageCooldown = (int) OWUtils.generateRandomInterval(WILD_CAMOUFLAGE_COOLDOWN_MIN / 2.0, WILD_CAMOUFLAGE_COOLDOWN_MAX / 2.0);
+    public float wallPitch = 0f;
+    public float wallPitchO = 0f;
+    public int lastWallFace = -1;
 
     public ChameleonEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -245,6 +296,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             }
         });
         this.goalSelector.addGoal(5, new NapGoal(this, 1f, 800, true, true));
+        this.goalSelector.addGoal(6, new WildCamouflageGoal());
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
@@ -269,6 +321,8 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         builder.define(WATCH_TARGET, -1);
         builder.define(MIMICRY_TIMER, 0);
         builder.define(MIMICRY_CAST_TIMER, 0);
+        builder.define(WALL_FACE, -1);
+        builder.define(WALL_DESCENDING, false);
     }
 
     // ==================================================
@@ -415,17 +469,17 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     @Override
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping() || isSleeping() || isCarried()) return null;
-        return RANDOM(2) ? SoundEvents.FROG_AMBIENT : SoundEvents.TURTLE_AMBIENT_LAND;
+        return net.tiew.operationWild.sound.OWSounds.CHAMELEON_AMBIENT.get();
     }
 
     @Override
     protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.FROG_HURT;
+        return net.tiew.operationWild.sound.OWSounds.CHAMELEON_HURT.get();
     }
 
     @Override
     protected @Nullable SoundEvent getDeathSound() {
-        return SoundEvents.FROG_DEATH;
+        return net.tiew.operationWild.sound.OWSounds.CHAMELEON_DEATH.get();
     }
 
     private long lastStepSoundMs = 0L;
@@ -478,6 +532,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         tickPerchBlend();
+        tickWallPitch();
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
@@ -495,6 +550,8 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             handlePerchReturn();
             handleWatch();
             handleMimicry();
+            handleWallClimb();
+            if (wildCamouflageCooldown > 0) wildCamouflageCooldown--;
 
             if (isCarried() && (!this.isTame() || this.isInResurrection())) dismountFromCarrier();
         }
@@ -508,6 +565,28 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         this.aimWeightO = this.aimWeight;
         float aimTarget = isTongueOut() || getTongueShotTimer() > 0 ? 1f : 0f;
         this.aimWeight += (aimTarget - this.aimWeight) * AIM_RESPONSE;
+        this.tongueLockO = this.tongueLock;
+        this.tongueLock += ((isTongueOut() ? 1f : 0f) - this.tongueLock) * AIM_RESPONSE;
+        this.tongueHoldWeightO = this.tongueHoldWeight;
+        float holdTarget = getTongueState() == TONGUE_ATTACHED ? 1f : 0f;
+        this.tongueHoldWeight += (holdTarget - this.tongueHoldWeight) * TONGUE_HOLD_RESPONSE;
+        if (this.tongueHoldWeight < 0.005f && holdTarget == 0f) this.tongueHoldWeight = 0f;
+        if (this.aimWeight < 0.005f && aimTarget == 0f) this.aimWeight = 0f;
+    }
+
+    @Override
+    public boolean requiresSaddleToRide() {
+        return false;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return Items.AIR;
+    }
+
+    @Override
+    protected boolean pausesEnergyRecovery() {
+        return isTongueOut() || pendingShot != SHOT_NONE;
     }
 
     @Override
@@ -556,8 +635,8 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         carryCooldown = CARRY_TOGGLE_COOLDOWN + CLIMB_TICKS;
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.FROG_LONG_JUMP, SoundSource.NEUTRAL, 0.8f,
-                (float) OWUtils.generateRandomInterval(1.3, 1.5));
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_HOP.get(), SoundSource.NEUTRAL, 0.8f,
+                (float) OWUtils.generateRandomInterval(0.95, 1.1));
         return true;
     }
 
@@ -576,7 +655,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         float progress = 1f - remaining / (float) CLIMB_TICKS;
         Vec3 from = climbStart == null ? this.position() : climbStart;
         Vec3 to = mounting
-                ? carrier.position().add(perchOffset(carrier.yBodyRot, carrier.yBodyRot, 0f, this.getScale(), 0f))
+                ? perchPose(carrier, 0f, carrier.isCrouching() ? 1f : 0f, 1f).position()
                 : (hopTarget == null ? this.position() : hopTarget);
 
         double eased = progress * progress * (3 - 2 * progress);
@@ -600,7 +679,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         if (!mounting) {
             this.setDeltaMovement(0, -0.1, 0);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    SoundEvents.FROG_STEP, SoundSource.NEUTRAL, 0.9f, 1.3f);
+                    net.tiew.operationWild.sound.OWSounds.CHAMELEON_HOP.get(), SoundSource.NEUTRAL, 0.9f, 0.9f);
             return;
         }
         if (!carrier.getPassengers().isEmpty()) return;
@@ -615,7 +694,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
                 SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.NEUTRAL, 0.8f,
                 (float) OWUtils.generateRandomInterval(1.3, 1.5));
         this.level().playSound(null, carrier.getX(), carrier.getY(), carrier.getZ(),
-                SoundEvents.FROG_STEP, SoundSource.NEUTRAL, 0.8f, 1.5f);
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_SCUTTLE.get(), SoundSource.NEUTRAL, 0.8f, 1.0f);
     }
 
     private void abortClimb() {
@@ -672,7 +751,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         cancelMimicry();
         clearPendingShot();
         Vec3 start = carrier == null ? this.position()
-                : carrier.position().add(perchOffset(carrier.yBodyRot, carrier.yHeadRot, this.perchBlend, this.getScale(), this.crouchAmount));
+                : perchPose(carrier, this.perchBlend, this.crouchAmount, 1f).position();
         this.stopRiding();
         this.entityData.set(PERCH, PERCH_BACK);
         carryCooldown = CARRY_TOGGLE_COOLDOWN + CLIMB_TICKS;
@@ -695,7 +774,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(CLIMB_TIMER, CLIMB_TICKS);
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.FROG_LONG_JUMP, SoundSource.NEUTRAL, 0.8f, 1.4f);
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_HOP.get(), SoundSource.NEUTRAL, 0.8f, 1.05f);
     }
 
     private static void syncPassengersToCarrier(Player carrier) {
@@ -722,47 +801,133 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         return napCooldown <= 0 && !isClimbing() && !isCarried();
     }
 
-    public static Vec3 perchOffset(float bodyYaw, float headYaw, float blend, double scale, float crouch) {
-        float eased = blend * blend * (3f - 2f * blend);
-        float yaw = Mth.rotLerp(eased, bodyYaw, headYaw) * Mth.DEG_TO_RAD;
-        double forward = Mth.lerp(eased, BACK_FORWARD + CROUCH_BACK_FORWARD * crouch, HEAD_FORWARD);
-        double height = Mth.lerp(eased, BACK_HEIGHT, HEAD_HEIGHT)
-                + PERCH_ARC_LIFT * Mth.sin(eased * Mth.PI)
-                - CROUCH_DROP * crouch;
-        return new Vec3(-Mth.sin(yaw) * forward, height, Mth.cos(yaw) * forward);
+    public record PerchPose(Vec3 position, org.joml.Quaternionf rotation, float yaw) {
+
+        public Vec3 transform(double x, double y, double z) {
+            org.joml.Vector3f v = rotation.transform(new org.joml.Vector3f((float) x, (float) y, (float) z));
+            return position.add(v.x, v.y, v.z);
+        }
+
+        public Vec3 axis(double x, double y, double z) {
+            org.joml.Vector3f v = rotation.transform(new org.joml.Vector3f((float) x, (float) y, (float) z));
+            return new Vec3(v.x, v.y, v.z);
+        }
     }
 
-    public static float perchYaw(float bodyYaw, float headYaw, float blend) {
-        float eased = blend * blend * (3f - 2f * blend);
-        return Mth.rotLerp(eased, bodyYaw, headYaw);
+    public static float renderedBodyYaw(Player carrier, float partialTicks) {
+        if (carrier.getVehicle() instanceof OWEntity mount) {
+            return Mth.rotLerp(partialTicks, mount.yBodyRotO, mount.yBodyRot);
+        }
+        if (carrier.getVehicle() instanceof LivingEntity vehicle) {
+            float head = Mth.rotLerp(partialTicks, carrier.yHeadRotO, carrier.yHeadRot);
+            float offset = Mth.clamp(Mth.wrapDegrees(head - Mth.rotLerp(partialTicks, vehicle.yBodyRotO, vehicle.yBodyRot)), -85f, 85f);
+            float yaw = head - offset;
+            if (offset * offset > 2500f) yaw += offset * 0.2f;
+            return yaw;
+        }
+        return Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
     }
 
-    public static float perchPitchDegrees(float blend) {
+    public static PerchPose perchPose(Player carrier, float blend, float crouch, float partialTicks) {
+        float bodyYaw = renderedBodyYaw(carrier, partialTicks);
+        float headYaw = Mth.rotLerp(partialTicks, carrier.yHeadRotO, carrier.yHeadRot);
+        float lookPitch = Mth.lerp(partialTicks, carrier.xRotO, carrier.getXRot());
         float eased = blend * blend * (3f - 2f * blend);
-        return -90f * (1f - eased);
+
+        net.minecraft.core.Direction bed = carrier.isSleeping() ? carrier.getBedOrientation() : null;
+        boolean spinning = bed == null && carrier.isAutoSpinAttack();
+        float swim = carrier.getSwimAmount(partialTicks);
+        float fly = 0f;
+        if (carrier.isFallFlying()) {
+            float flying = carrier.getFallFlyingTicks() + partialTicks;
+            fly = Mth.clamp(flying * flying / 100f, 0f, 1f);
+        }
+        float bodyPitch = fly > 0f ? fly * (90f + lookPitch)
+                : Mth.lerp(swim, 0f, carrier.isInWater() ? 90f + lookPitch : 90f);
+        float lying = bed != null || spinning ? 1f : Math.max(swim, fly);
+        if (bed != null) crouch = 0f;
+
+        float lean = CROUCH_LEAN * crouch;
+        double shoulder = Mth.lerp(crouch, SHOULDER_HEIGHT, SHOULDER_HEIGHT_CROUCH);
+        Vec3 normal = new Vec3(0, Mth.sin(lean), -Mth.cos(lean));
+        Vec3 backPosition = new Vec3(0, shoulder - BACK_DROP * Mth.cos(lean), -BACK_DROP * Mth.sin(lean))
+                .add(normal.scale(BACK_SURFACE + BACK_GAP));
+        org.joml.Quaternionf backRotation = com.mojang.math.Axis.XP.rotationDegrees(-90f + lean * Mth.RAD_TO_DEG);
+
+        float relativeYaw = bed != null ? 0f : Mth.wrapDegrees(headYaw - bodyYaw);
+        float headPitch = Mth.clamp(lookPitch, HEAD_PITCH_MIN, HEAD_PITCH_MAX) * (1f - lying);
+        org.joml.Quaternionf headRotation = com.mojang.math.Axis.YP.rotationDegrees(-relativeYaw)
+                .mul(com.mojang.math.Axis.XP.rotationDegrees(headPitch));
+        double neck = Mth.lerp(crouch, SHOULDER_HEIGHT, NECK_HEIGHT_CROUCH);
+        org.joml.Vector3f top = headRotation.transform(new org.joml.Vector3f(0f, (float) HEAD_TOP, (float) HEAD_FORWARD));
+        Vec3 headPosition = new Vec3(top.x, neck + top.y, top.z);
+
+        Vec3 local = backPosition.lerp(headPosition, eased).add(0, PERCH_ARC_LIFT * Mth.sin(eased * Mth.PI), 0);
+        org.joml.Quaternionf localRotation = new org.joml.Quaternionf(backRotation).slerp(headRotation, eased);
+
+        org.joml.Quaternionf frame;
+        Vec3 offset = Vec3.ZERO;
+        if (bed != null) {
+            frame = com.mojang.math.Axis.YP.rotationDegrees(sleepRotation(bed))
+                    .mul(com.mojang.math.Axis.ZP.rotationDegrees(90f))
+                    .mul(com.mojang.math.Axis.YP.rotationDegrees(270f))
+                    .mul(com.mojang.math.Axis.YP.rotationDegrees(180f));
+            float eye = carrier.getEyeHeight(net.minecraft.world.entity.Pose.STANDING) - 0.1f;
+            offset = new Vec3(-bed.getStepX() * eye, 0, -bed.getStepZ() * eye);
+        } else {
+            frame = com.mojang.math.Axis.YP.rotationDegrees(-bodyYaw);
+            if (spinning) {
+                frame.mul(com.mojang.math.Axis.XP.rotationDegrees(90f + carrier.getXRot()))
+                        .mul(com.mojang.math.Axis.YP.rotationDegrees((carrier.tickCount + partialTicks) * -75f));
+            } else {
+                frame.mul(com.mojang.math.Axis.XP.rotationDegrees(bodyPitch));
+                if (fly > 0f) frame.mul(com.mojang.math.Axis.YP.rotation(glideRoll(carrier, partialTicks)));
+                if (carrier.isVisuallySwimming()) local = local.add(0, -1.0, -0.3);
+            }
+        }
+
+        float scale = carrier.getScale();
+        org.joml.Vector3f world = new org.joml.Quaternionf(frame)
+                .transform(new org.joml.Vector3f((float) local.x * scale, (float) local.y * scale, (float) local.z * scale));
+        org.joml.Quaternionf rotation = new org.joml.Quaternionf(frame).mul(localRotation);
+        return new PerchPose(carrier.getPosition(partialTicks).add(offset).add(world.x, world.y, world.z), rotation,
+                bodyYaw + relativeYaw * eased);
     }
 
-    public static Vec3 mouthOffset(float yawDegrees, float pitchDegrees, double scale) {
-        Vec3 local = new Vec3(0, MOUTH_UP * scale, MOUTH_FORWARD * scale);
-        float pitch = pitchDegrees * Mth.DEG_TO_RAD;
-        double y = local.y * Mth.cos(pitch) - local.z * Mth.sin(pitch);
-        double z = local.y * Mth.sin(pitch) + local.z * Mth.cos(pitch);
-        float yaw = yawDegrees * Mth.DEG_TO_RAD;
-        return new Vec3(-Mth.sin(yaw) * z, y, Mth.cos(yaw) * z);
+    private static float sleepRotation(net.minecraft.core.Direction bed) {
+        return switch (bed) {
+            case SOUTH -> 90f;
+            case NORTH -> 270f;
+            case EAST -> 180f;
+            default -> 0f;
+        };
+    }
+
+    private static float glideRoll(Player carrier, float partialTicks) {
+        Vec3 view = carrier.getViewVector(partialTicks);
+        Vec3 velocity = new Vec3(carrier.getX() - carrier.xo, carrier.getY() - carrier.yo, carrier.getZ() - carrier.zo);
+        double moving = velocity.horizontalDistanceSqr();
+        double looking = view.horizontalDistanceSqr();
+        if (moving <= 0.0 || looking <= 0.0) return 0f;
+        double cosine = Mth.clamp((velocity.x * view.x + velocity.z * view.z) / Math.sqrt(moving * looking), -1.0, 1.0);
+        double side = velocity.x * view.z - velocity.z * view.x;
+        return (float) (Math.signum(side) * Math.acos(cosine));
+    }
+
+    public PerchPose currentPerchPose(Player carrier, float partialTicks) {
+        return perchPose(carrier, Mth.lerp(partialTicks, perchBlendO, perchBlend),
+                Mth.lerp(partialTicks, crouchAmountO, crouchAmount), partialTicks);
     }
 
     public Vec3 mouthPosition(float partialTicks) {
         Player carrier = getCarrier();
+        double up = MOUTH_UP * this.getScale();
+        double forward = MOUTH_FORWARD * this.getScale();
         if (carrier == null) {
-            float yaw = Mth.rotLerp(partialTicks, this.yBodyRotO, this.yBodyRot);
-            return this.getPosition(partialTicks).add(mouthOffset(yaw, 0f, this.getScale()));
+            float yaw = Mth.rotLerp(partialTicks, this.yBodyRotO, this.yBodyRot) * Mth.DEG_TO_RAD;
+            return this.getPosition(partialTicks).add(-Mth.sin(yaw) * forward, up, Mth.cos(yaw) * forward);
         }
-        float blend = Mth.lerp(partialTicks, perchBlendO, perchBlend);
-        float crouch = Mth.lerp(partialTicks, crouchAmountO, crouchAmount);
-        float bodyYaw = Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
-        float headYaw = Mth.rotLerp(partialTicks, carrier.yHeadRotO, carrier.yHeadRot);
-        Vec3 base = carrier.getPosition(partialTicks).add(perchOffset(bodyYaw, headYaw, blend, this.getScale(), crouch));
-        return base.add(mouthOffset(perchYaw(bodyYaw, headYaw, blend), perchPitchDegrees(blend), this.getScale()));
+        return currentPerchPose(carrier, partialTicks).transform(0, up, forward);
     }
 
     public static Vec3 ropePoint(Player player) {
@@ -781,9 +946,9 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         this.crouchAmountO = this.crouchAmount;
         this.crouchAmount += ((carrier.isCrouching() ? 1f : 0f) - this.crouchAmount) * CROUCH_BLEND;
 
-        Vec3 offset = perchOffset(carrier.yBodyRot, carrier.yHeadRot, this.perchBlend, this.getScale(), this.crouchAmount);
-        this.setPos(carrier.getX() + offset.x, carrier.getY() + offset.y, carrier.getZ() + offset.z);
-        float yaw = perchYaw(carrier.yBodyRot, carrier.yHeadRot, this.perchBlend);
+        PerchPose pose = perchPose(carrier, this.perchBlend, this.crouchAmount, 1f);
+        this.setPos(pose.position());
+        float yaw = pose.yaw();
         this.setYRot(yaw);
         this.yBodyRot = yaw;
         this.setYHeadRot(yaw);
@@ -792,6 +957,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public boolean hurt(DamageSource damageSource, float amount) {
+        if (wildCamouflaging && !this.level().isClientSide() && isMimicryActive()) breakMimicry();
         if (isCarried() && isShieldedWhileCarried(damageSource)) return false;
         return super.hurt(damageSource, amount);
     }
@@ -874,7 +1040,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             releaseTongue(true);
             return;
         }
-        if (state != TONGUE_IDLE || tongueCooldown > 0 || pendingShot != SHOT_NONE) return;
+        if (state != TONGUE_IDLE || tongueCooldown > 0 || pendingShot != SHOT_NONE || isMimicryActive()) return;
 
         float cost = OWAttacksConstants.Chameleon.TONGUE_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
@@ -894,7 +1060,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     private void scuttle(Player carrier) {
         this.level().playSound(null, carrier.getX(), carrier.getY() + 1.5, carrier.getZ(),
-                SoundEvents.FROG_STEP, SoundSource.NEUTRAL, 0.7f, 1.7f);
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_SCUTTLE.get(), SoundSource.NEUTRAL, 0.7f, 1.1f);
         this.level().playSound(null, carrier.getX(), carrier.getY() + 1.5, carrier.getZ(),
                 SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.NEUTRAL, 0.35f, 1.8f);
     }
@@ -907,13 +1073,13 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             clearPendingShot();
             return;
         }
-        if (pendingShot == SHOT_AIMED && perchBlend < 1f) return;
+        if (pendingShot == SHOT_AIMED && perchBlend < OWAttacksConstants.Chameleon.SHOT_PERCH_THRESHOLD) return;
 
         if (shotWindup < 0) {
             shotWindup = OWAttacksConstants.Chameleon.SHOT_WINDUP_TICKS;
             this.entityData.set(TONGUE_SHOT_TIMER, OWAttacksConstants.Chameleon.TONGUE_SHOT_TICKS);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    SoundEvents.FROG_AMBIENT, SoundSource.NEUTRAL, 0.7f, 1.8f);
+                    net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_WINDUP.get(), SoundSource.NEUTRAL, 0.7f, 1.0f);
             return;
         }
         if (--shotWindup > 0) return;
@@ -984,18 +1150,24 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         if (itemHit != null) {
             tongueOutcome = OUTCOME_ITEM;
             tongueItemEntityId = itemHit.getId();
-            launchTongue(itemHit.position().add(0, 0.15, 0), -1);
+            launchTongue(itemHit.position().add(0, ITEM_GRAB_LIFT, 0), -1);
         } else if (entityHit != null) {
             tongueOutcome = OUTCOME_ENTITY;
             launchTongue(entityHit.getBoundingBox().getCenter(), entityHit.getId());
         } else if (blockHit.getType() == HitResult.Type.BLOCK) {
             tongueOutcome = OUTCOME_BLOCK;
             tongueAnchorBlock = blockHit.getBlockPos();
+            tongueAnchorFace = blockHit.getDirection();
             launchTongue(blockHit.getLocation(), -1);
         } else {
             tongueOutcome = OUTCOME_MISS;
             launchTongue(far, -1);
         }
+    }
+
+    private static boolean isHostileOrNeutral(Mob mob) {
+        if (mob instanceof OWEntity owEntity) return owEntity.getTemperament() != OWEntityConfig.Temperament.PASSIVE;
+        return mob instanceof net.minecraft.world.entity.monster.Enemy || mob instanceof net.minecraft.world.entity.NeutralMob;
     }
 
     private static boolean isFriendOf(Player carrier, LivingEntity entity) {
@@ -1018,12 +1190,8 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
         Vec3 mouth = mouthPosition(1f);
         this.level().playSound(null, mouth.x, mouth.y, mouth.z,
-                SoundEvents.FROG_TONGUE, SoundSource.NEUTRAL, 1.2f,
-                (float) OWUtils.generateRandomInterval(1.0, 1.2));
-        this.level().playSound(null, mouth.x, mouth.y, mouth.z,
-                SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 0.45f, 1.9f);
-        this.level().playSound(null, mouth.x, mouth.y, mouth.z,
-                SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.NEUTRAL, 0.4f, 1.8f);
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_SHOT.get(), SoundSource.NEUTRAL, 0.6f,
+                (float) OWUtils.generateRandomInterval(0.95, 1.1));
         burst(ParticleTypes.ITEM_SLIME, mouth, 6, 0.05, 0.08);
     }
 
@@ -1061,6 +1229,10 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             Vec3 center = target.getBoundingBox().getCenter();
             this.entityData.set(TONGUE_END, center.toVector3f());
             this.entityData.set(TONGUE_LENGTH, (float) center.distanceTo(mouth));
+        } else if (tongueOutcome == OUTCOME_ITEM && this.level().getEntity(tongueItemEntityId) instanceof ItemEntity item && item.isAlive()) {
+            Vec3 held = item.position().add(0, ITEM_GRAB_LIFT, 0);
+            this.entityData.set(TONGUE_END, held.toVector3f());
+            this.entityData.set(TONGUE_LENGTH, (float) held.distanceTo(mouth));
         }
 
         int phase = getTonguePhaseTick() + 1;
@@ -1073,7 +1245,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             case OUTCOME_BLOCK -> attachVine();
             default -> {
                 Vec3 end = tongueEnd();
-                this.level().playSound(null, end.x, end.y, end.z, SoundEvents.FROG_TONGUE, SoundSource.NEUTRAL, 0.5f, 0.7f);
+                this.level().playSound(null, end.x, end.y, end.z, net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_MISS.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
                 startRetract(1);
             }
         }
@@ -1081,12 +1253,16 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     private void strikeTongueTarget(@Nullable Entity target) {
         if (target instanceof LivingEntity living && living.isAlive()) {
-            living.hurt(this.damageSources().mobAttack(this), this.getCombatDamage());
+            living.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * OWAttacksConstants.Chameleon.TONGUE_DAMAGE_RATIO);
+            Player carrier = getCarrier();
+            if (carrier != null && living instanceof Mob mob && mob.isAlive() && isHostileOrNeutral(mob) && mob.canAttack(carrier)) {
+                mob.setTarget(carrier);
+            }
             Vec3 hit = living.getBoundingBox().getCenter();
             this.level().playSound(null, hit.x, hit.y, hit.z,
-                    SoundEvents.SLIME_ATTACK, SoundSource.NEUTRAL, 1.0f, 1.5f);
+                    net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_IMPACT.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
             this.level().playSound(null, hit.x, hit.y, hit.z,
-                    SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.NEUTRAL, 0.6f, 1.6f);
+                    SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.NEUTRAL, 0.3f, 1.7f);
             burst(ParticleTypes.CRIT, hit, 14, 0.25, 0.35);
             burst(ParticleTypes.ITEM_SLIME, hit, 8, 0.15, 0.12);
             burst(ParticleTypes.SWEEP_ATTACK, hit, 1, 0.0, 0.0);
@@ -1106,14 +1282,18 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     }
 
     private void attachVine() {
-        if (tongueAnchorBlock == null || this.level().getBlockState(tongueAnchorBlock).isAir()) {
-            startRetract(0);
+        Player holder = getCarrier();
+        boolean submerged = holder != null && (holder.isUnderWater() || holder.isInWater());
+        if (tongueAnchorBlock == null || this.level().getBlockState(tongueAnchorBlock).isAir() || submerged || isAnchorUnderwater()) {
+            Vec3 end = tongueEnd();
+            this.level().playSound(null, end.x, end.y, end.z, SoundEvents.SLIME_SQUISH_SMALL, SoundSource.NEUTRAL, 0.7f, 0.8f);
+            startRetract(1);
             return;
         }
         this.entityData.set(TONGUE_STATE, TONGUE_ATTACHED);
         Vec3 anchor = tongueEnd();
         this.level().playSound(null, anchor.x, anchor.y, anchor.z,
-                SoundEvents.SLIME_BLOCK_PLACE, SoundSource.NEUTRAL, 1.1f, 1.2f);
+                net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_STICK.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
         this.level().playSound(null, anchor.x, anchor.y, anchor.z,
                 SoundEvents.HONEY_BLOCK_PLACE, SoundSource.NEUTRAL, 0.9f, 1.1f);
         burst(new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, this.level().getBlockState(tongueAnchorBlock)), anchor, 14, 0.15, 0.15);
@@ -1124,6 +1304,13 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
     }
 
+    private boolean isAnchorUnderwater() {
+        if (tongueAnchorBlock == null) return false;
+        if (!this.level().getFluidState(tongueAnchorBlock).isEmpty()) return true;
+        BlockPos front = tongueAnchorFace == null ? BlockPos.containing(tongueEnd()) : tongueAnchorBlock.relative(tongueAnchorFace);
+        return !this.level().getFluidState(front).isEmpty();
+    }
+
     private void holdVine() {
         Player carrier = getCarrier();
         if (carrier == null || tongueAnchorBlock == null) {
@@ -1132,6 +1319,13 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
 
         carrier.fallDistance = 0f;
+        setVitalEnergy(getVitalEnergy() + OWAttacksConstants.Chameleon.VINE_ENERGY_PER_TICK);
+        if (getVitalEnergy() >= getVitalEnergyCapacity()) {
+            setVitalEnergy(getVitalEnergyCapacity());
+            canShowVitalEnergyLack = true;
+            releaseTongue(true);
+            return;
+        }
         boolean blockGone = this.level().getBlockState(tongueAnchorBlock).isAir();
         boolean tooFar = ropePoint(carrier).distanceTo(tongueEnd()) > tongueRange() + OWAttacksConstants.Chameleon.VINE_RELEASE_SLACK;
         if (blockGone || tooFar || carrier.getVehicle() != null || ++vineTicks > OWAttacksConstants.Chameleon.VINE_MAX_TICKS) {
@@ -1156,7 +1350,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         if (playSound) {
             Vec3 end = tongueEnd();
             this.level().playSound(null, end.x, end.y, end.z,
-                    SoundEvents.SLIME_BLOCK_BREAK, SoundSource.NEUTRAL, 0.9f, 1.4f);
+                    net.tiew.operationWild.sound.OWSounds.CHAMELEON_TONGUE_UNSTICK.get(), SoundSource.NEUTRAL, 0.9f, 1.0f);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     SoundEvents.SLIME_SQUISH_SMALL, SoundSource.NEUTRAL, 0.8f, 1.2f);
             burst(ParticleTypes.ITEM_SLIME, end, 5, 0.1, 0.05);
@@ -1228,17 +1422,15 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         if (this.isAlive()) {
             this.entityData.set(TONGUE_CATCH_TIMER, OWAttacksConstants.Chameleon.TONGUE_CATCH_TICKS);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    SoundEvents.FROG_EAT, SoundSource.NEUTRAL, 0.8f, (float) OWUtils.generateRandomInterval(1.3, 1.5));
+                    net.tiew.operationWild.sound.OWSounds.CHAMELEON_EAT.get(), SoundSource.NEUTRAL, 0.8f, (float) OWUtils.generateRandomInterval(0.95, 1.1));
         }
         tongueAnchorBlock = null;
         tongueItemEntityId = -1;
         tongueOutcome = OUTCOME_MISS;
         vineTicks = 0;
 
-        if (tongueAimed) {
-            tongueCooldown = OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS;
-            perchReturnDelay = OWAttacksConstants.Chameleon.TONGUE_PERCH_RETURN_DELAY;
-        }
+        tongueCooldown = OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS;
+        if (tongueAimed) perchReturnDelay = OWAttacksConstants.Chameleon.TONGUE_PERCH_RETURN_DELAY;
         tongueAimed = false;
     }
 
@@ -1253,13 +1445,11 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     public boolean canUseTongue() {
         return getTongueState() == TONGUE_ATTACHED
-                || (getTongueState() == TONGUE_IDLE && tongueCooldown <= 0
+                || (getTongueState() == TONGUE_IDLE && tongueCooldown <= 0 && !isMimicryActive()
                 && getVitalEnergy() <= getVitalEnergyCapacity() - OWAttacksConstants.Chameleon.TONGUE_ENERGY);
     }
 
     private void handleWatch() {
-        if (watchStrikeCooldown > 0) watchStrikeCooldown--;
-
         Player carrier = getCarrier();
         if (carrier == null || !this.isTame()) {
             if (getWatchTarget() != -1) this.entityData.set(WATCH_TARGET, -1);
@@ -1278,10 +1468,13 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
             }
         }
 
-        if (threat == null || watchStrikeCooldown > 0) return;
+        if (threat == null || tongueCooldown > 0 || isMimicryActive()) return;
         if (getTongueState() != TONGUE_IDLE || pendingShot != SHOT_NONE || getPerch() != PERCH_BACK || perchBlend > 0f) return;
 
-        watchStrikeCooldown = OWAttacksConstants.Chameleon.WATCH_STRIKE_INTERVAL_TICKS;
+        float cost = OWAttacksConstants.Chameleon.TONGUE_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) return;
+        setVitalEnergy(getVitalEnergy() + cost);
+
         pendingShot = SHOT_PASSIVE;
         pendingShotTarget = threat.getId();
         shotWindup = -1;
@@ -1295,7 +1488,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         double best = Double.MAX_VALUE;
 
         for (Mob mob : this.level().getEntitiesOfClass(Mob.class, carrier.getBoundingBox().inflate(radius),
-                m -> m.isAlive() && m.getTarget() == carrier)) {
+                m -> m.isAlive() && m.getTarget() == carrier && isHostileOrNeutral(m) && !isFriendOf(carrier, m))) {
             Vec3 toMob = mob.getBoundingBox().getCenter().subtract(eye);
             double distance = toMob.length();
             if (distance > radius || distance < 1.0e-3) continue;
@@ -1312,9 +1505,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     public boolean activateMimicry() {
         if (this.level().isClientSide()) return false;
         if (isMimicryActive()) {
-            cancelMimicry();
-            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    SoundEvents.ILLUSIONER_MIRROR_MOVE, SoundSource.PLAYERS, 0.7f, 0.8f);
+            breakMimicry();
             return true;
         }
 
@@ -1328,18 +1519,33 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
         setVitalEnergy(getVitalEnergy() + cost);
 
+        releaseTongue(true);
+        clearPendingShot();
         int duration = mimicryDurationTicks();
         this.entityData.set(MIMICRY_TIMER, duration);
         this.entityData.set(MIMICRY_CAST_TIMER, OWAttacksConstants.Chameleon.MIMICRY_CAST_TICKS);
         carrier.addEffect(new MobEffectInstance(OWEffects.CAMOUFLAGE_EFFECT.getDelegate(), duration, 0, false, false, true));
 
-        if (this.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, carrier.getX(), carrier.getY() + 1.0, carrier.getZ(),
-                    18, 0.35, 0.6, 0.35, 0.02);
-        }
-        this.level().playSound(null, carrier.getX(), carrier.getY(), carrier.getZ(),
-                SoundEvents.ILLUSIONER_MIRROR_MOVE, SoundSource.PLAYERS, 0.9f, 1.3f);
+        camouflageBurst(carrier, true, 1.0f);
         return true;
+    }
+
+    private void camouflageBurst(Entity anchor, boolean hiding, float volume) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        double x = anchor.getX();
+        double y = anchor.getY() + anchor.getBbHeight() * 0.5;
+        double z = anchor.getZ();
+        double spreadXZ = anchor.getBbWidth() * 0.45;
+        double spreadY = anchor.getBbHeight() * 0.35;
+        for (Vector3f color : CAMOUFLAGE_PARTICLE_COLORS) {
+            serverLevel.sendParticles(new net.minecraft.core.particles.DustParticleOptions(color, CAMOUFLAGE_PARTICLE_SIZE),
+                    x, y, z, CAMOUFLAGE_PARTICLES_PER_COLOR, spreadXZ, spreadY, spreadXZ, 0.0);
+        }
+        serverLevel.sendParticles(hiding ? ParticleTypes.WAX_OFF : ParticleTypes.WAX_ON,
+                x, y, z, CAMOUFLAGE_SPARKLES, spreadXZ, spreadY, spreadXZ, 0.0);
+        serverLevel.playSound(null, x, y, z,
+                hiding ? net.tiew.operationWild.sound.OWSounds.CHAMELEON_CAMOUFLAGE.get() : net.tiew.operationWild.sound.OWSounds.CHAMELEON_CAMOUFLAGE_BREAK.get(),
+                SoundSource.PLAYERS, volume * (hiding ? 1.0f : 0.6f), (float) OWUtils.generateRandomInterval(0.95, 1.05));
     }
 
     private int mimicryDurationTicks() {
@@ -1355,15 +1561,240 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
         int timer = getMimicryTimer();
         if (timer <= 0) return;
-        if (getCarrier() == null) {
+        Player carrier = getCarrier();
+        if (carrier == null && !wildCamouflaging) {
             cancelMimicry();
             return;
         }
+        Entity anchor = carrier != null ? carrier : this;
         this.entityData.set(MIMICRY_TIMER, timer - 1);
+        if (timer - 1 == OWAttacksConstants.Chameleon.MIMICRY_FADE_TICKS) {
+            camouflageBurst(anchor, false, carrier != null ? 1.0f : WILD_CAMOUFLAGE_VOLUME);
+        }
         if (timer - 1 <= 0) cancelMimicry();
     }
 
+    public void breakMimicry() {
+        Player carrier = getCarrier();
+        int fade = OWAttacksConstants.Chameleon.MIMICRY_FADE_TICKS;
+        Entity anchor = carrier != null ? carrier : wildCamouflaging ? this : null;
+        if (anchor == null || getMimicryTimer() <= fade && getMimicryCastTimer() <= 0) {
+            if (anchor == null) cancelMimicry();
+            return;
+        }
+        if (carrier != null) {
+            MobEffectInstance effect = carrier.getEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate());
+            if (effect != null && !effect.isInfiniteDuration()) carrier.removeEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate());
+        }
+        this.entityData.set(MIMICRY_TIMER, fade);
+        this.entityData.set(MIMICRY_CAST_TIMER, 0);
+        camouflageBurst(anchor, false, carrier != null ? 1.0f : WILD_CAMOUFLAGE_VOLUME);
+    }
+
+    private void startWildCamouflage(int duration) {
+        wildCamouflaging = true;
+        this.entityData.set(MIMICRY_TIMER, duration);
+        this.entityData.set(MIMICRY_CAST_TIMER, OWAttacksConstants.Chameleon.MIMICRY_CAST_TICKS);
+        camouflageBurst(this, true, WILD_CAMOUFLAGE_VOLUME);
+    }
+
+    private boolean canCamouflageInWild() {
+        return !this.isTame() && !this.isCarried() && !this.isClimbing() && !this.isNapping() && !this.isSleeping()
+                && !this.isKnockedOut() && !this.isInWater() && this.onGround() && !this.isWallClimbing()
+                && !this.isMimicryActive() && this.getLastHurtByMob() == null;
+    }
+
+    private final class WildCamouflageGoal extends net.minecraft.world.entity.ai.goal.Goal {
+
+        private WildCamouflageGoal() {
+            this.setFlags(java.util.EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (wildCamouflageCooldown > 0) return false;
+            return canCamouflageInWild() && ChameleonEntity.this.getRandom().nextInt(WILD_CAMOUFLAGE_CHANCE) == 0;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return wildCamouflaging && !ChameleonEntity.this.isTame()
+                    && getMimicryTimer() > OWAttacksConstants.Chameleon.MIMICRY_FADE_TICKS;
+        }
+
+        @Override
+        public void start() {
+            ChameleonEntity.this.getNavigation().stop();
+            startWildCamouflage((int) OWUtils.generateRandomInterval(WILD_CAMOUFLAGE_MIN_TICKS, WILD_CAMOUFLAGE_MAX_TICKS));
+        }
+
+        @Override
+        public void tick() {
+            ChameleonEntity.this.getNavigation().stop();
+        }
+
+        @Override
+        public void stop() {
+            if (wildCamouflaging && getMimicryTimer() > OWAttacksConstants.Chameleon.MIMICRY_FADE_TICKS) breakMimicry();
+            wildCamouflageCooldown = (int) OWUtils.generateRandomInterval(WILD_CAMOUFLAGE_COOLDOWN_MIN, WILD_CAMOUFLAGE_COOLDOWN_MAX);
+        }
+    }
+
+    private boolean canWallClimb() {
+        return this.isAlive() && !this.isCarried() && !this.isPassenger() && !this.isClimbing() && !this.isInWater()
+                && !this.isNapping() && !this.isSleeping() && !this.isKnockedOut() && !this.isSitting() && !this.noPhysics;
+    }
+
+    private @Nullable net.minecraft.core.Direction findWall() {
+        AABB box = this.getBoundingBox().deflate(0, WALL_PROBE_DEFLATE, 0);
+        Vec3 facing = Vec3.directionFromRotation(0, this.getYRot());
+        int current = getWallFace();
+        net.minecraft.core.Direction best = null;
+        double bestScore = -Double.MAX_VALUE;
+        for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+            AABB probe = box.move(direction.getStepX() * WALL_PROBE, 0, direction.getStepZ() * WALL_PROBE);
+            if (this.level().noCollision(this, probe)) continue;
+            double score = facing.x * direction.getStepX() + facing.z * direction.getStepZ()
+                    + (current == direction.get2DDataValue() ? 2.0 : 0.0);
+            if (score > bestScore) {
+                bestScore = score;
+                best = direction;
+            }
+        }
+        return best;
+    }
+
+    private void handleWallClimb() {
+        net.minecraft.core.Direction wall = canWallClimb() ? findWall() : null;
+        boolean clinging = wall != null && (!this.onGround()
+                || this.horizontalCollision && (isWallClimbing() || facesWall(wall)));
+        if (!clinging) {
+            if (getWallFace() != -1 && !this.getNavigation().isDone()) this.getNavigation().recomputePath();
+            if (getWallFace() != -1) this.entityData.set(WALL_FACE, -1);
+            if (isWallDescending()) this.entityData.set(WALL_DESCENDING, false);
+            wallTrend = 0;
+            return;
+        }
+        this.entityData.set(WALL_FACE, wall.get2DDataValue());
+
+        Vec3 velocity = this.getDeltaMovement();
+        if (velocity.y < -WALL_TREND_SPEED) wallTrend = Math.max(-WALL_TREND_LIMIT, wallTrend - 1);
+        else if (velocity.y > WALL_TREND_SPEED) wallTrend = Math.min(WALL_TREND_LIMIT, wallTrend + 1);
+        if (wallTrend <= -WALL_TREND_FLIP) this.entityData.set(WALL_DESCENDING, true);
+        else if (wallTrend >= WALL_TREND_FLIP) this.entityData.set(WALL_DESCENDING, false);
+
+        if (!this.horizontalCollision) {
+            this.setDeltaMovement(velocity.x * WALL_SLIDE_DAMPING + wall.getStepX() * WALL_STICK, velocity.y,
+                    velocity.z * WALL_SLIDE_DAMPING + wall.getStepZ() * WALL_STICK);
+        }
+
+        if (!isWallDescending() && !wantsToDescend() && nearLedge(wall)) {
+            Vec3 current = this.getDeltaMovement();
+            this.setDeltaMovement(wall.getStepX() * WALL_MANTLE_PUSH, Math.max(current.y, WALL_CLIMB_UP_SPEED),
+                    wall.getStepZ() * WALL_MANTLE_PUSH);
+        }
+
+        float target = isWallDescending() ? wall.getOpposite().toYRot() : wall.toYRot();
+        float yaw = Mth.approachDegrees(this.getYRot(), target, WALL_TURN_STEP);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.setYHeadRot(yaw);
+    }
+
+    private boolean nearLedge(net.minecraft.core.Direction wall) {
+        AABB above = this.getBoundingBox().deflate(0, WALL_PROBE_DEFLATE, 0)
+                .move(wall.getStepX() * WALL_PROBE, WALL_MANTLE_REACH, wall.getStepZ() * WALL_PROBE);
+        return this.level().noCollision(this, above);
+    }
+
+    private boolean facesWall(net.minecraft.core.Direction wall) {
+        Vec3 facing = Vec3.directionFromRotation(0, this.getYRot());
+        return facing.x * wall.getStepX() + facing.z * wall.getStepZ() > WALL_FACING_DOT;
+    }
+
+    private void tickWallPitch() {
+        int face = getWallFace();
+        if (face >= 0) lastWallFace = face;
+        float target = face < 0 ? 0f : isWallDescending() ? 90f : -90f;
+        this.wallPitchO = this.wallPitch;
+        this.wallPitch += (target - this.wallPitch) * WALL_PITCH_RESPONSE;
+        if (target == 0f && Math.abs(this.wallPitch) < 0.05f) this.wallPitch = 0f;
+        if ((face >= 0 || this.wallPitch != 0f) && !this.isCarried()) {
+            this.yBodyRot = this.getYRot();
+            this.setYHeadRot(this.getYRot());
+        }
+    }
+
+    public float wallLookFreedom(float partialTicks) {
+        return 1f - Mth.clamp(Math.abs(wallPitchDegrees(partialTicks)) / 90f, 0f, 1f);
+    }
+
+    public float wallPitchDegrees(float partialTicks) {
+        return Mth.lerp(partialTicks, wallPitchO, wallPitch);
+    }
+
+    public int getWallFace() { return this.entityData.get(WALL_FACE); }
+
+    public boolean isWallDescending() { return this.entityData.get(WALL_DESCENDING); }
+
+    public boolean isWallClimbing() { return getWallFace() >= 0; }
+
+    @Override
+    public boolean onClimbable() {
+        return isWallClimbing() || super.onClimbable();
+    }
+
+    @Override
+    public void travel(Vec3 input) {
+        boolean lowering = isWallClimbing() && !this.onGround() && wantsToDescend();
+        if (isWallClimbing()) {
+            Vec3 velocity = this.getDeltaMovement();
+            this.setDeltaMovement(velocity.x, Mth.clamp(velocity.y, -WALL_CLIMB_DOWN_SPEED, WALL_CLIMB_UP_SPEED), velocity.z);
+        }
+        super.travel(lowering ? Vec3.ZERO : input);
+        if (lowering && this.getDeltaMovement().y > 0) {
+            Vec3 velocity = this.getDeltaMovement();
+            this.setDeltaMovement(velocity.x, -WALL_CLIMB_DOWN_SPEED, velocity.z);
+        }
+    }
+
+    private boolean wantsToDescend() {
+        net.minecraft.world.entity.ai.navigation.PathNavigation navigation = this.getNavigation();
+        BlockPos target = !navigation.isDone() ? navigation.getTargetPos()
+                : navigation instanceof net.tiew.operationWild.entity.navigation.ChameleonClimbNavigation climb ? climb.directTarget() : null;
+        if (target == null || target.getY() >= this.getY() - WALL_DESCENT_INTENT) return false;
+        int face = getWallFace();
+        if (face < 0) return true;
+        net.minecraft.core.Direction wall = net.minecraft.core.Direction.from2DDataValue(face);
+        double dx = target.getX() + 0.5 - this.getX();
+        double dz = target.getZ() + 0.5 - this.getZ();
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        return distance < 1.0e-3 || (dx * wall.getStepX() + dz * wall.getStepZ()) / distance <= WALL_BEYOND_DOT;
+    }
+
+    @Override
+    public void jumpFromGround() {
+        if (canWallClimb()) return;
+        super.jumpFromGround();
+    }
+
+    @Override
+    public int getMaxFallDistance() {
+        return canWallClimb() ? WALL_MAX_FALL_DISTANCE : super.getMaxFallDistance();
+    }
+
+    @Override
+    public void calculateEntityAnimation(boolean includeHeight) {
+        super.calculateEntityAnimation(includeHeight || isWallClimbing());
+    }
+
+    @Override
+    protected net.minecraft.world.entity.ai.navigation.PathNavigation createNavigation(Level level) {
+        return new net.tiew.operationWild.entity.navigation.ChameleonClimbNavigation(this, level);
+    }
+
     public void cancelMimicry() {
+        wildCamouflaging = false;
         if (getMimicryTimer() <= 0 && getMimicryCastTimer() <= 0) return;
         Player carrier = getCarrier();
         if (carrier != null) {
@@ -1377,7 +1808,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     public static void breakCarrierMimicry(Player attacker) {
         if (attacker.level().isClientSide()) return;
         for (Entity passenger : attacker.getPassengers()) {
-            if (passenger instanceof ChameleonEntity chameleon && chameleon.isMimicryActive()) chameleon.cancelMimicry();
+            if (passenger instanceof ChameleonEntity chameleon && chameleon.isMimicryActive()) chameleon.breakMimicry();
         }
     }
 
@@ -1398,11 +1829,13 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         boolean carried = isCarried();
         int perch = getPerch();
 
-        if (carried && perch == PERCH_BACK && perchBlend <= 0f) this.backIdleAnimationState.startIfStopped(this.tickCount);
-        else this.backIdleAnimationState.stop();
-
-        if (carried && perch == PERCH_HEAD && perchBlend >= 1f) this.headIdleAnimationState.startIfStopped(this.tickCount);
-        else this.headIdleAnimationState.stop();
+        if (carried) {
+            this.backIdleAnimationState.startIfStopped(this.tickCount);
+            this.headIdleAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.backIdleAnimationState.stop();
+            this.headIdleAnimationState.stop();
+        }
 
         if (carried && perch != lastPerch) {
             if (perch == PERCH_HEAD) {
@@ -1418,7 +1851,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
         lastPerch = perch;
 
         if (getTongueState() == TONGUE_ATTACHED) this.tongueHoldAnimationState.startIfStopped(this.tickCount);
-        else this.tongueHoldAnimationState.stop();
+        else if (this.tongueHoldWeight <= 0f) this.tongueHoldAnimationState.stop();
 
         int climbTimer = this.entityData.get(CLIMB_TIMER);
         if (climbTimer > lastClimbTimer) {
@@ -1457,7 +1890,7 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     public boolean canPlayIdleAnimation() {
         return this.getTarget() == null && !this.isNapping() && !this.isSleeping() && !this.isMoving()
-                && !this.isPassenger() && !this.isInWater();
+                && !this.isPassenger() && !this.isInWater() && !this.isWallClimbing() && this.wallPitch == 0f;
     }
 
     public boolean isAnyIdleAnimationPlaying() {
@@ -1564,8 +1997,6 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     public int getTongueCatchTimer() { return this.entityData.get(TONGUE_CATCH_TIMER); }
 
-    public boolean isMimicryFrozen() { return isMimicryActive() && getMimicryCastTimer() <= 0; }
-
     public @Nullable Vec3 aimPoint(float partialTicks) {
         if (isTongueOut()) {
             int targetId = getTongueTarget();
@@ -1590,56 +2021,78 @@ public class ChameleonEntity extends OWEntity implements IOWEntity, IOWTamable, 
     public Vec3[] bodyFrame(float partialTicks) {
         Player carrier = getCarrier();
         Vec3 base;
-        float yaw;
-        float pitch;
+        Vec3 forward;
+        Vec3 up;
         if (carrier != null) {
-            float blend = Mth.lerp(partialTicks, perchBlendO, perchBlend);
-            float crouch = Mth.lerp(partialTicks, crouchAmountO, crouchAmount);
-            float bodyYaw = Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
-            float headYaw = Mth.rotLerp(partialTicks, carrier.yHeadRotO, carrier.yHeadRot);
-            base = carrier.getPosition(partialTicks).add(perchOffset(bodyYaw, headYaw, blend, this.getScale(), crouch));
-            yaw = perchYaw(bodyYaw, headYaw, blend);
-            pitch = perchPitchDegrees(blend);
+            PerchPose pose = currentPerchPose(carrier, partialTicks);
+            base = pose.position();
+            forward = pose.axis(0, 0, 1);
+            up = pose.axis(0, 1, 0);
         } else {
             base = this.getPosition(partialTicks);
-            yaw = Mth.rotLerp(partialTicks, this.yBodyRotO, this.yBodyRot);
-            pitch = climbPitchDegrees(partialTicks);
+            float yawRad = Mth.rotLerp(partialTicks, this.yBodyRotO, this.yBodyRot) * Mth.DEG_TO_RAD;
+            float pitchRad = climbPitchDegrees(partialTicks) * Mth.DEG_TO_RAD;
+            Vec3 horizontal = new Vec3(-Mth.sin(yawRad), 0, Mth.cos(yawRad));
+            forward = horizontal.scale(Mth.cos(pitchRad)).add(0, -Mth.sin(pitchRad), 0);
+            up = new Vec3(0, Mth.cos(pitchRad), 0).add(horizontal.scale(Mth.sin(pitchRad)));
         }
-        float yawRad = yaw * Mth.DEG_TO_RAD;
-        float pitchRad = pitch * Mth.DEG_TO_RAD;
-        Vec3 horizontal = new Vec3(-Mth.sin(yawRad), 0, Mth.cos(yawRad));
-        Vec3 forward = horizontal.scale(Mth.cos(pitchRad)).add(0, -Mth.sin(pitchRad), 0);
-        Vec3 up = new Vec3(0, Mth.cos(pitchRad), 0).add(horizontal.scale(Mth.sin(pitchRad)));
         return new Vec3[]{base, forward, up, forward.cross(up)};
     }
 
-    public @Nullable float[] aimAngles(float partialTicks) {
-        Vec3 point = aimPoint(partialTicks);
-        if (point == null) return null;
-        Vec3[] frame = bodyFrame(partialTicks);
-        Vec3 origin = frame[0].add(frame[2].scale(MOUTH_UP * this.getScale()));
-        Vec3 direction = point.subtract(origin);
-        if (direction.lengthSqr() < 1.0e-6) return null;
-        direction = direction.normalize();
-        double f = direction.dot(frame[1]);
-        double u = direction.dot(frame[2]);
-        double r = direction.dot(frame[3]);
+    private static float[] anglesIn(Vec3 direction, Vec3 forward, Vec3 up, Vec3 right) {
+        double f = direction.dot(forward);
+        double u = direction.dot(up);
+        double r = direction.dot(right);
         return new float[]{(float) Mth.atan2(r, f), (float) Mth.atan2(-u, Math.sqrt(r * r + f * f))};
     }
 
-    public @Nullable float[] aimShare(float partialTicks) {
-        float weight = Mth.lerp(partialTicks, aimWeightO, aimWeight);
-        if (weight <= 0.01f) return null;
-        float[] angles = aimAngles(partialTicks);
-        if (angles == null) return null;
+    private static Vec3 rotateAbout(Vec3 vector, Vec3 axis, double angle) {
+        Vec3 k = axis.normalize();
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+        return vector.scale(cos).add(k.cross(vector).scale(sin)).add(k.scale(k.dot(vector) * (1 - cos)));
+    }
 
-        boolean onHead = Mth.lerp(partialTicks, perchBlendO, perchBlend) > 0.5f && isCarried();
-        float yawLimit = onHead ? Mth.PI : AIM_BACK_YAW_LIMIT;
-        float bodyYaw = Mth.clamp(angles[0], -yawLimit, yawLimit);
-        float bodyPitch = Mth.clamp(angles[1], -AIM_BODY_PITCH_LIMIT, AIM_BODY_PITCH_LIMIT);
-        float headYaw = Mth.clamp(angles[0] - bodyYaw, -AIM_HEAD_LIMIT, AIM_HEAD_LIMIT);
-        float headPitch = Mth.clamp(angles[1] - bodyPitch, -AIM_HEAD_LIMIT, AIM_HEAD_LIMIT);
-        return new float[]{bodyYaw * weight, bodyPitch * weight, headYaw * weight, headPitch * weight};
+    public @Nullable Vec3 renderedMouth = null;
+
+    public @Nullable Vec3 aimTarget(float partialTicks) {
+        Vec3 point = aimPoint(partialTicks);
+        if (point != null) lastAimPoint = point;
+        else if (Mth.lerp(partialTicks, aimWeightO, aimWeight) <= 0f) lastAimPoint = null;
+        return lastAimPoint;
+    }
+
+    public @Nullable float[] aimShare(float partialTicks) {
+        if (aimOverride != null) return aimOverride;
+        float weight = Mth.lerp(partialTicks, aimWeightO, aimWeight);
+        Vec3 point = aimTarget(partialTicks);
+        if (weight <= 0.001f || point == null) return null;
+
+        Vec3[] frame = bodyFrame(partialTicks);
+        double scale = this.getScale();
+        Vec3 pivotGuess = frame[0].add(frame[2].scale(HEAD_PIVOT_UP * scale));
+        Vec3 toTarget = point.subtract(pivotGuess);
+        if (toTarget.lengthSqr() < 1.0e-6) return null;
+        float[] whole = anglesIn(toTarget.normalize(), frame[1], frame[2], frame[3]);
+
+        float headShare = isCarried() ? Mth.lerp(partialTicks, perchBlendO, perchBlend) : 0f;
+        float yawLimit = Mth.lerp(headShare * headShare * (3f - 2f * headShare), AIM_BACK_YAW_LIMIT, Mth.PI);
+        float bodyYaw = Mth.clamp(whole[0], -yawLimit, yawLimit) * weight;
+        float bodyPitch = Mth.clamp(whole[1], -AIM_BODY_PITCH_LIMIT, AIM_BODY_PITCH_LIMIT) * weight;
+
+        Vec3 forward = rotateAbout(frame[1], frame[2], -bodyYaw);
+        Vec3 right = rotateAbout(frame[3], frame[2], -bodyYaw);
+        Vec3 up = frame[2];
+        forward = rotateAbout(forward, right, -bodyPitch);
+        up = rotateAbout(up, right, -bodyPitch);
+
+        Vec3 pivot = frame[0].add(up.scale(HEAD_PIVOT_UP * scale)).add(forward.scale(HEAD_PIVOT_FORWARD * scale));
+        Vec3 fromPivot = point.subtract(pivot);
+        if (fromPivot.lengthSqr() < 1.0e-6) return new float[]{bodyYaw, bodyPitch, 0f, 0f};
+        float[] head = anglesIn(fromPivot.normalize(), forward, up, right);
+        return new float[]{bodyYaw, bodyPitch,
+                Mth.clamp(head[0], -AIM_HEAD_LIMIT, AIM_HEAD_LIMIT) * weight,
+                Mth.clamp(head[1], -AIM_HEAD_LIMIT, AIM_HEAD_LIMIT) * weight};
     }
 
     public Vec3 tongueOrigin(float partialTicks, Vec3 end) {

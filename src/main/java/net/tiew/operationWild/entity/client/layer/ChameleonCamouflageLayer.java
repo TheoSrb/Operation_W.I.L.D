@@ -3,10 +3,9 @@ package net.tiew.operationWild.entity.client.layer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.LivingEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 import net.tiew.operationWild.entity.client.render.misc.ChameleonCamouflage;
@@ -24,10 +23,9 @@ public class ChameleonCamouflageLayer<T extends LivingEntity, M extends EntityMo
         ChameleonEntity source = ChameleonCamouflage.mimicSource(entity);
         if (source == null) return;
 
-        Entity anchor = source.getCarrier() != null ? source.getCarrier() : source;
         M model = this.getParentModel();
-        ChameleonCamouflage.render(anchor, partialTicks, ChameleonCamouflage.envelope(source),
-                packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0f), bufferSource,
-                target -> model.renderToBuffer(poseStack, target.consumer(), target.light(), target.overlay(), target.color()));
+        ChameleonCamouflage.render(entity, source, entity instanceof ChameleonEntity ? this.getTextureLocation(entity) : null,
+                partialTicks, bufferSource,
+                consumer -> model.renderToBuffer(poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY, -1));
     }
 }

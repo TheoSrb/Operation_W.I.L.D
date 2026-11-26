@@ -1684,7 +1684,7 @@ public class OWAttackLogic {
         OWAttack tongue = OWAttacksHandler.ChameleonAttacks.TONGUE_VINE;
 
         long endMs = getCooldownEnd(chameleon.getId(), tongue.getId());
-        if (chameleon.isTongueOut() || (endMs != -1L && System.currentTimeMillis() < endMs)) {
+        if (chameleon.isTongueOut() || chameleon.isMimicryActive() || (endMs != -1L && System.currentTimeMillis() < endMs)) {
             recordAttackClick(tongue.getId(), true);
             return false;
         }
@@ -1808,7 +1808,7 @@ public class OWAttackLogic {
             // du jeu. Chaque sortie ci-dessous rend la main sans rien annuler.
 
             // Nourriture, arc, trident, potion, bouclier… : le clic appartient à l'objet tenu.
-            if (playerHoldsUsableItem(mc.player)) return;
+            if (net.tiew.operationWild.event.OWItemUseRestrictions.holdsRightClickItem(mc.player)) return;
 
             // Curseur sur une créature : monter, asseoir, relever, nourrir, échanger. L'interaction
             // prime toujours — y compris accroupi, sinon vouloir asseoir sa monture délogerait le
@@ -1843,6 +1843,7 @@ public class OWAttackLogic {
                 chameleonTonguePressMs = -1L;
                 if (heldMs >= OWAttacksConstants.Chameleon.TONGUE_HOLD_RELEASE_MS) {
                     PacketDistributor.sendToServer(new OWAttackPacket(OWAttacksHandler.TONGUE_VINE_ID, OWAttackPacket.ACTION_CHARGE_RELEASE, 0f));
+                    net.tiew.operationWild.client.ChameleonVineController.predictRelease(chameleon, mc.player);
                 }
                 return;
             }
@@ -1850,13 +1851,14 @@ public class OWAttackLogic {
 
             if (chameleon.getTongueState() == net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity.TONGUE_ATTACHED) {
                 chameleonTonguePressMs = -1L;
+                net.tiew.operationWild.client.ChameleonVineController.predictRelease(chameleon, mc.player);
                 PacketDistributor.sendToServer(new OWAttackPacket(OWAttacksHandler.TONGUE_VINE_ID, OWAttackPacket.ACTION_EXECUTE, 0f));
                 recordAttackClick(OWAttacksHandler.TONGUE_VINE_ID, false);
                 event.setCanceled(true);
                 return;
             }
 
-            if (playerHoldsUsableItem(mc.player)) return;
+            if (net.tiew.operationWild.event.OWItemUseRestrictions.holdsRightClickItem(mc.player)) return;
             if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) return;
             if (mc.player.isShiftKeyDown()) {
                 if (!mc.player.getMainHandItem().isEmpty()) return;

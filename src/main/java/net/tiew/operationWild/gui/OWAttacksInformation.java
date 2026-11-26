@@ -690,7 +690,7 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.chameleon.tongue_vine.desc",
                                 val((int) OWAttacksConstants.Chameleon.TONGUE_RANGE),
                                 val(OWAttacksConstants.Chameleon.VINE_MAX_TICKS / 20),
-                                val(OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS / 20))
+                                val(OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS / 20f))
                 ),
 
                 new AttackSlot(236, 119, "X",
@@ -704,7 +704,7 @@ public class OWAttacksInformation {
                         title("ow.attacks.chameleon.watchful_tongue.title"),
                         e -> desc("ow.attacks.chameleon.watchful_tongue.desc",
                                 val((int) OWAttacksConstants.Chameleon.WATCH_RADIUS),
-                                val(OWAttacksConstants.Chameleon.WATCH_STRIKE_INTERVAL_TICKS / 20))
+                                val(OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS / 20f))
                 )
 
         ));

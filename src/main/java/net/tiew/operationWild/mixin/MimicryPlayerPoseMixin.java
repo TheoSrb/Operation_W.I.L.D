@@ -14,21 +14,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MimicryPlayerPoseMixin {
 
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"))
-    private void freezeDuringMimicry(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
+    private void hideOuterLayersDuringMimicry(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
                                      float netHeadYaw, float headPitch, CallbackInfo ci) {
         if (!(entity instanceof Player player) || ChameleonEntity.getMimicking(player) == null) return;
 
         PlayerModel<?> model = (PlayerModel<?>) (Object) this;
-        for (ModelPart part : new ModelPart[]{model.head, model.rightArm, model.leftArm, model.rightLeg, model.leftLeg}) {
-            part.xRot = 0f;
-            part.yRot = 0f;
-            part.zRot = 0f;
+        for (ModelPart outer : new ModelPart[]{model.hat, model.jacket, model.rightSleeve, model.leftSleeve, model.rightPants, model.leftPants}) {
+            outer.visible = false;
         }
-        model.hat.copyFrom(model.head);
-        model.jacket.copyFrom(model.body);
-        model.rightSleeve.copyFrom(model.rightArm);
-        model.leftSleeve.copyFrom(model.leftArm);
-        model.rightPants.copyFrom(model.rightLeg);
-        model.leftPants.copyFrom(model.leftLeg);
     }
 }
