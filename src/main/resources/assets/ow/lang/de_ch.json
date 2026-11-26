@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "Langi Zunge",
   "piste.attack.6.desc": "D Zungeliane langt 22 Blöck, d Wachsami Zunge bewacht bis 10 Blöck.",
   "piste.attack.7.name": "Langsams Verblasse",
-  "piste.attack.7.desc": "Mimikry hebt 5 Sekunde länger."
+  "piste.attack.7.desc": "Mimikry hebt 5 Sekunde länger.",
+  "entity.ow.condor": "Kondor",
+  "item.ow.condor_spawn_egg": "Kondor-Spawn-Ei",
+  "ow.advancements.lord_of_the_peaks.title": "Herr der Gipfel",
+  "ow.advancements.lord_of_the_peaks.description": "Du hast einen Kondor gezähmt!",
+  "ow.attacks.condor.combo.title": "Flügelschläge",
+  "ow.attacks.condor.combo.desc": "Lass deinen Kondor alle %s s zuschlagen: %s Schaden pro Treffer. Der dritte Schlag ist eine Böe, die zurückstösst.",
+  "ow.attacks.condor.talons.title": "Krallen",
+  "ow.attacks.condor.talons.desc": "Folgt bald: Der Kondor wird Beute und Verbündete packen und in die Lüfte tragen.",
+  "ow.attacks.condor.storm.title": "Sturm der Anden",
+  "ow.attacks.condor.storm.desc": "Ultimative Fähigkeit folgt bald, noch gesperrt.",
+  "ow.attacks.condor.flight.title": "Flug",
+  "ow.attacks.condor.flight.desc": "Springen am Boden: Abheben. Blick zum Steigen oder Sturzflug, Springen halten zum Steigen, Sprinten für Tempo. Vorwärts loslassen zum Gleiten. Fliegen kostet Energie, Gleiten kaum."
 }

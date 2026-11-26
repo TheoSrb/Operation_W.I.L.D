@@ -664,7 +664,8 @@ public class OWAttackLogic {
 
     private static void applySlideFov(ComputeFovModifierEvent event) {
         if (!(event.getPlayer().getVehicle() instanceof net.tiew.operationWild.entity.OWEntity mount)) return;
-        float modifier = mount.slideFovModifier() * mount.glideFovModifier();
+        float modifier = mount.slideFovModifier() * mount.glideFovModifier()
+                * (mount instanceof net.tiew.operationWild.entity.OWSemiFlyingEntity flyer ? flyer.flightFovModifier() : 1f);
         if (modifier <= 1.001f) return;
 
         event.setNewFovModifier(event.getNewFovModifier() * modifier);

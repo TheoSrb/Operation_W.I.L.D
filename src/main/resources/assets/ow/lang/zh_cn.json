@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "长舌",
   "piste.attack.6.desc": "舌藤射程增至22格，警觉之舌警戒范围增至10格。",
   "piste.attack.7.name": "缓慢褪色",
-  "piste.attack.7.desc": "拟态多持续5秒。"
+  "piste.attack.7.desc": "拟态多持续5秒。",
+  "entity.ow.condor": "神鹰",
+  "item.ow.condor_spawn_egg": "神鹰刷怪蛋",
+  "ow.advancements.lord_of_the_peaks.title": "群峰之主",
+  "ow.advancements.lord_of_the_peaks.description": "你驯服了一只神鹰！",
+  "ow.attacks.condor.combo.title": "翼击",
+  "ow.attacks.condor.combo.desc": "让神鹰每%s秒攻击一次：每击%s点伤害。第三击是击退的狂风。",
+  "ow.attacks.condor.talons.title": "利爪",
+  "ow.attacks.condor.talons.desc": "即将推出：神鹰将抓起猎物和盟友带上天空。",
+  "ow.attacks.condor.storm.title": "安第斯风暴",
+  "ow.attacks.condor.storm.desc": "终极技能即将推出，暂时锁定。",
+  "ow.attacks.condor.flight.title": "飞行",
+  "ow.attacks.condor.flight.desc": "地面跳跃：起飞。用视线爬升或俯冲，按住跳跃上升，疾跑加速。松开前进即可滑翔。飞行消耗能量，滑翔几乎不消耗。"
 }

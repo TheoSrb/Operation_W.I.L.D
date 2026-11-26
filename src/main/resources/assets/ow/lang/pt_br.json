@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "Língua Longa",
   "piste.attack.6.desc": "A Língua-Cipó alcança 22 blocos e a Língua Vigilante vigia até 10 blocos.",
   "piste.attack.7.name": "Muda Lenta",
-  "piste.attack.7.desc": "O Mimetismo dura 5 segundos a mais."
+  "piste.attack.7.desc": "O Mimetismo dura 5 segundos a mais.",
+  "entity.ow.condor": "Condor",
+  "item.ow.condor_spawn_egg": "Ovo gerador de condor",
+  "ow.advancements.lord_of_the_peaks.title": "Senhor dos Picos",
+  "ow.advancements.lord_of_the_peaks.description": "Você domesticou um Condor!",
+  "ow.attacks.condor.combo.title": "Golpes de Asa",
+  "ow.attacks.condor.combo.desc": "Faça seu condor atacar a cada %s s: %s de dano por golpe. O terceiro golpe é uma rajada que empurra.",
+  "ow.attacks.condor.talons.title": "Garras",
+  "ow.attacks.condor.talons.desc": "Em breve: o condor vai agarrar presas e aliados e levá-los pelos ares.",
+  "ow.attacks.condor.storm.title": "Tempestade Andina",
+  "ow.attacks.condor.storm.desc": "Suprema em breve, ainda bloqueada.",
+  "ow.attacks.condor.flight.title": "Voo",
+  "ow.attacks.condor.flight.desc": "Pular no chão: decolar. Olhe para subir ou mergulhar, segure Pular para ganhar altura, Corra para acelerar. Solte o avanço para planar. Voar gasta energia, planar quase nada."
 }

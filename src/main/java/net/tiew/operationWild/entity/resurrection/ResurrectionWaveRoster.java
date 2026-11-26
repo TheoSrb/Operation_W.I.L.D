@@ -49,6 +49,7 @@ public final class ResurrectionWaveRoster {
             Map.entry("lion", 3),
             Map.entry("crocodile", 3),
             Map.entry("kodiak", 3),
+            Map.entry("condor", 3),
             Map.entry("orca", 4),
             Map.entry("hippopotamus", 4),
             Map.entry("elephant", 5),

@@ -103,6 +103,9 @@ public class OWAdvancementProvider extends AdvancementProvider {
             AdvancementHolder peacockTamingAdvancement =
                     createNewTamingAdvancement(renownedTamer, saver, OWItems.PEACOCK_SPAWN_EGG.get(), OWEntityRegistry.PEACOCK.get(), "colors", AdvancementType.GOAL);
 
+            AdvancementHolder condorTamingAdvancement =
+                    createNewTamingAdvancement(renownedTamer, saver, OWItems.CONDOR_SPAWN_EGG.get(), OWEntityRegistry.CONDOR.get(), "lord_of_the_peaks", AdvancementType.GOAL);
+
             AdvancementHolder colossalSquidTamingAdvancement =
                     createNewTamingAdvancement(renownedTamer, saver, OWItems.COLOSSAL_SQUID_SPAWN_EGG.get(), OWEntityRegistry.COLOSSAL_SQUID.get(), "abyssal_terror", AdvancementType.CHALLENGE);
 

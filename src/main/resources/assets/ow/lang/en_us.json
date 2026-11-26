@@ -1277,5 +1277,17 @@
   "piste.attack.6.name": "Long Tongue",
   "piste.attack.6.desc": "Tongue Vine reaches 22 blocks and Watchful Tongue watches up to 10 blocks.",
   "piste.attack.7.name": "Slow Fade",
-  "piste.attack.7.desc": "Mimicry lasts 5 more seconds."
+  "piste.attack.7.desc": "Mimicry lasts 5 more seconds.",
+  "entity.ow.condor": "Condor",
+  "item.ow.condor_spawn_egg": "Condor Spawn Egg",
+  "ow.advancements.lord_of_the_peaks.title": "Lord of the Peaks",
+  "ow.advancements.lord_of_the_peaks.description": "You tamed a Condor!",
+  "ow.attacks.condor.combo.title": "Wing Strikes",
+  "ow.attacks.condor.combo.desc": "Make your condor strike every %s s: %s damage per hit. The third hit is a gust that pushes back.",
+  "ow.attacks.condor.talons.title": "Talons",
+  "ow.attacks.condor.talons.desc": "Coming soon: the condor will grab prey and allies and carry them into the sky.",
+  "ow.attacks.condor.storm.title": "Andean Storm",
+  "ow.attacks.condor.storm.desc": "Ultimate coming soon, still locked.",
+  "ow.attacks.condor.flight.title": "Flight",
+  "ow.attacks.condor.flight.desc": "Jump on the ground: take off. Look to climb or dive, hold Jump to rise, Sprint to speed up. Let go of forward to glide. Flying drains energy, gliding barely does."
 }

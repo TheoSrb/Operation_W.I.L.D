@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "Длинный язык",
   "piste.attack.6.desc": "Язык-лиана достаёт до 22 блоков, Бдительный язык следит до 10 блоков.",
   "piste.attack.7.name": "Медленная линька",
-  "piste.attack.7.desc": "Мимикрия длится на 5 секунд дольше."
+  "piste.attack.7.desc": "Мимикрия длится на 5 секунд дольше.",
+  "entity.ow.condor": "Кондор",
+  "item.ow.condor_spawn_egg": "Яйцо призыва кондора",
+  "ow.advancements.lord_of_the_peaks.title": "Повелитель вершин",
+  "ow.advancements.lord_of_the_peaks.description": "Вы приручили кондора!",
+  "ow.attacks.condor.combo.title": "Удары крыльями",
+  "ow.attacks.condor.combo.desc": "Кондор бьёт каждые %s с: %s урона за удар. Третий удар — отбрасывающий порыв ветра.",
+  "ow.attacks.condor.talons.title": "Когти",
+  "ow.attacks.condor.talons.desc": "Скоро: кондор будет хватать добычу и союзников и уносить их в небо.",
+  "ow.attacks.condor.storm.title": "Андская буря",
+  "ow.attacks.condor.storm.desc": "Ультимейт скоро, пока заблокирован.",
+  "ow.attacks.condor.flight.title": "Полёт",
+  "ow.attacks.condor.flight.desc": "Прыжок на земле: взлёт. Взгляд — подъём или пике, удержание прыжка — набор высоты, бег — ускорение. Отпустите «вперёд», чтобы парить. Полёт тратит энергию, парение почти нет."
 }

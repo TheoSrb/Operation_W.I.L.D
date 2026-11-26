@@ -171,6 +171,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         withExistingParent(OWItems.HIPPOPOTAMUS_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.LION_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.PEACOCK_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
+        withExistingParent(OWItems.CONDOR_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.COLOSSAL_SQUID_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
 
 

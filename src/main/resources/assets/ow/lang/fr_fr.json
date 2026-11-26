@@ -1277,5 +1277,17 @@
   "piste.attack.6.name": "Langue Longue",
   "piste.attack.6.desc": "La Langue-Liane porte à 22 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
   "piste.attack.7.name": "Mue Lente",
-  "piste.attack.7.desc": "Le Mimétisme dure 5 secondes de plus."
+  "piste.attack.7.desc": "Le Mimétisme dure 5 secondes de plus.",
+  "entity.ow.condor": "Condor",
+  "item.ow.condor_spawn_egg": "Oeuf d'apparition de condor",
+  "ow.advancements.lord_of_the_peaks.title": "Seigneur des Cimes",
+  "ow.advancements.lord_of_the_peaks.description": "Vous avez apprivoisé un Condor !",
+  "ow.attacks.condor.combo.title": "Coups d'Aile",
+  "ow.attacks.condor.combo.desc": "Faites frapper votre condor toutes les %s s : %s dégâts par coup. Le troisième coup est une rafale qui repousse.",
+  "ow.attacks.condor.talons.title": "Serres",
+  "ow.attacks.condor.talons.desc": "Attaque à venir : le condor saisira bientôt ses proies et ses alliés pour les emporter dans les airs.",
+  "ow.attacks.condor.storm.title": "Tempête des Andes",
+  "ow.attacks.condor.storm.desc": "Ultime à venir, encore verrouillé.",
+  "ow.attacks.condor.flight.title": "Vol",
+  "ow.attacks.condor.flight.desc": "Saut au sol : décollage. Regard pour monter ou piquer, Saut maintenu pour grimper, Sprint pour filer. Relâchez l'avance pour planer. Le vol use l'énergie, le plané presque pas."
 }

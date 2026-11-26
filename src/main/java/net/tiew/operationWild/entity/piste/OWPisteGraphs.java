@@ -20,6 +20,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
         BY_SPECIES.put("PeacockEntity", buildPeacock());
         BY_SPECIES.put("ChameleonEntity", buildChameleon());
+        BY_SPECIES.put("CondorEntity", buildKodiak());
     }
 
     public static OWPisteGraph forEntity(OWEntity entity) {

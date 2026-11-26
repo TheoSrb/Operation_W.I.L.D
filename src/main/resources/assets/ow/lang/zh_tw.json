@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "長舌",
   "piste.attack.6.desc": "舌藤射程增至22格，警覺之舌警戒範圍增至10格。",
   "piste.attack.7.name": "緩慢褪色",
-  "piste.attack.7.desc": "擬態多持續5秒。"
+  "piste.attack.7.desc": "擬態多持續5秒。",
+  "entity.ow.condor": "神鷹",
+  "item.ow.condor_spawn_egg": "神鷹生怪蛋",
+  "ow.advancements.lord_of_the_peaks.title": "群峰之主",
+  "ow.advancements.lord_of_the_peaks.description": "你馴服了一隻神鷹！",
+  "ow.attacks.condor.combo.title": "翼擊",
+  "ow.attacks.condor.combo.desc": "讓神鷹每%s秒攻擊一次：每擊%s點傷害。第三擊是擊退的狂風。",
+  "ow.attacks.condor.talons.title": "利爪",
+  "ow.attacks.condor.talons.desc": "即將推出：神鷹將抓起獵物和盟友帶上天空。",
+  "ow.attacks.condor.storm.title": "安地斯風暴",
+  "ow.attacks.condor.storm.desc": "終極技能即將推出，暫時鎖定。",
+  "ow.attacks.condor.flight.title": "飛行",
+  "ow.attacks.condor.flight.desc": "地面跳躍：起飛。用視線爬升或俯衝，按住跳躍上升，衝刺加速。放開前進即可滑翔。飛行消耗能量，滑翔幾乎不消耗。"
 }

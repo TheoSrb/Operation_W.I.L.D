@@ -239,6 +239,18 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.PORKCHOP)
                 .add(Items.RABBIT);
 
+        tag(OWTags.Items.CONDOR_FOOD)
+                .add(Items.BEEF)
+                .add(Items.MUTTON)
+                .add(Items.PORKCHOP)
+                .add(Items.RABBIT)
+                .add(Items.CHICKEN)
+                .add(Items.COOKED_BEEF)
+                .add(Items.COOKED_MUTTON)
+                .add(Items.COOKED_PORKCHOP)
+                .add(Items.COOKED_RABBIT)
+                .add(Items.COOKED_CHICKEN);
+
         tag(OWTags.Items.COLOSSAL_SQUID_FOOD)
                 .add(Items.COD)
                 .add(Items.SALMON)

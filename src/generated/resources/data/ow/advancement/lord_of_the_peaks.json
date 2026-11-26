@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_condor": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:condor"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.lord_of_the_peaks.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:condor_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.lord_of_the_peaks.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_condor"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

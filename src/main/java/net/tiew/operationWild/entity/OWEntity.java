@@ -1583,7 +1583,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public boolean causeFallDamage(float v, float v1, DamageSource damageSource) {
-        if (glide.absorbsFall()) return false;
+        if (glide.absorbsFall() || this.absorbsFallDamage()) return false;
         int i = this.calculateFallDamage(v, v1);
         if (i <= 0) {
             return false;
@@ -2911,6 +2911,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return glide.fovModifier();
     }
 
+    protected boolean ownsRiddenMotion() {
+        return false;
+    }
+
+    protected void afterRiddenTick(Player player, float yawOBefore, float yawBefore, float bodyBefore) {
+    }
+
+    protected boolean absorbsFallDamage() {
+        return false;
+    }
+
     private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
 
     protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
@@ -2987,7 +2998,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private void travelRidden(Player player, Vec3 travelVector) {
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
-        boolean ownsMotion = this.isLeapingVehicle() || slide.ownsMotion() || glide.ownsMotion();
+        boolean ownsMotion = this.isLeapingVehicle() || slide.ownsMotion() || glide.ownsMotion() || this.ownsRiddenMotion();
 
         try {
             if (this.isControlledByLocalInstance()) {
@@ -4838,6 +4849,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         slide.afterRiddenRotation(player, yawOBefore, yawBefore, bodyBefore);
         glide.afterRiddenRotation(player, yawOBefore, yawBefore, bodyBefore);
+        this.afterRiddenTick(player, yawOBefore, yawBefore, bodyBefore);
     }
 
     private void smoothRotation(Vec2 vec2, Player player) {

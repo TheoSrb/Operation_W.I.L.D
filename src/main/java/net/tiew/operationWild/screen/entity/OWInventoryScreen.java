@@ -175,6 +175,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "TigerEntity" -> entityScale = 22;
             case "CrocodileEntity" -> entityScale = 18;
             case "PeacockEntity" -> entityScale = 20;
+            case "CondorEntity" -> entityScale = 14;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
             case "RedPandaEntity" -> entityScale = 32;
@@ -432,6 +433,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "BoaEntity":
                 return 224;
             case "PeacockEntity":
+            case "CondorEntity":
                 return 208;
             case "TigerSharkEntity":
                 return 192;

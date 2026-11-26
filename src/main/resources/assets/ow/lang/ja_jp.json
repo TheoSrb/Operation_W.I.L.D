@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "長い舌",
   "piste.attack.6.desc": "舌のつるは22ブロック、見張りの舌は10ブロックまで届く。",
   "piste.attack.7.name": "ゆっくり色あせ",
-  "piste.attack.7.desc": "擬態が5秒長く続く。"
+  "piste.attack.7.desc": "擬態が5秒長く続く。",
+  "entity.ow.condor": "コンドル",
+  "item.ow.condor_spawn_egg": "コンドルのスポーンエッグ",
+  "ow.advancements.lord_of_the_peaks.title": "山頂の主",
+  "ow.advancements.lord_of_the_peaks.description": "コンドルを飼いならした！",
+  "ow.attacks.condor.combo.title": "翼打ち",
+  "ow.attacks.condor.combo.desc": "%s秒ごとにコンドルが攻撃：1撃%sダメージ。3撃目は押し返す突風。",
+  "ow.attacks.condor.talons.title": "鉤爪",
+  "ow.attacks.condor.talons.desc": "近日追加：コンドルが獲物や仲間をつかんで空へ運ぶ。",
+  "ow.attacks.condor.storm.title": "アンデスの嵐",
+  "ow.attacks.condor.storm.desc": "奥義は近日追加、まだロック中。",
+  "ow.attacks.condor.flight.title": "飛行",
+  "ow.attacks.condor.flight.desc": "地上でジャンプ：離陸。視線で上昇・急降下、ジャンプ長押しで上昇、ダッシュで加速。前進を離すと滑空。飛行はエネルギーを消費、滑空はほぼ消費しない。"
 }

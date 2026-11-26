@@ -66,6 +66,7 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(HippopotamusModel.LAYER_LOCATION, HippopotamusModel::createBodyLayer);
         event.registerLayerDefinition(LionModel.LAYER_LOCATION, LionModel::createBodyLayer);
         event.registerLayerDefinition(PeacockModel.LAYER_LOCATION, PeacockModel::createBodyLayer);
+        event.registerLayerDefinition(net.tiew.operationWild.entity.client.model.CondorModel.LAYER_LOCATION, net.tiew.operationWild.entity.client.model.CondorModel::createBodyLayer);
         event.registerLayerDefinition(ColossalSquidModel.LAYER_LOCATION, ColossalSquidModel::createBodyLayer);
         event.registerLayerDefinition(SeaBugModel.LAYER_LOCATION, SeaBugModel::createBodyLayer);
         event.registerLayerDefinition(PlantEmpressModel.LAYER_LOCATION, PlantEmpressModel::createBodyLayer);

@@ -1,0 +1,16 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": [
+    "minecraft:jagged_peaks",
+    "minecraft:stony_peaks",
+    "minecraft:windswept_hills",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:meadow"
+  ],
+  "spawners": {
+    "type": "ow:condor",
+    "maxCount": 2,
+    "minCount": 1,
+    "weight": 12
+  }
+}

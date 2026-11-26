@@ -35,6 +35,7 @@ public class OWNetworkHandler {
         registrar.playToServer(OWRunningPacket.TYPE, OWRunningPacket.STREAM_CODEC, OWRunningPacket::handle);
         registrar.playToServer(OWSlidePacket.TYPE, OWSlidePacket.STREAM_CODEC, OWSlidePacket::handle);
         registrar.playToServer(OWGlidePacket.TYPE, OWGlidePacket.STREAM_CODEC, OWGlidePacket::handle);
+        registrar.playToServer(OWFlightPacket.TYPE, OWFlightPacket.STREAM_CODEC, OWFlightPacket::handle);
         registrar.playToServer(SaddleShieldPosePacket.TYPE, SaddleShieldPosePacket.STREAM_CODEC, SaddleShieldPosePacket::handle);
         registrar.playToServer(OWVariantsSkinsPacket.TYPE, OWVariantsSkinsPacket.STREAM_CODEC, OWVariantsSkinsPacket::handle);
         registrar.playToServer(SkinBuyingPacket.TYPE, SkinBuyingPacket.STREAM_CODEC, SkinBuyingPacket::handle);

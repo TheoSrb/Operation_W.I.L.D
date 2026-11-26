@@ -149,4 +149,12 @@ public final class OWTargetLists {
             Squid.class, GlowSquid.class,
             Drowned.class
     );
+
+    /**
+     * Condor — charognard des cimes : il ne s'en prend qu'aux petites bêtes isolées des pentes,
+     * jamais à ce qui pourrait le blesser au sol.
+     */
+    public static final List<Class<?>> CONDOR = List.of(
+            Rabbit.class, Chicken.class
+    );
 }

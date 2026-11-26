@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "Lengua Larga",
   "piste.attack.6.desc": "La Lengua-Liana llega a 22 bloques y la Lengua Vigilante vigila hasta 10 bloques.",
   "piste.attack.7.name": "Muda Lenta",
-  "piste.attack.7.desc": "El Mimetismo dura 5 segundos más."
+  "piste.attack.7.desc": "El Mimetismo dura 5 segundos más.",
+  "entity.ow.condor": "Cóndor",
+  "item.ow.condor_spawn_egg": "Huevo generador de cóndor",
+  "ow.advancements.lord_of_the_peaks.title": "Señor de las Cumbres",
+  "ow.advancements.lord_of_the_peaks.description": "¡Has domesticado un Cóndor!",
+  "ow.attacks.condor.combo.title": "Aletazos",
+  "ow.attacks.condor.combo.desc": "Haz que tu cóndor golpee cada %s s: %s de daño por golpe. El tercer golpe es una ráfaga que empuja.",
+  "ow.attacks.condor.talons.title": "Garras",
+  "ow.attacks.condor.talons.desc": "Próximamente: el cóndor atrapará presas y aliados para llevarlos por los aires.",
+  "ow.attacks.condor.storm.title": "Tormenta Andina",
+  "ow.attacks.condor.storm.desc": "Definitiva próximamente, aún bloqueada.",
+  "ow.attacks.condor.flight.title": "Vuelo",
+  "ow.attacks.condor.flight.desc": "Saltar en el suelo: despegar. Mira para subir o picar, mantén Saltar para ascender, Esprinta para acelerar. Suelta avanzar para planear. Volar gasta energía, planear casi nada."
 }

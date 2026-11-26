@@ -408,6 +408,30 @@ public class OWAttacksInformation {
 
         ));
 
+        PROFILES.put(net.tiew.operationWild.entity.animals.flying.CondorEntity.class, new EntityProfile(
+
+                new AttackSlot(196, 100, "LMB",
+                        title("ow.attacks.condor.combo.title"),
+                        e -> desc("ow.attacks.condor.combo.desc",
+                                val("0.8"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(216, 100, "RMB",
+                        title("ow.attacks.condor.talons.title"),
+                        e -> desc("ow.attacks.condor.talons.desc")
+                ),
+
+                new AttackSlot(236, 100, "X",
+                        title("ow.attacks.condor.storm.title"),
+                        e -> desc("ow.attacks.condor.storm.desc")
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.condor.flight.title"),
+                        e -> desc("ow.attacks.condor.flight.desc"))
+
+        ));
+
         PROFILES.put(ColossalSquidEntity.class, new EntityProfile(
 
                 new AttackSlot(176, 0, "LMB",
@@ -650,7 +674,7 @@ public class OWAttacksInformation {
 
                 null,
 
-                new AttackSlot(216, 79, "RMB",
+                new AttackSlot(216, 80, "RMB",
                         title("ow.attacks.red_panda.heal_snack.title"),
                         e -> desc("ow.attacks.red_panda.heal_snack.desc",
                                 val((int) (OWAttacksConstants.RedPanda.HEAL_SNACK_INSTANT_RATIO * 100)),
@@ -660,7 +684,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(236, 79, "X",
+                new AttackSlot(236, 80, "X",
                         title("ow.attacks.red_panda.feast.title"),
                         e -> desc("ow.attacks.red_panda.feast.desc",
                                 val((int) OWAttacksConstants.RedPanda.FEAST_RADIUS),
@@ -685,7 +709,7 @@ public class OWAttacksInformation {
 
                 null,
 
-                new AttackSlot(216, 119, "RMB",
+                new AttackSlot(216, 120, "RMB",
                         title("ow.attacks.chameleon.tongue_vine.title"),
                         e -> desc("ow.attacks.chameleon.tongue_vine.desc",
                                 val((int) OWAttacksConstants.Chameleon.TONGUE_RANGE),
@@ -693,7 +717,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Chameleon.TONGUE_COOLDOWN_TICKS / 20f))
                 ),
 
-                new AttackSlot(236, 119, "X",
+                new AttackSlot(236, 120, "X",
                         title("ow.attacks.chameleon.mimicry.title"),
                         e -> desc("ow.attacks.chameleon.mimicry.desc",
                                 val(OWAttacksConstants.Chameleon.MIMICRY_DURATION_TICKS / 20),

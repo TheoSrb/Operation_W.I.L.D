@@ -1824,6 +1824,8 @@ public class ClientEvents {
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock) {
                 event.setRoll((float) (event.getRoll() + (peacock.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (peacock.getBodyXRot() / 6) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.OWSemiFlyingEntity flyer) {
+                event.setRoll((float) (event.getRoll() + flyer.getBankCameraRoll((float) event.getPartialTick()) * intensity));
             }
         }
     }

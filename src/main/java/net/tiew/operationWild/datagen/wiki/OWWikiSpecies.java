@@ -41,6 +41,7 @@ public record OWWikiSpecies(EntityType<?> type, Class<? extends OWEntity> implem
                 of(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.class),
                 of(OWEntityRegistry.LION.get(), LionEntity.class),
                 of(OWEntityRegistry.PEACOCK.get(), PeacockEntity.class),
+                of(OWEntityRegistry.CONDOR.get(), net.tiew.operationWild.entity.animals.flying.CondorEntity.class),
                 of(OWEntityRegistry.COLOSSAL_SQUID.get(), ColossalSquidEntity.class));
     }
 

@@ -11,6 +11,7 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
+import net.tiew.operationWild.entity.animals.flying.CondorEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
@@ -83,6 +84,8 @@ public class OWAttacksHandler {
     public static final int ROYAL_SWEEP_ID = OWAttackIds.ROYAL_SWEEP;
     public static final int TONGUE_VINE_ID = OWAttackIds.TONGUE_VINE;
     public static final int MIMICRY_ID = OWAttackIds.MIMICRY;
+    public static final int CONDOR_TALONS_ID = OWAttackIds.CONDOR_TALONS;
+    public static final int CONDOR_STORM_ID = OWAttackIds.CONDOR_STORM;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -149,12 +152,12 @@ public class OWAttacksHandler {
         register(ElephantEntity.class, ElephantAttacks.WATER_SPRAY);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
 
-        registerCardOrigin(RedPandaEntity.class, 196, 79);
+        registerCardOrigin(RedPandaEntity.class, 196, 80);
         register(RedPandaEntity.class, RedPandaAttacks.HEAL_SNACK);
         register(RedPandaEntity.class, RedPandaAttacks.FEAST);
         registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
 
-        registerCardOrigin(ChameleonEntity.class, 196, 119);
+        registerCardOrigin(ChameleonEntity.class, 196, 120);
         register(ChameleonEntity.class, ChameleonAttacks.TONGUE_VINE);
         register(ChameleonEntity.class, ChameleonAttacks.MIMICRY);
         registerPassive(ChameleonEntity.class, ChameleonPassives.WATCHFUL_TONGUE);
@@ -191,6 +194,11 @@ public class OWAttacksHandler {
         register(PeacockEntity.class, PeacockAttacks.LIFE_LINK);
         register(PeacockEntity.class, PeacockAttacks.FEATHER_VOLLEY);
         register(PeacockEntity.class, PeacockAttacks.ROYAL_SWEEP);
+
+        registerCardOrigin(CondorEntity.class, 196, 100);
+        registerComboMaxTimer(CondorEntity.class, 12);
+        register(CondorEntity.class, CondorAttacks.TALONS);
+        register(CondorEntity.class, CondorAttacks.STORM);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -558,6 +566,26 @@ public class OWAttacksHandler {
                 entity -> entity instanceof PeacockEntity peacock ? peacock.getUltimateKillCount() : 0,
                 OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED
         ).withUltimateDuration(OWAttacksConstants.Peacock.SWEEP_DURATION_MS);
+    }
+
+    public static class CondorAttacks {
+
+        public static final OWAttack TALONS = new OWAttack(
+                CONDOR_TALONS_ID,
+                OW_ATTACK_0,
+                0,
+                entity -> { },
+                0
+        );
+
+        public static final OWAttack STORM = new OWAttack(
+                CONDOR_STORM_ID,
+                OW_ATTACK_1,
+                0,
+                entity -> { },
+                0
+        ).withUnlockCondition(entity -> false)
+                .withUnlockProgress(entity -> 0f);
     }
 
     public static class LionAttacks {

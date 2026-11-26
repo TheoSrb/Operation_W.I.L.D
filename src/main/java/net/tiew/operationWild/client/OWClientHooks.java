@@ -48,6 +48,19 @@ public final class OWClientHooks {
                 new net.tiew.operationWild.networking.packets.to_server.OWGlidePacket(action));
     }
 
+    public static final int FLIGHT_TAKEOFF = 0;
+    public static final int FLIGHT_STATE = 1;
+    public static final int FLIGHT_LAND = 2;
+
+    public static void sendFlight(int action, int state) {
+        net.tiew.operationWild.networking.OWNetworkHandler.sendToServer(
+                new net.tiew.operationWild.networking.packets.to_server.OWFlightPacket(action, state));
+    }
+
+    public static void startFlightWind(net.tiew.operationWild.entity.OWSemiFlyingEntity flyer) {
+        Minecraft.getInstance().getSoundManager().play(new OWFlightWindSound(flyer));
+    }
+
     public static boolean isSlideKeyDown() {
         return net.tiew.operationWild.core.OWKeysBinding.OW_SLIDE.isDown();
     }

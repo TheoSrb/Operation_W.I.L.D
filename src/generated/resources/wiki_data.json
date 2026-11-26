@@ -151,6 +151,16 @@
       "title": {
         "fr_fr": "Terreur des Abysses"
       }
+    },
+    {
+      "constant": "CONDOR_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Condor !"
+      },
+      "id": "ow:lord_of_the_peaks",
+      "title": {
+        "fr_fr": "Seigneur des Cimes"
+      }
     }
   ],
   "blocks": [
@@ -10734,12 +10744,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-17T21:51:56.435674+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-11-26T17:48:59.0686017+01:00",
+        "created_date": "2026-11-26",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-11-24T16:53:04.7503923+01:00",
-        "last_modified_date": "2026-11-24",
-        "size_bytes": 80448
+        "last_modified": "2026-11-26T17:48:59.069109+01:00",
+        "last_modified_date": "2026-11-26",
+        "size_bytes": 80625
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10756,7 +10766,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 250.0,
-        "needs_saddle": true,
+        "needs_saddle": false,
         "rideable": true,
         "rider_anim_y_offset": 0.0,
         "run_speed_multiplier": 0.0,
@@ -11545,9 +11555,9 @@
           {
             "desc": {
               "key": "ow.attacks.chameleon.tongue_vine.desc",
-              "plain": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Une bête : des dégâts. Un objet : rapporté. Un bloc : on s'y balance %s s, re-clic pour lâcher. Recharge %s s.",
+              "plain": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Bête : dégâts. Objet : rapporté. Bloc : on s'y balance %s s max, l'énergie fond. Re-clic pour lâcher. Recharge %s s.",
               "translations": {
-                "fr_fr": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Une bête : des dégâts. Un objet : rapporté. Un bloc : on s'y balance %s s, re-clic pour lâcher. Recharge %s s."
+                "fr_fr": "Clic droit : il passe sur votre tête et tire la langue jusqu'à %s blocs. Bête : dégâts. Objet : rapporté. Bloc : on s'y balance %s s max, l'énergie fond. Re-clic pour lâcher. Recharge %s s."
               }
             },
             "slug": "tongue_vine",
@@ -11562,9 +11572,9 @@
           {
             "desc": {
               "key": "ow.attacks.chameleon.mimicry.desc",
-              "plain": "Vous prenez la texture du bloc voisin et gagnez l'effet Camouflage pendant %s s. Frapper y met fin. Recharge de %s s.",
+              "plain": "Le décor derrière vous se peint sur votre corps, pour chaque regard : immobile, vous disparaissez ; en mouvement, l'air ondule. %s s, frapper y met fin. Recharge %s s.",
               "translations": {
-                "fr_fr": "Vous prenez la texture du bloc voisin et gagnez l'effet Camouflage pendant %s s. Frapper y met fin. Recharge de %s s."
+                "fr_fr": "Le décor derrière vous se peint sur votre corps, pour chaque regard : immobile, vous disparaissez ; en mouvement, l'air ondule. %s s, frapper y met fin. Recharge %s s."
               }
             },
             "slug": "mimicry",
@@ -11579,9 +11589,9 @@
           {
             "desc": {
               "key": "ow.attacks.chameleon.watchful_tongue.desc",
-              "plain": "Clic droit pour le porter dans le dos. Il fouette ce qui vous chasse hors de votre vue à %s blocs, toutes les %s s, et vous alerte.",
+              "plain": "Clic droit pour le porter dans le dos. Il fouette les bêtes hostiles qui vous chassent hors de vue à %s blocs, avec sa langue (énergie, recharge %s s), et vous alerte.",
               "translations": {
-                "fr_fr": "Clic droit pour le porter dans le dos. Il fouette ce qui vous chasse hors de votre vue à %s blocs, toutes les %s s, et vous alerte."
+                "fr_fr": "Clic droit pour le porter dans le dos. Il fouette les bêtes hostiles qui vous chassent hors de vue à %s blocs, avec sa langue (énergie, recharge %s s), et vous alerte."
               }
             },
             "slug": "watchful_tongue",
@@ -11596,35 +11606,55 @@
         ]
       },
       "attack_constants": {
+        "AIR_FRICTION": 0.91,
         "MIMICRY_CAST_TICKS": 20,
         "MIMICRY_COOLDOWN_TICKS": 1800,
         "MIMICRY_DURATION_MS": 20000,
         "MIMICRY_DURATION_TICKS": 400,
         "MIMICRY_ENERGY": 100.0,
-        "MIMICRY_FADE_TICKS": 10,
-        "MIMICRY_OPACITY": 0.82,
+        "MIMICRY_FADE_TICKS": 20,
         "MIMICRY_SLOW_FADE_BONUS_TICKS": 100,
-        "TONGUE_COOLDOWN_TICKS": 60,
-        "TONGUE_ENERGY": 15.0,
+        "SHOT_PERCH_THRESHOLD": 0.5,
+        "SHOT_WINDUP_TICKS": 3,
+        "TONGUE_CATCH_TICKS": 10,
+        "TONGUE_COOLDOWN_TICKS": 30,
+        "TONGUE_DAMAGE_RATIO": 0.5,
+        "TONGUE_ENERGY": 35.0,
         "TONGUE_ENTITY_PICK_RADIUS": 0.3,
-        "TONGUE_EXTEND_SPEED": 3.0,
+        "TONGUE_EXTEND_MAX_TICKS": 6,
+        "TONGUE_EXTEND_SPEED": 5.0,
+        "TONGUE_HOLD_RELEASE_MS": 280,
+        "TONGUE_IMPACT_HOLD_TICKS": 2,
         "TONGUE_ITEM_PICK_RADIUS": 0.45,
         "TONGUE_PERCH_RETURN_DELAY": 10,
-        "TONGUE_RANGE": 24.0,
-        "TONGUE_RANGE_LONG_TONGUE": 32.0,
-        "TONGUE_RETRACT_SPEED": 3.6,
-        "TONGUE_SHOT_TICKS": 12,
-        "VINE_DAMPING": 0.995,
+        "TONGUE_RANGE": 20.0,
+        "TONGUE_RANGE_LONG_TONGUE": 22.0,
+        "TONGUE_RETRACT_MAX_TICKS": 12,
+        "TONGUE_RETRACT_SPEED": 2.4,
+        "TONGUE_SHOT_TICKS": 9,
+        "VINE_AIR_KEEP": 0.945,
+        "VINE_DAMPING": 1.0,
+        "VINE_ENERGY_PER_TICK": 0.45,
+        "VINE_HARD_SLACK": 0.3,
+        "VINE_LAUNCH_LIFT": 0.32,
+        "VINE_LAUNCH_MIN_LIFT_SHARE": 0.35,
+        "VINE_LAUNCH_MIN_VERTICAL": -0.25,
+        "VINE_LAUNCH_SPEED_REFERENCE": 0.8,
+        "VINE_LAUNCH_VERTICAL_KEEP": 1.15,
+        "VINE_MAX_SPEED": 1.8,
         "VINE_MAX_TICKS": 600,
         "VINE_MIN_LENGTH": 2.0,
+        "VINE_PREDICTION_TIMEOUT_TICKS": 10,
+        "VINE_PUMP": 0.016,
         "VINE_REEL_SPEED": 0.18,
+        "VINE_RELEASE_AIR_KEEP": 0.93,
+        "VINE_RELEASE_GRACE_TICKS": 10,
         "VINE_RELEASE_SLACK": 6.0,
         "WATCH_ALERT_TICKS": 30,
         "WATCH_BLIND_DOT": -0.1736,
         "WATCH_RADIUS": 7.0,
         "WATCH_RADIUS_LONG_TONGUE": 10.0,
-        "WATCH_SCAN_INTERVAL_TICKS": 5,
-        "WATCH_STRIKE_INTERVAL_TICKS": 40
+        "WATCH_SCAN_INTERVAL_TICKS": 5
       },
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -11757,14 +11787,19 @@
             "seconds": 1.0
           },
           {
-            "looping": true,
-            "name": "BACK_IDLE",
-            "seconds": 4.0
+            "looping": false,
+            "name": "CLIMB_ON",
+            "seconds": 0.625
           },
           {
             "looping": false,
-            "name": "TRANSITION_BACK_HEAD",
-            "seconds": 0.4167
+            "name": "JUMP_OFF",
+            "seconds": 0.625
+          },
+          {
+            "looping": true,
+            "name": "BACK_IDLE",
+            "seconds": 4.0
           },
           {
             "looping": true,
@@ -11773,13 +11808,23 @@
           },
           {
             "looping": false,
+            "name": "TRANSITION_BACK_HEAD",
+            "seconds": 0.625
+          },
+          {
+            "looping": false,
             "name": "TRANSITION_HEAD_BACK",
-            "seconds": 0.4167
+            "seconds": 0.625
           },
           {
             "looping": false,
             "name": "TONGUE_SHOT",
-            "seconds": 0.625
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "TONGUE_CATCH",
+            "seconds": 0.5
           },
           {
             "looping": true,
@@ -11799,12 +11844,13 @@
         "renderer": "ChameleonRenderer"
       },
       "constants": {
+        "CLIMB_TICKS": 12,
         "CROUCH_BLEND": 0.35,
         "DEFAULT_SKIN_INDEX": 0,
         "ENTITY_COLOR": 9611334,
-        "MAX_SOMNOLENCE": 120,
+        "MAX_SOMNOLENCE": 80,
         "PERCH_BACK": 0,
-        "PERCH_BLEND_STEP": 0.125,
+        "PERCH_BLEND_STEP": 0.16666667,
         "PERCH_HEAD": 1,
         "SOMNOLENCE_LOSS_INTERVAL": 2,
         "TAMING_EXPERIENCE": 20.0,
@@ -11860,12 +11906,12 @@
         "walk_speed_blocks_per_second": 2.6
       },
       "history": {
-        "created": "2026-11-24T17:02:09.7203162+01:00",
-        "created_date": "2026-11-24",
+        "created": "2026-11-26T18:09:24.4723793+01:00",
+        "created_date": "2026-11-26",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ChameleonEntity.java",
-        "last_modified": "2026-11-24T17:02:09.7203162+01:00",
-        "last_modified_date": "2026-11-24",
-        "size_bytes": 56789
+        "last_modified": "2026-11-26T18:09:24.4734871+01:00",
+        "last_modified_date": "2026-11-26",
+        "size_bytes": 96845
       },
       "id": "ow:chameleon",
       "loot": {
@@ -11882,7 +11928,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 250.0,
-        "needs_saddle": true,
+        "needs_saddle": false,
         "rideable": true,
         "rider_anim_y_offset": 0.0,
         "run_speed_multiplier": 0.0,
@@ -12257,9 +12303,9 @@
               {
                 "description": {
                   "key": "piste.attack.6.desc",
-                  "plain": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
+                  "plain": "La Langue-Liane porte à 22 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
                   "translations": {
-                    "fr_fr": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
+                    "fr_fr": "La Langue-Liane porte à 22 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
                   }
                 },
                 "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_0.png",
@@ -12471,7 +12517,83 @@
         "theoretical_scale": 2.0,
         "width": 0.55
       },
-      "sounds": [],
+      "sounds": [
+        {
+          "constant": "CHAMELEON_AMBIENT",
+          "id": "ow:chameleon_ambient",
+          "path": "chameleon_ambient"
+        },
+        {
+          "constant": "CHAMELEON_HURT",
+          "id": "ow:chameleon_hurt",
+          "path": "chameleon_hurt"
+        },
+        {
+          "constant": "CHAMELEON_DEATH",
+          "id": "ow:chameleon_death",
+          "path": "chameleon_death"
+        },
+        {
+          "constant": "CHAMELEON_HISS",
+          "id": "ow:chameleon_hiss",
+          "path": "chameleon_hiss"
+        },
+        {
+          "constant": "CHAMELEON_EAT",
+          "id": "ow:chameleon_eat",
+          "path": "chameleon_eat"
+        },
+        {
+          "constant": "CHAMELEON_SCUTTLE",
+          "id": "ow:chameleon_scuttle",
+          "path": "chameleon_scuttle"
+        },
+        {
+          "constant": "CHAMELEON_HOP",
+          "id": "ow:chameleon_hop",
+          "path": "chameleon_hop"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_WINDUP",
+          "id": "ow:chameleon_tongue_windup",
+          "path": "chameleon_tongue_windup"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_SHOT",
+          "id": "ow:chameleon_tongue_shot",
+          "path": "chameleon_tongue_shot"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_IMPACT",
+          "id": "ow:chameleon_tongue_impact",
+          "path": "chameleon_tongue_impact"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_STICK",
+          "id": "ow:chameleon_tongue_stick",
+          "path": "chameleon_tongue_stick"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_UNSTICK",
+          "id": "ow:chameleon_tongue_unstick",
+          "path": "chameleon_tongue_unstick"
+        },
+        {
+          "constant": "CHAMELEON_TONGUE_MISS",
+          "id": "ow:chameleon_tongue_miss",
+          "path": "chameleon_tongue_miss"
+        },
+        {
+          "constant": "CHAMELEON_CAMOUFLAGE",
+          "id": "ow:chameleon_camouflage",
+          "path": "chameleon_camouflage"
+        },
+        {
+          "constant": "CHAMELEON_CAMOUFLAGE_BREAK",
+          "id": "ow:chameleon_camouflage_break",
+          "path": "chameleon_camouflage_break"
+        }
+      ],
       "spawn": {
         "biome_modifier": "ow:spawn_chameleon",
         "biomes": [
@@ -12511,6 +12633,12 @@
         "food_tags": [
           {
             "constant": "CHAMELEON_FOOD",
+            "entries": [
+              "minecraft:spider_eye",
+              "minecraft:fermented_spider_eye",
+              "minecraft:cod",
+              "minecraft:salmon"
+            ],
             "id": "ow:chameleon_food"
           }
         ],
@@ -12545,15 +12673,15 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 24.0,
-          "full_bar_awake_seconds": 12.0,
+          "full_bar_asleep_seconds": 16.0,
+          "full_bar_awake_seconds": 8.0,
           "loss_interval_ticks_asleep": 4,
           "loss_interval_ticks_awake": 2,
           "loss_per_second_asleep": 5.0,
           "loss_per_second_awake": 10.0,
-          "max": 120,
-          "max_max": 144,
-          "max_min": 96,
+          "max": 80,
+          "max_max": 96,
+          "max_min": 64,
           "spread_percent": 20
         },
         "tameable": true,
@@ -14245,9 +14373,9 @@
         "created": "2026-11-03T17:14:57.0062291+01:00",
         "created_date": "2026-11-03",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-11-23T20:58:03.2763261+01:00",
-        "last_modified_date": "2026-11-23",
-        "size_bytes": 132836
+        "last_modified": "2026-11-24T17:38:39.8346713+01:00",
+        "last_modified_date": "2026-11-24",
+        "size_bytes": 132875
       },
       "id": "ow:lion",
       "loot": {
@@ -15665,11 +15793,11 @@
             "biome": "minecraft:meadow",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.175,
-            "individuals_per_100_chunks": 9.524,
-            "pool_weight": 7,
+            "groups_per_100_chunks": 1.17,
+            "individuals_per_100_chunks": 3.509,
+            "pool_weight": 19,
             "species_weight": 2,
-            "tier": "uncommon"
+            "tier": "rare"
           }
         ],
         "groups_per_100_chunks": 3.175,
@@ -15937,6 +16065,1245 @@
         "PeacockCourtshipGoal",
         "PeacockFanDisplayGoal",
         "PeacockWildFeatherGoal"
+      ]
+    },
+    {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.condor.combo.desc",
+              "plain": "Faites frapper votre condor toutes les %s s : %s dégâts par coup. Le troisième coup est une rafale qui repousse.",
+              "translations": {
+                "fr_fr": "Faites frapper votre condor toutes les %s s : %s dégâts par coup. Le troisième coup est une rafale qui repousse."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.condor.combo.title",
+              "plain": "Coups d'Aile",
+              "translations": {
+                "fr_fr": "Coups d'Aile"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.condor.talons.desc",
+              "plain": "Attaque à venir : le condor saisira bientôt ses proies et ses alliés pour les emporter dans les airs.",
+              "translations": {
+                "fr_fr": "Attaque à venir : le condor saisira bientôt ses proies et ses alliés pour les emporter dans les airs."
+              }
+            },
+            "slug": "talons",
+            "title": {
+              "key": "ow.attacks.condor.talons.title",
+              "plain": "Serres",
+              "translations": {
+                "fr_fr": "Serres"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.condor.storm.desc",
+              "plain": "Ultime à venir, encore verrouillé.",
+              "translations": {
+                "fr_fr": "Ultime à venir, encore verrouillé."
+              }
+            },
+            "slug": "storm",
+            "title": {
+              "key": "ow.attacks.condor.storm.title",
+              "plain": "Tempête des Andes",
+              "translations": {
+                "fr_fr": "Tempête des Andes"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.condor.flight.desc",
+              "plain": "Saut au sol : décollage. Regard pour monter ou piquer, Saut maintenu pour grimper, Sprint pour filer. Relâchez l'avance pour planer. Le vol use l'énergie, le plané presque pas.",
+              "translations": {
+                "fr_fr": "Saut au sol : décollage. Regard pour monter ou piquer, Saut maintenu pour grimper, Sprint pour filer. Relâchez l'avance pour planer. Le vol use l'énergie, le plané presque pas."
+              }
+            },
+            "slug": "flight",
+            "title": {
+              "key": "ow.attacks.condor.flight.title",
+              "plain": "Vol",
+              "translations": {
+                "fr_fr": "Vol"
+              }
+            }
+          }
+        ]
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 6.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 40.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.6,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 32.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.16,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "class": "net.tiew.operationWild.entity.animals.flying.CondorEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "CondorEntity",
+          "OWSemiFlyingEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_SUNBATHE",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_PREEN",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_SHAKE",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.5
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "TAKEOFF",
+            "seconds": 1.25
+          },
+          {
+            "looping": true,
+            "name": "FLY",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "FLY_GLIDE",
+            "seconds": 4.0
+          },
+          {
+            "looping": true,
+            "name": "RUN_FLY",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "LANDING",
+            "seconds": 1.25
+          },
+          {
+            "looping": false,
+            "name": "FLY_GRAB",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "FLY_CARRY",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "FLY_DROP",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE",
+            "seconds": 1.125
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_2",
+            "seconds": 1.125
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_SIT",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_SIT_IDLE",
+            "seconds": 0.75
+          },
+          {
+            "looping": true,
+            "name": "NAP",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_NAP",
+            "seconds": 1.25
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_NAP_IDLE",
+            "seconds": 1.25
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.5
+          }
+        ],
+        "layers": [
+          "CondorLayer"
+        ],
+        "model": "CondorModel",
+        "renderer": "CondorRenderer"
+      },
+      "constants": {
+        "BASE_DAMAGE": 6.0,
+        "BASE_HEALTH": 32.0,
+        "BASE_SPEED": 0.16,
+        "DEFAULT_SKIN_INDEX": 0,
+        "ENTITY_COLOR": 4212055,
+        "FOOD_WANTED_MAX": 13,
+        "FOOD_WANTED_MIN": 8,
+        "MAX_SOMNOLENCE": 1800,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
+        "TAMING_EXPERIENCE": 190.0
+      },
+      "cosmetics": [],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.0,
+          "energy_multiplier": 1.3,
+          "health_multiplier": 1.2,
+          "name": "TANK",
+          "speed_multiplier": 0.8
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 50.0,
+        "combo_pause_delay": 2,
+        "default_skin_index": 0,
+        "diet": {
+          "name": "CARNIVOROUS",
+          "saturation_multiplier": 1.0
+        },
+        "entity_color": 4212055,
+        "entity_color_hex": "#404557",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 20.0,
+        "initial_variant": 1,
+        "mounted_speed_blocks_per_second": 4.754285539899554,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 50.0,
+        "prefers_cooked_meat": true,
+        "prefers_raw_meat": true,
+        "prefers_vegetables": false,
+        "rider_camera_follows_body_tilt": true,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.12,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 0,
+        "taming_experience": 190.0,
+        "teleports_to_owner": false,
+        "temperament": "NEUTRAL",
+        "theoretical_scale": 9.0,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity",
+          "canLean"
+        ],
+        "walk_speed_blocks_per_second": 3.2
+      },
+      "history": {
+        "created": "2026-11-26T19:13:25.5533745+01:00",
+        "created_date": "2026-11-26",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/flying/CondorEntity.java",
+        "last_modified": "2026-11-26T19:14:01.1757781+01:00",
+        "last_modified_date": "2026-11-26",
+        "size_bytes": 27387
+      },
+      "id": "ow:condor",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/condor",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 1.5749999284744263,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 2.0,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 360.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": 0.0,
+        "run_speed_multiplier": 2.6,
+        "saddle_item": "ow:peacock_saddle",
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.9,
+        "walk_speed_multiplier": 1.4,
+        "water_speed_divider": 3.0
+      },
+      "names": {
+        "fr_fr": "Condor"
+      },
+      "path": "condor",
+      "piste": {
+        "available": true,
+        "node_count": 42,
+        "nodes": [
+          {
+            "type": "START",
+            "children": [
+              1
+            ],
+            "cost": 0,
+            "exclusive_fork": false,
+            "id": 0,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 297,
+            "y": 189
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 75,
+            "exclusive_fork": false,
+            "id": 31,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.0.desc",
+                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "translations": {
+                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
+                "id": 0,
+                "name": {
+                  "key": "piste.attack.0.name",
+                  "plain": "Festin du Prédateur",
+                  "translations": {
+                    "fr_fr": "Festin du Prédateur"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.1.desc",
+                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "translations": {
+                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
+                "id": 1,
+                "name": {
+                  "key": "piste.attack.1.name",
+                  "plain": "Griffe Désarmante",
+                  "translations": {
+                    "fr_fr": "Griffe Désarmante"
+                  }
+                }
+              }
+            ],
+            "required_level": 35,
+            "requires_all": false,
+            "reward": 0,
+            "x": 170,
+            "y": 0
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 28,
+            "required_level": 4,
+            "requires_all": false,
+            "reward": 25,
+            "x": 212,
+            "y": 56
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 30,
+            "required_level": 21,
+            "requires_all": false,
+            "reward": 55,
+            "x": 139,
+            "y": 80
+          },
+          {
+            "type": "COINS",
+            "children": [
+              30,
+              31
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 16,
+            "required_level": 8,
+            "requires_all": false,
+            "reward": 3,
+            "x": 170,
+            "y": 80
+          },
+          {
+            "type": "STEP",
+            "children": [
+              26
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 14,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 139,
+            "y": 130
+          },
+          {
+            "type": "XP",
+            "children": [
+              14,
+              15,
+              16
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 8,
+            "required_level": 42,
+            "requires_all": false,
+            "reward": 65,
+            "x": 170,
+            "y": 130
+          },
+          {
+            "type": "COINS",
+            "children": [
+              27,
+              28,
+              29
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 15,
+            "required_level": 48,
+            "requires_all": false,
+            "reward": 6,
+            "x": 212,
+            "y": 130
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 27,
+            "required_level": 50,
+            "requires_all": true,
+            "reward": 250,
+            "x": 263,
+            "y": 130
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 23,
+            "required_level": 34,
+            "requires_all": false,
+            "reward": 12,
+            "x": 75,
+            "y": 171
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 29,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 80,
+            "x": 212,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 26,
+            "required_level": 17,
+            "requires_all": false,
+            "reward": 0,
+            "x": 139,
+            "y": 189
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 22,
+            "required_level": 8,
+            "requires_all": false,
+            "reward": 3,
+            "x": 0,
+            "y": 205
+          },
+          {
+            "type": "STEP",
+            "children": [
+              22,
+              23
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 12,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 75,
+            "y": 205
+          },
+          {
+            "type": "XP",
+            "children": [
+              12,
+              13
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 7,
+            "required_level": 28,
+            "requires_all": false,
+            "reward": 70,
+            "x": 117,
+            "y": 205
+          },
+          {
+            "type": "COINS",
+            "children": [
+              7,
+              8
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 5,
+            "required_level": 8,
+            "requires_all": false,
+            "reward": 3,
+            "x": 170,
+            "y": 205
+          },
+          {
+            "type": "STEP",
+            "children": [
+              3
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 2,
+            "required_level": 6,
+            "requires_all": false,
+            "reward": 0,
+            "x": 251,
+            "y": 220
+          },
+          {
+            "type": "STEP",
+            "children": [
+              2
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 1,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 297,
+            "y": 220
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 24,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 75,
+            "y": 260
+          },
+          {
+            "type": "XP",
+            "children": [
+              24,
+              25
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 13,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 80,
+            "x": 117,
+            "y": 260
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 25,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 157,
+            "y": 260
+          },
+          {
+            "type": "COINS",
+            "children": [
+              5,
+              6
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 4,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 2,
+            "x": 170,
+            "y": 260
+          },
+          {
+            "type": "STEP",
+            "children": [
+              4
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 3,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 251,
+            "y": 260
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 32,
+            "required_level": 13,
+            "requires_all": false,
+            "reward": 4,
+            "x": 55,
+            "y": 278
+          },
+          {
+            "type": "XP",
+            "children": [
+              32,
+              33
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 17,
+            "required_level": 21,
+            "requires_all": false,
+            "reward": 55,
+            "x": 101,
+            "y": 278
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 33,
+            "required_level": 26,
+            "requires_all": false,
+            "reward": 5,
+            "x": 139,
+            "y": 278
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 39,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 212,
+            "y": 278
+          },
+          {
+            "type": "STEP",
+            "children": [
+              39,
+              40
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 20,
+            "required_level": 33,
+            "requires_all": false,
+            "reward": 0,
+            "x": 251,
+            "y": 278
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 40,
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 0,
+            "x": 297,
+            "y": 278
+          },
+          {
+            "type": "STEP",
+            "children": [
+              17,
+              18
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 9,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 101,
+            "y": 321
+          },
+          {
+            "type": "STEP",
+            "children": [
+              9,
+              10,
+              11
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 6,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 170,
+            "y": 321
+          },
+          {
+            "type": "STEP",
+            "children": [
+              19,
+              20
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 10,
+            "required_level": 17,
+            "requires_all": false,
+            "reward": 0,
+            "x": 251,
+            "y": 321
+          },
+          {
+            "type": "COINS",
+            "children": [
+              37,
+              38
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 19,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 2,
+            "x": 276,
+            "y": 321
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 37,
+            "required_level": 39,
+            "requires_all": false,
+            "reward": 6,
+            "x": 315,
+            "y": 321
+          },
+          {
+            "type": "COINS",
+            "children": [
+              21
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 11,
+            "required_level": 15,
+            "requires_all": false,
+            "reward": 4,
+            "x": 170,
+            "y": 358
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 34,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 18,
+            "y": 405
+          },
+          {
+            "type": "XP",
+            "children": [
+              34,
+              35,
+              36
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 18,
+            "required_level": 19,
+            "requires_all": false,
+            "reward": 45,
+            "x": 101,
+            "y": 405
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 35,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 60,
+            "x": 139,
+            "y": 405
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 75,
+            "exclusive_fork": false,
+            "id": 38,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.0.desc",
+                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "translations": {
+                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
+                "id": 0,
+                "name": {
+                  "key": "piste.attack.0.name",
+                  "plain": "Festin du Prédateur",
+                  "translations": {
+                    "fr_fr": "Festin du Prédateur"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.1.desc",
+                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "translations": {
+                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
+                "id": 1,
+                "name": {
+                  "key": "piste.attack.1.name",
+                  "plain": "Griffe Désarmante",
+                  "translations": {
+                    "fr_fr": "Griffe Désarmante"
+                  }
+                }
+              }
+            ],
+            "required_level": 35,
+            "requires_all": false,
+            "reward": 0,
+            "x": 276,
+            "y": 405
+          },
+          {
+            "type": "XP",
+            "children": [
+              41
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 21,
+            "required_level": 28,
+            "requires_all": false,
+            "reward": 70,
+            "x": 170,
+            "y": 428
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 41,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 80,
+            "x": 251,
+            "y": 428
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 25,
+            "exclusive_fork": false,
+            "id": 36,
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 0,
+            "x": 101,
+            "y": 487
+          }
+        ],
+        "start_node": 0,
+        "total_cost": 530
+      },
+      "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:stony_peaks",
+        "biomes": [
+          {
+            "biome": "minecraft:jagged_peaks",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 7.843,
+            "individuals_per_100_chunks": 11.765,
+            "pool_weight": 17,
+            "species_weight": 12,
+            "tier": "uncommon"
+          },
+          {
+            "biome": "minecraft:meadow",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 7.018,
+            "individuals_per_100_chunks": 10.526,
+            "pool_weight": 19,
+            "species_weight": 12,
+            "tier": "uncommon"
+          },
+          {
+            "biome": "minecraft:stony_peaks",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 11.111,
+            "individuals_per_100_chunks": 16.667,
+            "pool_weight": 12,
+            "species_weight": 12,
+            "tier": "common"
+          },
+          {
+            "biome": "minecraft:windswept_gravelly_hills",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 2.339,
+            "individuals_per_100_chunks": 3.509,
+            "pool_weight": 57,
+            "species_weight": 12,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:windswept_hills",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 2.339,
+            "individuals_per_100_chunks": 3.509,
+            "pool_weight": 57,
+            "species_weight": 12,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 11.111,
+        "individuals_per_100_chunks": 16.667,
+        "spawns_naturally": true,
+        "tier": "common"
+      },
+      "simple_class": "CondorEntity",
+      "size": {
+        "eye_height": 1.785,
+        "fixed": false,
+        "height": 2.1,
+        "theoretical_scale": 9.0,
+        "width": 1.5
+      },
+      "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_condor",
+        "biomes": [
+          "minecraft:jagged_peaks",
+          "minecraft:stony_peaks",
+          "minecraft:windswept_hills",
+          "minecraft:windswept_gravelly_hills",
+          "minecraft:meadow"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 2,
+        "min_count": 1,
+        "weight": 12
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_condor",
+          "biomes": [
+            "minecraft:jagged_peaks",
+            "minecraft:stony_peaks",
+            "minecraft:windswept_hills",
+            "minecraft:windswept_gravelly_hills",
+            "minecraft:meadow"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 2,
+          "min_count": 1,
+          "weight": 12
+        }
+      ],
+      "taming": {
+        "advancement": "ow:lord_of_the_peaks",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": -1,
+          "level_name": "none",
+          "respects_mob_griefing": true
+        },
+        "experience": 190.0,
+        "feeding": {
+          "food_wanted_max": 13,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tags": [
+          {
+            "constant": "CONDOR_FOOD",
+            "entries": [
+              "minecraft:beef",
+              "minecraft:mutton",
+              "minecraft:porkchop",
+              "minecraft:rabbit",
+              "minecraft:chicken",
+              "minecraft:cooked_beef",
+              "minecraft:cooked_mutton",
+              "minecraft:cooked_porkchop",
+              "minecraft:cooked_rabbit",
+              "minecraft:cooked_chicken"
+            ],
+            "id": "ow:condor_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": false,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 180.0,
+          "full_bar_awake_seconds": 90.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 1800,
+          "max_max": 2160,
+          "max_min": 1440,
+          "spread_percent": 20
+        },
+        "tameable": true,
+        "valid_projectiles": [
+          "ow:tranquilizer_arrow",
+          "ow:tranquilizer_wooden_stinger",
+          "ow:slingshot_projectile",
+          "ow:tranquilizer_dart"
+        ]
+      },
+      "textures": [
+        "textures/entity/condor/condor_default.png",
+        "textures/entity/condor/condor_grey.png",
+        "textures/entity/condor/condor_saddle.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 12,
+        "fire_immune": false,
+        "loot_table": "ow:entities/condor",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.condor",
+      "variants": [
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        },
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 1,
+          "name": "GREY",
+          "ordinal": 1
+        }
       ]
     },
     {
@@ -17287,6 +18654,8 @@
       "BIG_MOUTH": 8,
       "CHEST_BEAT": 21,
       "CLAN_CALL": 24,
+      "CONDOR_STORM": 37,
+      "CONDOR_TALONS": 36,
       "CONSTRICT_ULTIMATE": 10,
       "DISTRESS_CALL": 27,
       "DOMINATION_ROAR": 25,
@@ -17881,9 +19250,9 @@
         {
           "description": {
             "key": "piste.attack.6.desc",
-            "plain": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
+            "plain": "La Langue-Liane porte à 22 blocs et la Langue Vigilante surveille jusqu'à 10 blocs.",
             "translations": {
-              "fr_fr": "La Langue-Liane porte à 32 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
+              "fr_fr": "La Langue-Liane porte à 22 blocs et la Langue Vigilante surveille jusqu'à 10 blocs."
             }
           },
           "icon": "ow:textures/misc/attacks/chameleon_upgrading_skill_0.png",
@@ -19515,6 +20884,19 @@
       "translation_key": "item.ow.peacock_spawn_egg"
     },
     {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
+      "id": "ow:condor_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de condor"
+      },
+      "path": "condor_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.condor_spawn_egg"
+    },
+    {
       "class": "BlockItem",
       "fire_resistant": false,
       "id": "ow:lavender",
@@ -20019,7 +21401,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1272
+      "fr_fr": 1291
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -22845,6 +24227,81 @@
       "path": "boa_slither"
     },
     {
+      "constant": "CHAMELEON_AMBIENT",
+      "id": "ow:chameleon_ambient",
+      "path": "chameleon_ambient"
+    },
+    {
+      "constant": "CHAMELEON_HURT",
+      "id": "ow:chameleon_hurt",
+      "path": "chameleon_hurt"
+    },
+    {
+      "constant": "CHAMELEON_DEATH",
+      "id": "ow:chameleon_death",
+      "path": "chameleon_death"
+    },
+    {
+      "constant": "CHAMELEON_HISS",
+      "id": "ow:chameleon_hiss",
+      "path": "chameleon_hiss"
+    },
+    {
+      "constant": "CHAMELEON_EAT",
+      "id": "ow:chameleon_eat",
+      "path": "chameleon_eat"
+    },
+    {
+      "constant": "CHAMELEON_SCUTTLE",
+      "id": "ow:chameleon_scuttle",
+      "path": "chameleon_scuttle"
+    },
+    {
+      "constant": "CHAMELEON_HOP",
+      "id": "ow:chameleon_hop",
+      "path": "chameleon_hop"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_WINDUP",
+      "id": "ow:chameleon_tongue_windup",
+      "path": "chameleon_tongue_windup"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_SHOT",
+      "id": "ow:chameleon_tongue_shot",
+      "path": "chameleon_tongue_shot"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_IMPACT",
+      "id": "ow:chameleon_tongue_impact",
+      "path": "chameleon_tongue_impact"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_STICK",
+      "id": "ow:chameleon_tongue_stick",
+      "path": "chameleon_tongue_stick"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_UNSTICK",
+      "id": "ow:chameleon_tongue_unstick",
+      "path": "chameleon_tongue_unstick"
+    },
+    {
+      "constant": "CHAMELEON_TONGUE_MISS",
+      "id": "ow:chameleon_tongue_miss",
+      "path": "chameleon_tongue_miss"
+    },
+    {
+      "constant": "CHAMELEON_CAMOUFLAGE",
+      "id": "ow:chameleon_camouflage",
+      "path": "chameleon_camouflage"
+    },
+    {
+      "constant": "CHAMELEON_CAMOUFLAGE_BREAK",
+      "id": "ow:chameleon_camouflage_break",
+      "path": "chameleon_camouflage_break"
+    },
+    {
       "constant": "PEACOCK_IDLE",
       "id": "ow:peacock_idle",
       "path": "peacock_idle"
@@ -23498,6 +24955,12 @@
       },
       {
         "constant": "CHAMELEON_FOOD",
+        "entries": [
+          "minecraft:spider_eye",
+          "minecraft:fermented_spider_eye",
+          "minecraft:cod",
+          "minecraft:salmon"
+        ],
         "id": "ow:chameleon_food"
       },
       {
@@ -23555,6 +25018,22 @@
           "ow:savage_berries"
         ],
         "id": "ow:peacock_food"
+      },
+      {
+        "constant": "CONDOR_FOOD",
+        "entries": [
+          "minecraft:beef",
+          "minecraft:mutton",
+          "minecraft:porkchop",
+          "minecraft:rabbit",
+          "minecraft:chicken",
+          "minecraft:cooked_beef",
+          "minecraft:cooked_mutton",
+          "minecraft:cooked_porkchop",
+          "minecraft:cooked_rabbit",
+          "minecraft:cooked_chicken"
+        ],
+        "id": "ow:condor_food"
       },
       {
         "constant": "COLOSSAL_SQUID_FOOD",
@@ -28693,6 +30172,18 @@
           ]
         },
         {
+          "archetype": "TANK",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:condor",
+          "path": "condor",
+          "probe_resolved": true,
+          "terrain_mask": 1,
+          "terrains": [
+            "TERRESTRIAL"
+          ]
+        },
+        {
           "archetype": "BERSERKER",
           "danger": 1.0,
           "fights_in_arena": true,
@@ -29347,6 +30838,11 @@
           "carries_flag": true,
           "id": "ow:peacock",
           "model": "PeacockModel"
+        },
+        {
+          "carries_flag": true,
+          "id": "ow:condor",
+          "model": "CondorModel"
         },
         {
           "carries_flag": false,
@@ -33687,6 +35183,19 @@
         },
         {
           "danger": 1.0,
+          "id": "ow:condor",
+          "path": "condor",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
           "id": "ow:colossal_squid",
           "path": "colossal_squid",
           "value_by_level": {
@@ -33995,6 +35504,21 @@
         "max_count": 4,
         "min_count": 2,
         "weight": 2
+      },
+      {
+        "biome_modifier": "ow:spawn_condor",
+        "biomes": [
+          "minecraft:jagged_peaks",
+          "minecraft:stony_peaks",
+          "minecraft:windswept_hills",
+          "minecraft:windswept_gravelly_hills",
+          "minecraft:meadow"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:condor",
+        "max_count": 2,
+        "min_count": 1,
+        "weight": 12
       }
     ]
   }

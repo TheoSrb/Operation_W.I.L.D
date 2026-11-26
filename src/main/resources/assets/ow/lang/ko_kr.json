@@ -1266,5 +1266,17 @@
   "piste.attack.6.name": "긴 혀",
   "piste.attack.6.desc": "혀 덩굴이 22블록, 경계의 혀가 10블록까지 닿습니다.",
   "piste.attack.7.name": "느린 탈색",
-  "piste.attack.7.desc": "의태가 5초 더 지속됩니다."
+  "piste.attack.7.desc": "의태가 5초 더 지속됩니다.",
+  "entity.ow.condor": "콘도르",
+  "item.ow.condor_spawn_egg": "콘도르 생성 알",
+  "ow.advancements.lord_of_the_peaks.title": "봉우리의 군주",
+  "ow.advancements.lord_of_the_peaks.description": "콘도르를 길들였습니다!",
+  "ow.attacks.condor.combo.title": "날개 치기",
+  "ow.attacks.condor.combo.desc": "콘도르가 %s초마다 공격합니다: 한 번에 피해 %s. 세 번째 공격은 밀쳐내는 돌풍입니다.",
+  "ow.attacks.condor.talons.title": "발톱",
+  "ow.attacks.condor.talons.desc": "추가 예정: 콘도르가 먹잇감과 동료를 붙잡아 하늘로 옮깁니다.",
+  "ow.attacks.condor.storm.title": "안데스의 폭풍",
+  "ow.attacks.condor.storm.desc": "궁극기 추가 예정, 아직 잠겨 있습니다.",
+  "ow.attacks.condor.flight.title": "비행",
+  "ow.attacks.condor.flight.desc": "지상에서 점프: 이륙. 시선으로 상승·급강하, 점프 유지로 상승, 달리기로 가속. 전진을 떼면 활공. 비행은 에너지를 소모하고 활공은 거의 소모하지 않습니다."
 }

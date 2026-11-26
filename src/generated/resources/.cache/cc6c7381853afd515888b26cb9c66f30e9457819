@@ -1,4 +1,4 @@
-// 1.21	2026-11-24T17:16:59.2474275	Tags for minecraft:item mod id ow
+// 1.21	2026-11-26T20:49:47.0705457	Tags for minecraft:item mod id ow
 b92abfac4c9de067fab29f9b4732a719cb806e4b data/c/tags/item/foods.json
 26a434c4a2555410c3c8b33b2779d316ee9507c0 data/c/tags/item/foods/cooked_meat.json
 d6a2720e7041cdea9ac61b45bccdf0538aa57b94 data/c/tags/item/foods/raw_meat.json
@@ -21,6 +21,7 @@ aeec5b44225a539ee6d62ddca8257a4708ede44e data/minecraft/tags/item/meat.json
 418bfb19ad50ebcdc49f07712559521c6ffe9a0c data/minecraft/tags/item/swords.json
 049bc2f7c8203495edf8f09819b0ab1df03c4f56 data/ow/tags/item/chameleon_food.json
 4fa4ef3fee986b3a9f5d145b9430d8c911716691 data/ow/tags/item/colossal_squid_food.json
+af1c0bbc470abac75606dc5f7c301f495d00ee2e data/ow/tags/item/condor_food.json
 46dbc842f9f9d1b14cafe87a04be0bbf78c0b582 data/ow/tags/item/crocodile_food.json
 976c3d06e89ace6bd56236675521381f556d2eba data/ow/tags/item/elephant_food.json
 a2a4afa51caee8037097bd69e8ec1e6236360cb5 data/ow/tags/item/gorilla_food.json

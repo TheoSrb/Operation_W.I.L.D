@@ -278,6 +278,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.HIPPOPOTAMUS.get(), net.tiew.operationWild.entity.client.render.HippopotamusRenderer::new);
             EntityRenderers.register(OWEntityRegistry.LION.get(), net.tiew.operationWild.entity.client.render.LionRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PEACOCK.get(), net.tiew.operationWild.entity.client.render.PeacockRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.CONDOR.get(), net.tiew.operationWild.entity.client.render.CondorRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PEACOCK_FEATHER.get(), net.tiew.operationWild.entity.client.render.PeacockFeatherRenderer::new);
             EntityRenderers.register(OWEntityRegistry.COLOSSAL_SQUID.get(), net.tiew.operationWild.entity.client.render.ColossalSquidRenderer::new);
             EntityRenderers.register(OWEntityRegistry.THROWN_ROCK.get(), net.tiew.operationWild.entity.client.render.ThrownRockRenderer::new);
@@ -348,6 +349,7 @@ public class OperationWild {
             event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
             event.registerSpriteSet(OWParticles.GOLD_TRAIL_PARTICLE.get(), GoldTrailParticle.Provider::new);
             event.registerSpriteSet(OWParticles.TRANQUILIZER_DART_TRAIL.get(), net.tiew.operationWild.particle.DartTrailParticle.Provider::new);
+            event.registerSpriteSet(OWParticles.WIND_TRAIL.get(), net.tiew.operationWild.particle.WindTrailParticle.Provider::new);
             event.registerSpriteSet(OWParticles.WATER_JET_PARTICLE.get(),
                     net.tiew.operationWild.particle.WaterJetParticle.Provider::new);
             event.registerSpriteSet(OWParticles.WATER_SPLAT_PARTICLE.get(),
