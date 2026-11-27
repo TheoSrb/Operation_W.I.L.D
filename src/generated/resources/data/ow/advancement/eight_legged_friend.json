@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_tarantula": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:tarantula"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.eight_legged_friend.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:tarantula_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.eight_legged_friend.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_tarantula"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

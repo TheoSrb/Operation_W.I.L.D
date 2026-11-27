@@ -36,6 +36,8 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
     public static final byte ACTION_EXECUTE_WITH_TARGET  = 4;
     public static final byte ACTION_TRIGGER_DEATH_ROLL   = 5;
     public static final byte ACTION_LATCH_BITE           = 6;
+    public static final byte ACTION_COMPANION_DISMOUNT   = 7;
+    public static final byte ACTION_COMPANION_SELECT     = 8;
 
     public static final CustomPacketPayload.Type<OWAttackPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "ow_attack"));
@@ -64,9 +66,34 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
         return TYPE;
     }
 
+    private static void handleTarantula(OWAttackPacket packet, ServerPlayer player) {
+        int slot = packet.value() >= 0.5f ? net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.SLOT_LEFT
+                : net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.SLOT_RIGHT;
+        var tarantula = net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriedOn(player, slot);
+        if (tarantula == null || !tarantula.canPilotAttacks(player)) return;
+        if (packet.action() == ACTION_COMPANION_DISMOUNT) {
+            tarantula.dismountFromCarrier();
+            return;
+        }
+        if (packet.action() == ACTION_COMPANION_SELECT) {
+            net.tiew.operationWild.entity.OWCarriedCompanions.selectSlot(player, slot);
+            return;
+        }
+        if (packet.action() == ACTION_EXECUTE) {
+            if (!tarantula.isWebAttached()) net.tiew.operationWild.entity.OWCarriedCompanions.selectSlot(player, slot);
+            tarantula.useWeb();
+        }
+    }
+
     public static void handle(OWAttackPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
+
+            if (packet.attackId() == OWAttackIds.WEB_GRAPPLE) {
+                handleTarantula(packet, player);
+                return;
+            }
+
             // Le panda roux inverse la relation : c'est lui qui monte le joueur, et non l'inverse.
             // Il n'est donc jamais le véhicule racine, et le contrôle lui revient seulement quand le
             // joueur ne chevauche rien d'autre (cf. RedPandaEntity#resolveControlledEntity).
@@ -120,6 +147,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleonTongue) {
                 if (packet.action() == ACTION_EXECUTE) chameleonTongue.useTongue();
                 else if (packet.action() == ACTION_CHARGE_RELEASE) chameleonTongue.releaseHeldTongue();
+                return;
+            }
+
+            if (packet.attackId() == OWAttackIds.CONDOR_TALONS
+                    && entity instanceof net.tiew.operationWild.entity.animals.flying.CondorEntity condorTalons) {
+                if (packet.action() == ACTION_EXECUTE) condorTalons.useTalons();
                 return;
             }
 

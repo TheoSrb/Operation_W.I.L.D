@@ -318,6 +318,20 @@ public class ServerEvents {
         }
     }
 
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
+    public static void onMobHitsRider(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof Player rider) || rider.level().isClientSide()) return;
+        if (!(rider.getVehicle() instanceof OWEntity mount) || !mount.isAlive()) return;
+        if (!mount.isTameGrabAlly(rider)) return;
+        DamageSource source = event.getSource();
+        if (!(source.getEntity() instanceof net.minecraft.world.entity.Mob attacker) || attacker instanceof OWEntity) return;
+        if (attacker.getRootVehicle() == mount.getRootVehicle()) return;
+        if (net.tiew.operationWild.entity.bosses.OWBossEntity.isBossDamage(source)) return;
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) return;
+        event.setCanceled(true);
+        mount.hurt(source, event.getAmount());
+    }
+
     @SubscribeEvent
     public static void onTranquilizerArrowDamage(LivingIncomingDamageEvent event) {
         if (event.getSource().getDirectEntity() instanceof TranquilizerArrow) {

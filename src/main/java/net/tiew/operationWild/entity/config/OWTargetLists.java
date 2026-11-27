@@ -157,4 +157,8 @@ public final class OWTargetLists {
     public static final List<Class<?>> CONDOR = List.of(
             Rabbit.class, Chicken.class
     );
+
+    public static final List<Class<?>> TARANTULA = List.of(
+            net.minecraft.world.entity.monster.Silverfish.class, net.minecraft.world.entity.monster.Endermite.class
+    );
 }

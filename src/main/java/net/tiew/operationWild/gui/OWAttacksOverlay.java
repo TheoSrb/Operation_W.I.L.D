@@ -3,6 +3,7 @@ package net.tiew.operationWild.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
@@ -25,6 +26,7 @@ public class OWAttacksOverlay {
     private static final int CARD_SIZE    = OWAttackCards.CARD_SIZE;
     private static final int TEX_SIZE     = OWAttackCards.TEX_SIZE;
     private static final int CARD_SPACING = 25;
+    private static final int OFFHAND_SLOT_WIDTH = 29;
 
     private static final int GLOW_BORDER_ULTIMATE = 0x40E0FF;
     private static final int GLOW_BORDER_CHARGED  = 0xFFD700;
@@ -36,6 +38,11 @@ public class OWAttacksOverlay {
 
         Player player = mc.player;
         if (player == null) return;
+
+        if (player.getVehicle() == null && net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriesAny(player)) {
+            renderTarantulaCards(g, player, screenWidth, screenHeight);
+            return;
+        }
 
         OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
                 .resolveControlledEntity(player);
@@ -248,7 +255,24 @@ public class OWAttacksOverlay {
                     && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity chameleon
                     && chameleon.isMimicryActive();
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked || isTongueBlocked) {
+            boolean isTalonsGrounded = false;
+            if (attack.getId() == OWAttacksHandler.CONDOR_TALONS_ID
+                    && entity instanceof net.tiew.operationWild.entity.animals.flying.CondorEntity talonCondor) {
+                int talonCooldown = talonCondor.getTalonCooldownTicks();
+                if (talonCondor.isCarryingPrey()) {
+                    fillProgress = 1.0f;
+                    isGlowing = true;
+                } else if (talonCooldown > 0) {
+                    fillProgress = 1.0f - (float) talonCooldown / OWAttacksConstants.Condor.TALON_COOLDOWN_TICKS;
+                    isGlowing = false;
+                } else {
+                    fillProgress = 1.0f;
+                    isGlowing = talonCondor.canUseTalons() && talonCondor.findTalonPrey() != null;
+                    isTalonsGrounded = !talonCondor.isAirborneFlight();
+                }
+            }
+
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked || isTongueBlocked || isTalonsGrounded) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;
@@ -317,6 +341,54 @@ public class OWAttacksOverlay {
             }
         }
 
+    }
+
+    private static void renderTarantulaCards(GuiGraphics g, Player player, int screenWidth, int screenHeight) {
+        OWAttack web = OWAttacksHandler.TarantulaAttacks.WEB_GRAPPLE;
+        Class<?> entityClass = net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.class;
+        int texX = OWAttacksHandler.getCardTexX(entityClass, web);
+        int texY = OWAttacksHandler.getCardTexY(entityClass, web);
+        int baseX = (screenWidth / 2) + 96;
+        int baseY = screenHeight - 22;
+        int[] slots = {net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.SLOT_LEFT,
+                net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.SLOT_RIGHT};
+        int offhandShift = player.getOffhandItem().isEmpty() ? 0 : OFFHAND_SLOT_WIDTH;
+        int[] cardXs = {(screenWidth / 2) - 96 - CARD_SIZE - offhandShift, baseX};
+
+        for (int i = 0; i < slots.length; i++) {
+            var tarantula = net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriedOn(player, slots[i]);
+            if (tarantula == null) continue;
+            if (!player.getUUID().equals(tarantula.getOwnerUUID())
+                    && !tarantula.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) continue;
+
+            int cardX = cardXs[i];
+
+            boolean attached = tarantula.isWebAttached();
+            boolean lacksEnergy = tarantula.getVitalEnergy() > tarantula.getVitalEnergyCapacity() - web.getEnergyRequired();
+            int cooldown = tarantula.getWebCooldown();
+            float fillProgress;
+            if (attached || tarantula.isWebOut()) fillProgress = 1.0f;
+            else if (tarantula.isEating()) fillProgress = 1.0f - (float) tarantula.getEatTimer() / OWAttacksConstants.Tarantula.EAT_TICKS;
+            else if (!tarantula.isWebLoaded() || lacksEnergy) fillProgress = 0f;
+            else fillProgress = 1.0f - (float) cooldown / OWAttacksConstants.Tarantula.WEB_COOLDOWN_TICKS;
+            int grayH = CARD_SIZE - (int) (CARD_SIZE * Mth.clamp(fillProgress, 0f, 1f));
+            float clickScale = OWAttackLogic.getAttackClickScale(web.getId());
+            float cardScale = attached && clickScale == 1f ? OWAttackLogic.getGlowPulseScale() : clickScale;
+            boolean invalid = OWAttackLogic.isAttackClickInvalid(web.getId());
+
+            applyCardScale(g, cardX, baseY, cardScale, () -> {
+                OWAttackCards.draw(g, cardX, baseY, texX, texY, grayH);
+                if (attached) drawGlowBorder(g, cardX, baseY, GLOW_BORDER_CHARGED);
+                if (invalid) {
+                    float p = OWAttackLogic.getClickAnimProgress(web.getId());
+                    if (p >= 0f && p < 1f) {
+                        int alpha = (int) ((1f - p) * 80);
+                        g.fill(cardX, baseY, cardX + CARD_SIZE, baseY + CARD_SIZE, (alpha << 24) | ERROR_CARD_COLOR);
+                    }
+                }
+            });
+
+        }
     }
 
     private static void drawClanCallBadge(GuiGraphics g, int cardX, int baseY, int count) {

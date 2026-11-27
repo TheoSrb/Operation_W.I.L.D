@@ -1,4 +1,4 @@
-// 1.21	2026-11-26T20:49:47.068029	Operation W.I.L.D head hitboxes
+// 1.21	2026-11-27T22:22:15.2900728	Operation W.I.L.D head hitboxes
 43068e8644cd5b45ae1678b64399ac30d29253c6 data/ow/head_hitbox/boa.json
 56e6f2104498ddd3fd7ddde8ba0aa5c7f0996667 data/ow/head_hitbox/chameleon.json
 965c95f30a4cbb3cfda95295e50921e3779f4726 data/ow/head_hitbox/colossal_squid.json
@@ -14,4 +14,5 @@ a08675deaa59aad6590777593ea0482c360f898b data/ow/head_hitbox/elephant.json
 c1ce3f699adf01c647fd53eb5c70738c68599a10 data/ow/head_hitbox/peacock.json
 144d5c2c2e34eab1e77480af53f143cb28c86630 data/ow/head_hitbox/plant_empress.json
 0399c1932cfa5ad3d433b312c3c7043bcdaa6a29 data/ow/head_hitbox/red_panda.json
+51ff88c4fb1e1d5a124bf660ee779a696f0d3950 data/ow/head_hitbox/tarantula.json
 0000a59cab18160d85aae6405b2c28fd679fc1ce data/ow/head_hitbox/tiger.json

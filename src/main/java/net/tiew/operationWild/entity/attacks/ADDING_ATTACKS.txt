@@ -38,8 +38,9 @@ IDs d'attaque déjà pris :
  33 → Paon   ROYAL_SWEEP     (Balayage Royal — ultime, touche X, 5 kills requis)
  34 → Caméléon TONGUE_VINE   (Langue-Liane — clic droit en BASCULE depuis le dos : frappe, rapporte un objet ou s'accroche à un bloc ; re-clic décroche)
  35 → Caméléon MIMICRY       (Mimétisme — ultime, touche X, AUCUN kill requis : cooldown de 90 s)
- 36 → Condor CONDOR_TALONS   (carte secondaire provisoire, sans effet : attaque à concevoir)
+ 36 → Condor CONDOR_TALONS   (Serres — clic droit EN VOL : saisit une créature moyenne, alliée ou ennemie ; re-clic lâche)
  37 → Condor CONDOR_STORM    (carte d'ultime provisoire, verrouillée : attaque à concevoir)
+ 38 → Tarentule WEB_GRAPPLE  (Grappin de Soie — clic droit = tarentule du bras droit, clic gauche = bras gauche ; maintenu = tirage, deux toiles tirées = milieu des ancres, clic court = lâche ; aiguillé en tête de OWAttackPacket.handle, paramètre value = bras)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

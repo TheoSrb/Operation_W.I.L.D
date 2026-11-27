@@ -29,6 +29,15 @@ public final class OWPistePassives {
     public static final int GENTLE_BOND = 5;
     public static final int LONG_TONGUE = 6;
     public static final int SLOW_FADE = 7;
+    public static final int TAILWIND = 8;
+    public static final int IRON_TALONS = 9;
+    public static final int SILK_REACH = 10;
+    public static final int FAST_SPOOL = 11;
+
+    public static final int TAILWIND_DELAY_TICKS = 100;
+    public static final double TAILWIND_SPEED_FACTOR = 1.2;
+    public static final float TAILWIND_MIN_ENERGY_LEFT = 0.5f;
+    public static final double IRON_TALONS_SIZE_FACTOR = 1.45;
 
     public static final float FEATHER_TEMPEST_STOCK_FACTOR = 1.3f;
     public static final float FEATHER_TEMPEST_BURST_TICKS = 20f;

@@ -74,6 +74,7 @@ public class OWTags {
 
         public static final TagKey<Item> RED_PANDA_FOOD = tag("red_panda_food");
         public static final TagKey<Item> CHAMELEON_FOOD = tag("chameleon_food");
+        public static final TagKey<Item> TARANTULA_FOOD = tag("tarantula_food");
 
         public static final TagKey<Item> GORILLA_FOOD = tag("gorilla_food");
 

@@ -17,6 +17,7 @@ import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
@@ -86,6 +87,7 @@ public class OWAttacksHandler {
     public static final int MIMICRY_ID = OWAttackIds.MIMICRY;
     public static final int CONDOR_TALONS_ID = OWAttackIds.CONDOR_TALONS;
     public static final int CONDOR_STORM_ID = OWAttackIds.CONDOR_STORM;
+    public static final int WEB_GRAPPLE_ID = OWAttackIds.WEB_GRAPPLE;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -161,6 +163,9 @@ public class OWAttacksHandler {
         register(ChameleonEntity.class, ChameleonAttacks.TONGUE_VINE);
         register(ChameleonEntity.class, ChameleonAttacks.MIMICRY);
         registerPassive(ChameleonEntity.class, ChameleonPassives.WATCHFUL_TONGUE);
+
+        registerCardOrigin(TarantulaEntity.class, 80, 0);
+        register(TarantulaEntity.class, TarantulaAttacks.WEB_GRAPPLE);
 
         registerCardOrigin(GorillaEntity.class, 0, 120);
         registerComboMaxTimer(GorillaEntity.class, 13);
@@ -573,7 +578,7 @@ public class OWAttacksHandler {
         public static final OWAttack TALONS = new OWAttack(
                 CONDOR_TALONS_ID,
                 OW_ATTACK_0,
-                0,
+                OWAttacksConstants.Condor.TALON_ENERGY,
                 entity -> { },
                 0
         );
@@ -724,6 +729,17 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Chameleon.MIMICRY_COOLDOWN_TICKS
         ).withUnlockCondition(entity -> true)
                 .withUltimateDuration(OWAttacksConstants.Chameleon.MIMICRY_DURATION_MS);
+    }
+
+    public static class TarantulaAttacks {
+
+        public static final OWAttack WEB_GRAPPLE = new OWAttack(
+                WEB_GRAPPLE_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Tarantula.WEB_ENERGY,
+                entity -> ((TarantulaEntity) entity).useWeb(),
+                OWAttacksConstants.Tarantula.WEB_COOLDOWN_TICKS
+        );
     }
 
     public static class ChameleonPassives {

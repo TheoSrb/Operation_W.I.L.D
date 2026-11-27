@@ -103,6 +103,16 @@
       }
     },
     {
+      "constant": "TARANTULA_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé une Tarentule !"
+      },
+      "id": "ow:eight_legged_friend",
+      "title": {
+        "fr_fr": "Huit pattes, un ami"
+      }
+    },
+    {
       "constant": "RED_PANDA_TAMED_ADVANCEMENT",
       "description": {
         "fr_fr": "Vous avez apprivoisé un Panda roux !"
@@ -3140,9 +3150,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.972,
-            "individuals_per_100_chunks": 0.972,
-            "pool_weight": 343,
+            "groups_per_100_chunks": 0.918,
+            "individuals_per_100_chunks": 0.918,
+            "pool_weight": 363,
             "species_weight": 30,
             "tier": "rare"
           },
@@ -3150,15 +3160,15 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.764,
-            "individuals_per_100_chunks": 1.764,
-            "pool_weight": 189,
+            "groups_per_100_chunks": 1.595,
+            "individuals_per_100_chunks": 1.595,
+            "pool_weight": 209,
             "species_weight": 30,
             "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 1.764,
-        "individuals_per_100_chunks": 1.764,
+        "groups_per_100_chunks": 1.595,
+        "individuals_per_100_chunks": 1.595,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -4344,8 +4354,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 189
+            "x": 307,
+            "y": 185
           },
           {
             "type": "ATTACK",
@@ -4394,7 +4404,7 @@
             "required_level": 35,
             "requires_all": false,
             "reward": 0,
-            "x": 170,
+            "x": 175,
             "y": 0
           },
           {
@@ -4406,8 +4416,8 @@
             "required_level": 4,
             "requires_all": false,
             "reward": 25,
-            "x": 212,
-            "y": 56
+            "x": 214,
+            "y": 67
           },
           {
             "type": "XP",
@@ -4418,8 +4428,8 @@
             "required_level": 21,
             "requires_all": false,
             "reward": 55,
-            "x": 139,
-            "y": 80
+            "x": 138,
+            "y": 87
           },
           {
             "type": "COINS",
@@ -4433,8 +4443,8 @@
             "required_level": 8,
             "requires_all": false,
             "reward": 3,
-            "x": 170,
-            "y": 80
+            "x": 175,
+            "y": 87
           },
           {
             "type": "STEP",
@@ -4447,8 +4457,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 139,
-            "y": 130
+            "x": 138,
+            "y": 137
           },
           {
             "type": "XP",
@@ -4463,8 +4473,8 @@
             "required_level": 42,
             "requires_all": false,
             "reward": 65,
-            "x": 170,
-            "y": 130
+            "x": 175,
+            "y": 137
           },
           {
             "type": "COINS",
@@ -4479,8 +4489,8 @@
             "required_level": 48,
             "requires_all": false,
             "reward": 6,
-            "x": 212,
-            "y": 130
+            "x": 214,
+            "y": 137
           },
           {
             "type": "XP",
@@ -4491,8 +4501,8 @@
             "required_level": 50,
             "requires_all": true,
             "reward": 250,
-            "x": 263,
-            "y": 130
+            "x": 280,
+            "y": 137
           },
           {
             "type": "COINS",
@@ -4503,8 +4513,8 @@
             "required_level": 34,
             "requires_all": false,
             "reward": 12,
-            "x": 75,
-            "y": 171
+            "x": 87,
+            "y": 173
           },
           {
             "type": "XP",
@@ -4515,8 +4525,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 212,
-            "y": 171
+            "x": 214,
+            "y": 173
           },
           {
             "type": "STEP",
@@ -4527,8 +4537,8 @@
             "required_level": 17,
             "requires_all": false,
             "reward": 0,
-            "x": 139,
-            "y": 189
+            "x": 138,
+            "y": 185
           },
           {
             "type": "COINS",
@@ -4540,7 +4550,7 @@
             "requires_all": false,
             "reward": 3,
             "x": 0,
-            "y": 205
+            "y": 199
           },
           {
             "type": "STEP",
@@ -4554,8 +4564,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 75,
-            "y": 205
+            "x": 87,
+            "y": 199
           },
           {
             "type": "XP",
@@ -4569,8 +4579,8 @@
             "required_level": 28,
             "requires_all": false,
             "reward": 70,
-            "x": 117,
-            "y": 205
+            "x": 120,
+            "y": 199
           },
           {
             "type": "COINS",
@@ -4584,8 +4594,8 @@
             "required_level": 8,
             "requires_all": false,
             "reward": 3,
-            "x": 170,
-            "y": 205
+            "x": 175,
+            "y": 199
           },
           {
             "type": "STEP",
@@ -4598,8 +4608,8 @@
             "required_level": 6,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 220
+            "x": 255,
+            "y": 212
           },
           {
             "type": "STEP",
@@ -4612,8 +4622,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 220
+            "x": 307,
+            "y": 212
           },
           {
             "type": "STEP",
@@ -4624,8 +4634,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 75,
-            "y": 260
+            "x": 87,
+            "y": 249
           },
           {
             "type": "XP",
@@ -4639,8 +4649,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 117,
-            "y": 260
+            "x": 120,
+            "y": 249
           },
           {
             "type": "STEP",
@@ -4651,8 +4661,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 157,
-            "y": 260
+            "x": 152,
+            "y": 249
           },
           {
             "type": "COINS",
@@ -4666,8 +4676,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 2,
-            "x": 170,
-            "y": 260
+            "x": 175,
+            "y": 249
           },
           {
             "type": "STEP",
@@ -4680,8 +4690,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 260
+            "x": 255,
+            "y": 249
           },
           {
             "type": "COINS",
@@ -4692,8 +4702,8 @@
             "required_level": 13,
             "requires_all": false,
             "reward": 4,
-            "x": 55,
-            "y": 278
+            "x": 65,
+            "y": 264
           },
           {
             "type": "XP",
@@ -4707,8 +4717,8 @@
             "required_level": 21,
             "requires_all": false,
             "reward": 55,
-            "x": 101,
-            "y": 278
+            "x": 104,
+            "y": 264
           },
           {
             "type": "COINS",
@@ -4719,8 +4729,8 @@
             "required_level": 26,
             "requires_all": false,
             "reward": 5,
-            "x": 139,
-            "y": 278
+            "x": 138,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -4731,8 +4741,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 212,
-            "y": 278
+            "x": 214,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -4746,8 +4756,8 @@
             "required_level": 33,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 278
+            "x": 255,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -4758,8 +4768,8 @@
             "required_level": 36,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 278
+            "x": 307,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -4773,8 +4783,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 101,
-            "y": 321
+            "x": 104,
+            "y": 298
           },
           {
             "type": "STEP",
@@ -4789,8 +4799,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 170,
-            "y": 321
+            "x": 175,
+            "y": 298
           },
           {
             "type": "STEP",
@@ -4804,8 +4814,8 @@
             "required_level": 17,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 321
+            "x": 255,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -4819,8 +4829,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 2,
-            "x": 276,
-            "y": 321
+            "x": 295,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -4831,8 +4841,8 @@
             "required_level": 39,
             "requires_all": false,
             "reward": 6,
-            "x": 315,
-            "y": 321
+            "x": 320,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -4845,8 +4855,8 @@
             "required_level": 15,
             "requires_all": false,
             "reward": 4,
-            "x": 170,
-            "y": 358
+            "x": 175,
+            "y": 338
           },
           {
             "type": "STEP",
@@ -4857,8 +4867,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 18,
-            "y": 405
+            "x": 24,
+            "y": 374
           },
           {
             "type": "XP",
@@ -4873,8 +4883,8 @@
             "required_level": 19,
             "requires_all": false,
             "reward": 45,
-            "x": 101,
-            "y": 405
+            "x": 104,
+            "y": 374
           },
           {
             "type": "XP",
@@ -4885,58 +4895,20 @@
             "required_level": 24,
             "requires_all": false,
             "reward": 60,
-            "x": 139,
-            "y": 405
+            "x": 138,
+            "y": 374
           },
           {
-            "type": "ATTACK",
+            "type": "COINS",
             "children": [],
-            "cost": 75,
+            "cost": 15,
             "exclusive_fork": false,
             "id": 38,
-            "passives": [
-              {
-                "description": {
-                  "key": "piste.attack.0.desc",
-                  "plain": "Les proies tuées lâchent plus de viande crue.",
-                  "translations": {
-                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
-                  }
-                },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
-                "id": 0,
-                "name": {
-                  "key": "piste.attack.0.name",
-                  "plain": "Festin du Prédateur",
-                  "translations": {
-                    "fr_fr": "Festin du Prédateur"
-                  }
-                }
-              },
-              {
-                "description": {
-                  "key": "piste.attack.1.desc",
-                  "plain": "Chance de désarmer la cible après un coup réussi.",
-                  "translations": {
-                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
-                  }
-                },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
-                "id": 1,
-                "name": {
-                  "key": "piste.attack.1.name",
-                  "plain": "Griffe Désarmante",
-                  "translations": {
-                    "fr_fr": "Griffe Désarmante"
-                  }
-                }
-              }
-            ],
-            "required_level": 35,
+            "required_level": 44,
             "requires_all": false,
-            "reward": 0,
-            "x": 276,
-            "y": 405
+            "reward": 6,
+            "x": 295,
+            "y": 374
           },
           {
             "type": "XP",
@@ -4949,8 +4921,8 @@
             "required_level": 28,
             "requires_all": false,
             "reward": 70,
-            "x": 170,
-            "y": 428
+            "x": 175,
+            "y": 389
           },
           {
             "type": "XP",
@@ -4961,8 +4933,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 251,
-            "y": 428
+            "x": 255,
+            "y": 389
           },
           {
             "type": "STEP",
@@ -4973,12 +4945,12 @@
             "required_level": 46,
             "requires_all": false,
             "reward": 0,
-            "x": 101,
-            "y": 487
+            "x": 104,
+            "y": 456
           }
         ],
         "start_node": 0,
-        "total_cost": 530
+        "total_cost": 470
       },
       "probe_resolved": true,
       "rarity": {
@@ -7191,12 +7163,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-17T16:58:42.131349+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-11-27T18:11:28.0836022+01:00",
+        "created_date": "2026-11-27",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-11-22T12:09:44.658591+01:00",
-        "last_modified_date": "2026-11-22",
-        "size_bytes": 62957
+        "last_modified": "2026-11-27T18:11:28.0836022+01:00",
+        "last_modified_date": "2026-11-27",
+        "size_bytes": 63282
       },
       "id": "ow:boa",
       "loot": {
@@ -8020,9 +7992,9 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.47,
-            "individuals_per_100_chunks": 2.205,
-            "pool_weight": 189,
+            "groups_per_100_chunks": 1.329,
+            "individuals_per_100_chunks": 1.994,
+            "pool_weight": 209,
             "species_weight": 25,
             "tier": "rare"
           },
@@ -11315,15 +11287,15 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.239,
-            "individuals_per_100_chunks": 3.239,
-            "pool_weight": 343,
+            "groups_per_100_chunks": 3.061,
+            "individuals_per_100_chunks": 3.061,
+            "pool_weight": 363,
             "species_weight": 100,
             "tier": "uncommon"
           }
         ],
-        "groups_per_100_chunks": 3.239,
-        "individuals_per_100_chunks": 3.239,
+        "groups_per_100_chunks": 3.061,
+        "individuals_per_100_chunks": 3.061,
         "spawns_naturally": true,
         "tier": "uncommon"
       },
@@ -12477,9 +12449,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.81,
-            "individuals_per_100_chunks": 0.81,
-            "pool_weight": 343,
+            "groups_per_100_chunks": 0.765,
+            "individuals_per_100_chunks": 0.765,
+            "pool_weight": 363,
             "species_weight": 25,
             "tier": "rare"
           },
@@ -12487,9 +12459,9 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.47,
-            "individuals_per_100_chunks": 1.47,
-            "pool_weight": 189,
+            "groups_per_100_chunks": 1.329,
+            "individuals_per_100_chunks": 1.329,
+            "pool_weight": 209,
             "species_weight": 25,
             "tier": "rare"
           },
@@ -12497,15 +12469,15 @@
             "biome": "minecraft:sparse_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 2.646,
-            "individuals_per_100_chunks": 2.646,
-            "pool_weight": 105,
+            "groups_per_100_chunks": 2.222,
+            "individuals_per_100_chunks": 2.222,
+            "pool_weight": 125,
             "species_weight": 25,
             "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 2.646,
-        "individuals_per_100_chunks": 2.646,
+        "groups_per_100_chunks": 2.222,
+        "individuals_per_100_chunks": 2.222,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -12720,6 +12692,1097 @@
           "id": 0,
           "name": "DEFAULT",
           "ordinal": 0
+        }
+      ]
+    },
+    {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.tarantula.web_grapple.desc",
+              "plain": "Clic droit ou gauche : la tarentule du bras tire sa toile à %s blocs. Bête : dégâts, lenteur. Objet : rapporté. Bloc : maintenez pour être tiré (2 toiles : au milieu), %s s max. Clic court : lâcher. Recharge %s s.",
+              "translations": {
+                "fr_fr": "Clic droit ou gauche : la tarentule du bras tire sa toile à %s blocs. Bête : dégâts, lenteur. Objet : rapporté. Bloc : maintenez pour être tiré (2 toiles : au milieu), %s s max. Clic court : lâcher. Recharge %s s."
+              }
+            },
+            "slug": "web_grapple",
+            "title": {
+              "key": "ow.attacks.tarantula.web_grapple.title",
+              "plain": "Grappin de Soie",
+              "translations": {
+                "fr_fr": "Grappin de Soie"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "AIR_FRICTION": 0.91,
+        "ANCHOR_ENERGY_PER_TICK": 0.35,
+        "ANCHOR_MAX_TICKS": 600,
+        "ANCHOR_RELEASE_SLACK": 6.0,
+        "DETACH_HOP_DISTANCE": 2.5,
+        "DETACH_HOP_LIFT": 0.42,
+        "DETACH_HOP_PUSH": 0.18,
+        "PREDICTION_TIMEOUT_TICKS": 10,
+        "REEL_ACCELERATION": 0.08,
+        "REEL_ARRIVE_DISTANCE": 1.5,
+        "REEL_FAST_SPOOL_FACTOR": 1.35,
+        "REEL_HOLD_GAIN": 0.4,
+        "REEL_MAX_SPEED": 1.15,
+        "REEL_START_SPEED": 0.45,
+        "REEL_STEER": 0.35,
+        "ROPE_AIR_KEEP": 0.95,
+        "ROPE_HARD_SLACK": 0.3,
+        "ROPE_MIN_LENGTH": 1.2,
+        "WEB_COOLDOWN_TICKS": 40,
+        "WEB_DAMAGE_RATIO": 0.5,
+        "WEB_ENERGY": 30.0,
+        "WEB_ENTITY_PICK_RADIUS": 0.35,
+        "WEB_EXTEND_MAX_TICKS": 6,
+        "WEB_EXTEND_SPEED": 4.0,
+        "WEB_IMPACT_HOLD_TICKS": 2,
+        "WEB_ITEM_PICK_RADIUS": 0.45,
+        "WEB_RANGE": 16.0,
+        "WEB_RANGE_SILK_REACH": 22.0,
+        "WEB_RETRACT_MAX_TICKS": 8,
+        "WEB_RETRACT_SPEED": 3.0,
+        "WEB_SHOT_TICKS": 14,
+        "WEB_SLOWNESS_AMPLIFIER": 1,
+        "WEB_SLOWNESS_TICKS": 60,
+        "WEB_TAP_MS": 280,
+        "WEB_WINDUP_TICKS": 4
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 3.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 16.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.0,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 8.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.2,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Tarentule"
+      },
+      "class": "net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "TarantulaEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWCarriedCompanion"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_IDLE_2",
+            "seconds": 3.5
+          },
+          {
+            "looping": false,
+            "name": "MISC_THREAT",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_HAIR_FLICK",
+            "seconds": 2.5
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.5
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 4.0
+          },
+          {
+            "looping": true,
+            "name": "NAP",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_SIT",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_SIT_IDLE",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_NAP",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_NAP_IDLE",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.5
+          },
+          {
+            "looping": false,
+            "name": "ARM_WEB_SHOT",
+            "seconds": 2.5
+          },
+          {
+            "looping": true,
+            "name": "ARM_IDLE",
+            "seconds": 3.0
+          },
+          {
+            "looping": true,
+            "name": "ARM_WEB_HOLD",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "ARM_CLIMB_ON",
+            "seconds": 0.6
+          },
+          {
+            "looping": false,
+            "name": "ARM_JUMP_OFF",
+            "seconds": 0.6
+          }
+        ],
+        "layers": [
+          "TarantulaLayer",
+          "TarantulaWristLayer"
+        ],
+        "model": "TarantulaModel",
+        "renderer": "TarantulaRenderer"
+      },
+      "constants": {
+        "CLIMB_TICKS": 10,
+        "DEFAULT_SKIN_INDEX": 0,
+        "ENTITY_COLOR": 5190697,
+        "MAX_SOMNOLENCE": 70,
+        "SLOT_LEFT": 1,
+        "SLOT_NONE": -1,
+        "SLOT_RIGHT": 0,
+        "SOMNOLENCE_LOSS_INTERVAL": 2,
+        "TAMING_EXPERIENCE": 25.0,
+        "WEB_ATTACHED": 2,
+        "WEB_EXTENDING": 1,
+        "WEB_IDLE": 0,
+        "WEB_RETRACTING": 3
+      },
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.1,
+          "energy_multiplier": 1.0,
+          "health_multiplier": 0.9,
+          "name": "MARAUDER",
+          "speed_multiplier": 1.25
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 34.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 0,
+        "diet": {
+          "name": "CARNIVOROUS",
+          "saturation_multiplier": 1.0
+        },
+        "entity_color": 5190697,
+        "entity_color_hex": "#4F3429",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 10.0,
+        "initial_variant": 0,
+        "mounted_speed_blocks_per_second": 4.0,
+        "nap_particle_forward": 0.35,
+        "nap_particle_height": 0.1,
+        "pitch_max_angle": 45.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": true,
+        "prefers_vegetables": false,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.3,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 0,
+        "taming_experience": 25.0,
+        "teleports_to_owner": false,
+        "temperament": "NEUTRAL",
+        "theoretical_scale": 1.5,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 4.0
+      },
+      "history": {
+        "created": "2026-11-27T22:16:09.5863952+01:00",
+        "created_date": "2026-11-27",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TarantulaEntity.java",
+        "last_modified": "2026-11-27T22:16:09.5868971+01:00",
+        "last_modified_date": "2026-11-27",
+        "size_bytes": 54995
+      },
+      "id": "ow:tarantula",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/tarantula",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 0.30000000447034836,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 0.0,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 220.0,
+        "needs_saddle": false,
+        "rideable": true,
+        "rider_anim_y_offset": 0.0,
+        "run_speed_multiplier": 0.0,
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.25,
+        "walk_speed_multiplier": 0.0,
+        "water_speed_divider": 0.0
+      },
+      "names": {
+        "fr_fr": "Tarentule"
+      },
+      "path": "tarantula",
+      "piste": {
+        "available": true,
+        "node_count": 35,
+        "nodes": [
+          {
+            "type": "START",
+            "children": [
+              1,
+              2
+            ],
+            "cost": 0,
+            "exclusive_fork": false,
+            "id": 0,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 33,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 0
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 27,
+            "required_level": 26,
+            "requires_all": false,
+            "reward": 68,
+            "x": 105,
+            "y": 30
+          },
+          {
+            "type": "STEP",
+            "children": [
+              33
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 31,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 30,
+            "required_level": 13,
+            "requires_all": false,
+            "reward": 42,
+            "x": 202,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 25,
+            "required_level": 32,
+            "requires_all": false,
+            "reward": 82,
+            "x": 60,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              25,
+              26,
+              27
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 20,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 82
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 26,
+            "required_level": 4,
+            "requires_all": false,
+            "reward": 30,
+            "x": 140,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              20
+            ],
+            "cost": 18,
+            "exclusive_fork": false,
+            "id": 14,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 123
+          },
+          {
+            "type": "STEP",
+            "children": [
+              23
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 18,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [
+              29,
+              30
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 23,
+            "required_level": 9,
+            "requires_all": false,
+            "reward": 4,
+            "x": 202,
+            "y": 123
+          },
+          {
+            "type": "XP",
+            "children": [
+              32
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 29,
+            "required_level": 20,
+            "requires_all": false,
+            "reward": 55,
+            "x": 284,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 12,
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 6,
+            "x": 60,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              12,
+              13,
+              14
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 7,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [
+              18,
+              19
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 13,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 3,
+            "x": 153,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              34
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 32,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 34,
+            "required_level": 16,
+            "requires_all": false,
+            "reward": 5,
+            "x": 324,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              7
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 4,
+            "required_level": 38,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 19,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 8,
+            "exclusive_fork": false,
+            "id": 24,
+            "required_level": 6,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24,
+              28
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 22,
+            "required_level": 11,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              32
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 28,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              3,
+              4
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 1,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 250
+          },
+          {
+            "type": "COINS",
+            "children": [
+              6
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 3,
+            "required_level": 22,
+            "requires_all": false,
+            "reward": 5,
+            "x": 153,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              21,
+              22
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 16,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 250
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 70,
+            "exclusive_fork": false,
+            "id": 21,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.10.desc",
+                  "plain": "Le Grappin de Soie porte à 22 blocs au lieu de 16.",
+                  "translations": {
+                    "fr_fr": "Le Grappin de Soie porte à 22 blocs au lieu de 16."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_0.png",
+                "id": 10,
+                "name": {
+                  "key": "piste.attack.10.name",
+                  "plain": "Soie Longue",
+                  "translations": {
+                    "fr_fr": "Soie Longue"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.11.desc",
+                  "plain": "La toile vous tire 35 % plus vite.",
+                  "translations": {
+                    "fr_fr": "La toile vous tire 35 % plus vite."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_1.png",
+                "id": 11,
+                "name": {
+                  "key": "piste.attack.11.name",
+                  "plain": "Bobine Rapide",
+                  "translations": {
+                    "fr_fr": "Bobine Rapide"
+                  }
+                }
+              }
+            ],
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 0,
+            "x": 324,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 6,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 11,
+            "required_level": 18,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11,
+              15,
+              16
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 9,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 299
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 15,
+            "required_level": 28,
+            "requires_all": false,
+            "reward": 6,
+            "x": 284,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              5
+            ],
+            "cost": 25,
+            "exclusive_fork": false,
+            "id": 2,
+            "required_level": 44,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              8,
+              9,
+              10
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 5,
+            "required_level": 42,
+            "requires_all": false,
+            "reward": 7,
+            "x": 239,
+            "y": 334
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 8,
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 140,
+            "x": 324,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              17
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 10,
+            "required_level": 48,
+            "requires_all": false,
+            "reward": 8,
+            "x": 239,
+            "y": 371
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 17,
+            "required_level": 50,
+            "requires_all": true,
+            "reward": 250,
+            "x": 239,
+            "y": 408
+          }
+        ],
+        "start_node": 0,
+        "total_cost": 414
+      },
+      "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:sparse_jungle",
+        "biomes": [
+          {
+            "biome": "minecraft:bamboo_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 0.612,
+            "individuals_per_100_chunks": 0.918,
+            "pool_weight": 363,
+            "species_weight": 20,
+            "tier": "very_rare"
+          },
+          {
+            "biome": "minecraft:jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.063,
+            "individuals_per_100_chunks": 1.595,
+            "pool_weight": 209,
+            "species_weight": 20,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:sparse_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.778,
+            "individuals_per_100_chunks": 2.667,
+            "pool_weight": 125,
+            "species_weight": 20,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 1.778,
+        "individuals_per_100_chunks": 2.667,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
+      "simple_class": "TarantulaEntity",
+      "size": {
+        "eye_height": 0.34,
+        "fixed": false,
+        "height": 0.4,
+        "theoretical_scale": 1.5,
+        "width": 0.6
+      },
+      "sounds": [
+        {
+          "constant": "TARANTULA_AMBIENT",
+          "id": "ow:tarantula_ambient",
+          "path": "tarantula_ambient"
+        },
+        {
+          "constant": "TARANTULA_HURT",
+          "id": "ow:tarantula_hurt",
+          "path": "tarantula_hurt"
+        },
+        {
+          "constant": "TARANTULA_DEATH",
+          "id": "ow:tarantula_death",
+          "path": "tarantula_death"
+        },
+        {
+          "constant": "TARANTULA_SCUTTLE",
+          "id": "ow:tarantula_scuttle",
+          "path": "tarantula_scuttle"
+        },
+        {
+          "constant": "TARANTULA_HOP",
+          "id": "ow:tarantula_hop",
+          "path": "tarantula_hop"
+        },
+        {
+          "constant": "TARANTULA_WEB_SHOT",
+          "id": "ow:tarantula_web_shot",
+          "path": "tarantula_web_shot"
+        },
+        {
+          "constant": "TARANTULA_WEB_STICK",
+          "id": "ow:tarantula_web_stick",
+          "path": "tarantula_web_stick"
+        },
+        {
+          "constant": "TARANTULA_WEB_UNSTICK",
+          "id": "ow:tarantula_web_unstick",
+          "path": "tarantula_web_unstick"
+        },
+        {
+          "constant": "TARANTULA_WEB_REEL",
+          "id": "ow:tarantula_web_reel",
+          "path": "tarantula_web_reel"
+        }
+      ],
+      "spawn": {
+        "biome_modifier": "ow:spawn_tarantula",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:sparse_jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 2,
+        "min_count": 1,
+        "weight": 20
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_tarantula",
+          "biomes": [
+            "minecraft:jungle",
+            "minecraft:sparse_jungle",
+            "minecraft:bamboo_jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 2,
+          "min_count": 1,
+          "weight": 20
+        }
+      ],
+      "taming": {
+        "advancement": "ow:eight_legged_friend",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": -1,
+          "level_name": "none",
+          "respects_mob_griefing": true
+        },
+        "experience": 25.0,
+        "food_tags": [
+          {
+            "constant": "TARANTULA_FOOD",
+            "entries": [
+              "minecraft:spider_eye",
+              "minecraft:fermented_spider_eye",
+              "minecraft:chicken",
+              "minecraft:rabbit"
+            ],
+            "id": "ow:tarantula_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:rabbit",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:spider_eye",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": false,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 14.0,
+          "full_bar_awake_seconds": 7.0,
+          "loss_interval_ticks_asleep": 4,
+          "loss_interval_ticks_awake": 2,
+          "loss_per_second_asleep": 5.0,
+          "loss_per_second_awake": 10.0,
+          "max": 70,
+          "max_max": 84,
+          "max_min": 56,
+          "spread_percent": 20
+        },
+        "tameable": true,
+        "valid_projectiles": [
+          "ow:tranquilizer_arrow",
+          "ow:tranquilizer_wooden_stinger",
+          "ow:slingshot_projectile",
+          "ow:tranquilizer_dart"
+        ]
+      },
+      "textures": [
+        "textures/entity/tarantula/tarantula_chilean_rose.png",
+        "textures/entity/tarantula/tarantula_default.png",
+        "textures/entity/tarantula/tarantula_red_knee.png",
+        "textures/entity/tarantula/tarantula_tamed_eyes.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/tarantula",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.tarantula",
+      "variants": [
+        {
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        },
+        {
+          "deprecated": false,
+          "id": 1,
+          "name": "RED_KNEE",
+          "ordinal": 1
+        },
+        {
+          "deprecated": false,
+          "id": 2,
+          "name": "CHILEAN_ROSE",
+          "ordinal": 2
         }
       ]
     },
@@ -13099,9 +14162,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.583,
-            "individuals_per_100_chunks": 0.583,
-            "pool_weight": 343,
+            "groups_per_100_chunks": 0.551,
+            "individuals_per_100_chunks": 0.551,
+            "pool_weight": 363,
             "species_weight": 18,
             "tier": "very_rare"
           },
@@ -13109,9 +14172,9 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.058,
-            "individuals_per_100_chunks": 1.058,
-            "pool_weight": 189,
+            "groups_per_100_chunks": 0.957,
+            "individuals_per_100_chunks": 0.957,
+            "pool_weight": 209,
             "species_weight": 18,
             "tier": "rare"
           },
@@ -13119,15 +14182,15 @@
             "biome": "minecraft:sparse_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 2.328,
-            "individuals_per_100_chunks": 3.492,
-            "pool_weight": 105,
+            "groups_per_100_chunks": 1.956,
+            "individuals_per_100_chunks": 2.933,
+            "pool_weight": 125,
             "species_weight": 22,
             "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 2.328,
-        "individuals_per_100_chunks": 3.492,
+        "groups_per_100_chunks": 1.956,
+        "individuals_per_100_chunks": 2.933,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -16090,9 +17153,9 @@
           {
             "desc": {
               "key": "ow.attacks.condor.talons.desc",
-              "plain": "Attaque à venir : le condor saisira bientôt ses proies et ses alliés pour les emporter dans les airs.",
+              "plain": "En vol, clic droit : le condor saisit une créature de taille moyenne (tigre au plus), alliée ou ennemie. Combo sur l'ennemi tenu, qui se dégage au bout de %s s. Re-clic : lâcher, gare à la chute. Recharge %s s.",
               "translations": {
-                "fr_fr": "Attaque à venir : le condor saisira bientôt ses proies et ses alliés pour les emporter dans les airs."
+                "fr_fr": "En vol, clic droit : le condor saisit une créature de taille moyenne (tigre au plus), alliée ou ennemie. Combo sur l'ennemi tenu, qui se dégage au bout de %s s. Re-clic : lâcher, gare à la chute. Recharge %s s."
               }
             },
             "slug": "talons",
@@ -16124,9 +17187,9 @@
           {
             "desc": {
               "key": "ow.attacks.condor.flight.desc",
-              "plain": "Saut au sol : décollage. Regard pour monter ou piquer, Saut maintenu pour grimper, Sprint pour filer. Relâchez l'avance pour planer. Le vol use l'énergie, le plané presque pas.",
+              "plain": "Saut au sol : décollage. Sans touche, il fait du surplace. Saut maintenu pour monter, regard pour monter ou descendre en vol. Sprint pour filer, piquez fort pour planer. Le vol use l'énergie, le plané presque pas.",
               "translations": {
-                "fr_fr": "Saut au sol : décollage. Regard pour monter ou piquer, Saut maintenu pour grimper, Sprint pour filer. Relâchez l'avance pour planer. Le vol use l'énergie, le plané presque pas."
+                "fr_fr": "Saut au sol : décollage. Sans touche, il fait du surplace. Saut maintenu pour monter, regard pour monter ou descendre en vol. Sprint pour filer, piquez fort pour planer. Le vol use l'énergie, le plané presque pas."
               }
             },
             "slug": "flight",
@@ -16139,6 +17202,29 @@
             }
           }
         ]
+      },
+      "attack_constants": {
+        "CARRY_ENERGY_PER_TICK": 0.25,
+        "CARRY_SPEED_FACTOR": 0.75,
+        "ENEMY_MAX_CARRY_TICKS": 300,
+        "EXHAUSTED_MARGIN": 0.5,
+        "PREY_MAX_HEIGHT": 2.0,
+        "PREY_MAX_VOLUME": 3.0,
+        "PREY_MAX_WIDTH": 1.6,
+        "SOFT_LANDING_MAX_TICKS": 200,
+        "TALON_CATCH_TICK": 10,
+        "TALON_CATCH_TOLERANCE": 1.6,
+        "TALON_COOLDOWN_TICKS": 200,
+        "TALON_DROP_TICKS": 15,
+        "TALON_ENERGY": 40.0,
+        "TALON_GRAB_TICKS": 20,
+        "TALON_HOLD_AHEAD": 0.25,
+        "TALON_HOLD_GRIP": 0.2,
+        "TALON_MISS_COOLDOWN_TICKS": 30,
+        "TALON_REACH_ABOVE": 0.6,
+        "TALON_REACH_AHEAD": 0.6,
+        "TALON_REACH_BELOW": 4.0,
+        "TALON_REACH_RADIUS": 2.4
       },
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -16351,6 +17437,10 @@
         "MAX_SOMNOLENCE": 1800,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
+        "TALON_CARRY": 2,
+        "TALON_DROP": 3,
+        "TALON_GRAB": 1,
+        "TALON_NONE": 0,
         "TAMING_EXPERIENCE": 190.0
       },
       "cosmetics": [],
@@ -16364,7 +17454,8 @@
           "speed_multiplier": 0.8
         },
         "arena_terrain_mask": 1,
-        "bank_max_angle": 50.0,
+        "bank_max_angle": 40.0,
+        "can_lean": false,
         "combo_pause_delay": 2,
         "default_skin_index": 0,
         "diet": {
@@ -16379,7 +17470,7 @@
         "mounted_speed_blocks_per_second": 4.754285539899554,
         "nap_particle_forward": 1.25,
         "nap_particle_height": 1.15,
-        "pitch_max_angle": 50.0,
+        "pitch_max_angle": 45.0,
         "prefers_cooked_meat": true,
         "prefers_raw_meat": true,
         "prefers_vegetables": false,
@@ -16395,18 +17486,17 @@
         "theoretical_scale": 9.0,
         "unresolved": [
           "maxUpStep",
-          "getDefaultGravity",
-          "canLean"
+          "getDefaultGravity"
         ],
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-11-26T19:13:25.5533745+01:00",
-        "created_date": "2026-11-26",
+        "created": "2026-11-27T18:56:06.9033661+01:00",
+        "created_date": "2026-11-27",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/flying/CondorEntity.java",
-        "last_modified": "2026-11-26T19:14:01.1757781+01:00",
-        "last_modified_date": "2026-11-26",
-        "size_bytes": 27387
+        "last_modified": "2026-11-27T19:02:29.5055682+01:00",
+        "last_modified_date": "2026-11-27",
+        "size_bytes": 51296
       },
       "id": "ow:condor",
       "loot": {
@@ -16431,7 +17521,7 @@
         "vital_energy_level_gain": 0.5,
         "vital_energy_recuperation": 0.9,
         "walk_speed_multiplier": 1.4,
-        "water_speed_divider": 3.0
+        "water_speed_divider": 2.2
       },
       "names": {
         "fr_fr": "Condor"
@@ -16452,8 +17542,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 189
+            "x": 307,
+            "y": 185
           },
           {
             "type": "ATTACK",
@@ -16464,45 +17554,45 @@
             "passives": [
               {
                 "description": {
-                  "key": "piste.attack.0.desc",
-                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "key": "piste.attack.8.desc",
+                  "plain": "Après 5 s de vol rapide au-dessus de 50 % d'énergie : +20 % de vitesse d'un coup.",
                   "translations": {
-                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                    "fr_fr": "Après 5 s de vol rapide au-dessus de 50 % d'énergie : +20 % de vitesse d'un coup."
                   }
                 },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
-                "id": 0,
+                "icon": "ow:textures/misc/attacks/condor_upgrading_skill_0.png",
+                "id": 8,
                 "name": {
-                  "key": "piste.attack.0.name",
-                  "plain": "Festin du Prédateur",
+                  "key": "piste.attack.8.name",
+                  "plain": "Vent Arrière",
                   "translations": {
-                    "fr_fr": "Festin du Prédateur"
+                    "fr_fr": "Vent Arrière"
                   }
                 }
               },
               {
                 "description": {
-                  "key": "piste.attack.1.desc",
-                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "key": "piste.attack.9.desc",
+                  "plain": "Saisit des créatures 45 % plus grandes, jusqu'au gorille, crocodile ou kodiak.",
                   "translations": {
-                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                    "fr_fr": "Saisit des créatures 45 % plus grandes, jusqu'au gorille, crocodile ou kodiak."
                   }
                 },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
-                "id": 1,
+                "icon": "ow:textures/misc/attacks/condor_upgrading_skill_1.png",
+                "id": 9,
                 "name": {
-                  "key": "piste.attack.1.name",
-                  "plain": "Griffe Désarmante",
+                  "key": "piste.attack.9.name",
+                  "plain": "Serres de Fer",
                   "translations": {
-                    "fr_fr": "Griffe Désarmante"
+                    "fr_fr": "Serres de Fer"
                   }
                 }
               }
             ],
-            "required_level": 35,
+            "required_level": 45,
             "requires_all": false,
             "reward": 0,
-            "x": 170,
+            "x": 175,
             "y": 0
           },
           {
@@ -16514,8 +17604,8 @@
             "required_level": 4,
             "requires_all": false,
             "reward": 25,
-            "x": 212,
-            "y": 56
+            "x": 214,
+            "y": 67
           },
           {
             "type": "XP",
@@ -16526,8 +17616,8 @@
             "required_level": 21,
             "requires_all": false,
             "reward": 55,
-            "x": 139,
-            "y": 80
+            "x": 138,
+            "y": 87
           },
           {
             "type": "COINS",
@@ -16541,8 +17631,8 @@
             "required_level": 8,
             "requires_all": false,
             "reward": 3,
-            "x": 170,
-            "y": 80
+            "x": 175,
+            "y": 87
           },
           {
             "type": "STEP",
@@ -16555,8 +17645,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 139,
-            "y": 130
+            "x": 138,
+            "y": 137
           },
           {
             "type": "XP",
@@ -16571,8 +17661,8 @@
             "required_level": 42,
             "requires_all": false,
             "reward": 65,
-            "x": 170,
-            "y": 130
+            "x": 175,
+            "y": 137
           },
           {
             "type": "COINS",
@@ -16587,8 +17677,8 @@
             "required_level": 48,
             "requires_all": false,
             "reward": 6,
-            "x": 212,
-            "y": 130
+            "x": 214,
+            "y": 137
           },
           {
             "type": "XP",
@@ -16599,8 +17689,8 @@
             "required_level": 50,
             "requires_all": true,
             "reward": 250,
-            "x": 263,
-            "y": 130
+            "x": 280,
+            "y": 137
           },
           {
             "type": "COINS",
@@ -16611,8 +17701,8 @@
             "required_level": 34,
             "requires_all": false,
             "reward": 12,
-            "x": 75,
-            "y": 171
+            "x": 87,
+            "y": 173
           },
           {
             "type": "XP",
@@ -16623,8 +17713,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 212,
-            "y": 171
+            "x": 214,
+            "y": 173
           },
           {
             "type": "STEP",
@@ -16635,8 +17725,8 @@
             "required_level": 17,
             "requires_all": false,
             "reward": 0,
-            "x": 139,
-            "y": 189
+            "x": 138,
+            "y": 185
           },
           {
             "type": "COINS",
@@ -16648,7 +17738,7 @@
             "requires_all": false,
             "reward": 3,
             "x": 0,
-            "y": 205
+            "y": 199
           },
           {
             "type": "STEP",
@@ -16662,8 +17752,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 75,
-            "y": 205
+            "x": 87,
+            "y": 199
           },
           {
             "type": "XP",
@@ -16677,8 +17767,8 @@
             "required_level": 28,
             "requires_all": false,
             "reward": 70,
-            "x": 117,
-            "y": 205
+            "x": 120,
+            "y": 199
           },
           {
             "type": "COINS",
@@ -16692,8 +17782,8 @@
             "required_level": 8,
             "requires_all": false,
             "reward": 3,
-            "x": 170,
-            "y": 205
+            "x": 175,
+            "y": 199
           },
           {
             "type": "STEP",
@@ -16706,8 +17796,8 @@
             "required_level": 6,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 220
+            "x": 255,
+            "y": 212
           },
           {
             "type": "STEP",
@@ -16720,8 +17810,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 220
+            "x": 307,
+            "y": 212
           },
           {
             "type": "STEP",
@@ -16732,8 +17822,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 75,
-            "y": 260
+            "x": 87,
+            "y": 249
           },
           {
             "type": "XP",
@@ -16747,8 +17837,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 117,
-            "y": 260
+            "x": 120,
+            "y": 249
           },
           {
             "type": "STEP",
@@ -16759,8 +17849,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 157,
-            "y": 260
+            "x": 152,
+            "y": 249
           },
           {
             "type": "COINS",
@@ -16774,8 +17864,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 2,
-            "x": 170,
-            "y": 260
+            "x": 175,
+            "y": 249
           },
           {
             "type": "STEP",
@@ -16788,8 +17878,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 260
+            "x": 255,
+            "y": 249
           },
           {
             "type": "COINS",
@@ -16800,8 +17890,8 @@
             "required_level": 13,
             "requires_all": false,
             "reward": 4,
-            "x": 55,
-            "y": 278
+            "x": 65,
+            "y": 264
           },
           {
             "type": "XP",
@@ -16815,8 +17905,8 @@
             "required_level": 21,
             "requires_all": false,
             "reward": 55,
-            "x": 101,
-            "y": 278
+            "x": 104,
+            "y": 264
           },
           {
             "type": "COINS",
@@ -16827,8 +17917,8 @@
             "required_level": 26,
             "requires_all": false,
             "reward": 5,
-            "x": 139,
-            "y": 278
+            "x": 138,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -16839,8 +17929,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 212,
-            "y": 278
+            "x": 214,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -16854,8 +17944,8 @@
             "required_level": 33,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 278
+            "x": 255,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -16866,8 +17956,8 @@
             "required_level": 36,
             "requires_all": false,
             "reward": 0,
-            "x": 297,
-            "y": 278
+            "x": 307,
+            "y": 264
           },
           {
             "type": "STEP",
@@ -16881,8 +17971,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 101,
-            "y": 321
+            "x": 104,
+            "y": 298
           },
           {
             "type": "STEP",
@@ -16897,8 +17987,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 170,
-            "y": 321
+            "x": 175,
+            "y": 298
           },
           {
             "type": "STEP",
@@ -16912,8 +18002,8 @@
             "required_level": 17,
             "requires_all": false,
             "reward": 0,
-            "x": 251,
-            "y": 321
+            "x": 255,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -16927,8 +18017,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 2,
-            "x": 276,
-            "y": 321
+            "x": 295,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -16939,8 +18029,8 @@
             "required_level": 39,
             "requires_all": false,
             "reward": 6,
-            "x": 315,
-            "y": 321
+            "x": 320,
+            "y": 298
           },
           {
             "type": "COINS",
@@ -16953,8 +18043,8 @@
             "required_level": 15,
             "requires_all": false,
             "reward": 4,
-            "x": 170,
-            "y": 358
+            "x": 175,
+            "y": 338
           },
           {
             "type": "STEP",
@@ -16965,8 +18055,8 @@
             "required_level": 0,
             "requires_all": false,
             "reward": 0,
-            "x": 18,
-            "y": 405
+            "x": 24,
+            "y": 374
           },
           {
             "type": "XP",
@@ -16981,8 +18071,8 @@
             "required_level": 19,
             "requires_all": false,
             "reward": 45,
-            "x": 101,
-            "y": 405
+            "x": 104,
+            "y": 374
           },
           {
             "type": "XP",
@@ -16993,58 +18083,20 @@
             "required_level": 24,
             "requires_all": false,
             "reward": 60,
-            "x": 139,
-            "y": 405
+            "x": 138,
+            "y": 374
           },
           {
-            "type": "ATTACK",
+            "type": "COINS",
             "children": [],
-            "cost": 75,
+            "cost": 15,
             "exclusive_fork": false,
             "id": 38,
-            "passives": [
-              {
-                "description": {
-                  "key": "piste.attack.0.desc",
-                  "plain": "Les proies tuées lâchent plus de viande crue.",
-                  "translations": {
-                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
-                  }
-                },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
-                "id": 0,
-                "name": {
-                  "key": "piste.attack.0.name",
-                  "plain": "Festin du Prédateur",
-                  "translations": {
-                    "fr_fr": "Festin du Prédateur"
-                  }
-                }
-              },
-              {
-                "description": {
-                  "key": "piste.attack.1.desc",
-                  "plain": "Chance de désarmer la cible après un coup réussi.",
-                  "translations": {
-                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
-                  }
-                },
-                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
-                "id": 1,
-                "name": {
-                  "key": "piste.attack.1.name",
-                  "plain": "Griffe Désarmante",
-                  "translations": {
-                    "fr_fr": "Griffe Désarmante"
-                  }
-                }
-              }
-            ],
-            "required_level": 35,
+            "required_level": 44,
             "requires_all": false,
-            "reward": 0,
-            "x": 276,
-            "y": 405
+            "reward": 6,
+            "x": 295,
+            "y": 374
           },
           {
             "type": "XP",
@@ -17057,8 +18109,8 @@
             "required_level": 28,
             "requires_all": false,
             "reward": 70,
-            "x": 170,
-            "y": 428
+            "x": 175,
+            "y": 389
           },
           {
             "type": "XP",
@@ -17069,8 +18121,8 @@
             "required_level": 30,
             "requires_all": false,
             "reward": 80,
-            "x": 251,
-            "y": 428
+            "x": 255,
+            "y": 389
           },
           {
             "type": "STEP",
@@ -17081,12 +18133,12 @@
             "required_level": 46,
             "requires_all": false,
             "reward": 0,
-            "x": 101,
-            "y": 487
+            "x": 104,
+            "y": 456
           }
         ],
         "start_node": 0,
-        "total_cost": 530
+        "total_cost": 470
       },
       "probe_resolved": true,
       "rarity": {
@@ -18685,6 +19737,7 @@
       "TONGUE_VINE": 34,
       "VENOM_FANGS": 9,
       "WATER_SPRAY": 15,
+      "WEB_GRAPPLE": 38,
       "WHIRLWIND_FISTS": 11
     },
     "daily_quests": [
@@ -19280,6 +20333,78 @@
             "plain": "Mue Lente",
             "translations": {
               "fr_fr": "Mue Lente"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.8.desc",
+            "plain": "Après 5 s de vol rapide au-dessus de 50 % d'énergie : +20 % de vitesse d'un coup.",
+            "translations": {
+              "fr_fr": "Après 5 s de vol rapide au-dessus de 50 % d'énergie : +20 % de vitesse d'un coup."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/condor_upgrading_skill_0.png",
+          "id": 8,
+          "name": {
+            "key": "piste.attack.8.name",
+            "plain": "Vent Arrière",
+            "translations": {
+              "fr_fr": "Vent Arrière"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.9.desc",
+            "plain": "Saisit des créatures 45 % plus grandes, jusqu'au gorille, crocodile ou kodiak.",
+            "translations": {
+              "fr_fr": "Saisit des créatures 45 % plus grandes, jusqu'au gorille, crocodile ou kodiak."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/condor_upgrading_skill_1.png",
+          "id": 9,
+          "name": {
+            "key": "piste.attack.9.name",
+            "plain": "Serres de Fer",
+            "translations": {
+              "fr_fr": "Serres de Fer"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.10.desc",
+            "plain": "Le Grappin de Soie porte à 22 blocs au lieu de 16.",
+            "translations": {
+              "fr_fr": "Le Grappin de Soie porte à 22 blocs au lieu de 16."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_0.png",
+          "id": 10,
+          "name": {
+            "key": "piste.attack.10.name",
+            "plain": "Soie Longue",
+            "translations": {
+              "fr_fr": "Soie Longue"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.11.desc",
+            "plain": "La toile vous tire 35 % plus vite.",
+            "translations": {
+              "fr_fr": "La toile vous tire 35 % plus vite."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_1.png",
+          "id": 11,
+          "name": {
+            "key": "piste.attack.11.name",
+            "plain": "Bobine Rapide",
+            "translations": {
+              "fr_fr": "Bobine Rapide"
             }
           }
         }
@@ -20873,6 +21998,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:tarantula_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de tarentule"
+      },
+      "path": "tarantula_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.tarantula_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:peacock_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -21401,7 +22539,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1291
+      "fr_fr": 1313
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -24302,6 +25440,51 @@
       "path": "chameleon_camouflage_break"
     },
     {
+      "constant": "TARANTULA_AMBIENT",
+      "id": "ow:tarantula_ambient",
+      "path": "tarantula_ambient"
+    },
+    {
+      "constant": "TARANTULA_HURT",
+      "id": "ow:tarantula_hurt",
+      "path": "tarantula_hurt"
+    },
+    {
+      "constant": "TARANTULA_DEATH",
+      "id": "ow:tarantula_death",
+      "path": "tarantula_death"
+    },
+    {
+      "constant": "TARANTULA_SCUTTLE",
+      "id": "ow:tarantula_scuttle",
+      "path": "tarantula_scuttle"
+    },
+    {
+      "constant": "TARANTULA_HOP",
+      "id": "ow:tarantula_hop",
+      "path": "tarantula_hop"
+    },
+    {
+      "constant": "TARANTULA_WEB_SHOT",
+      "id": "ow:tarantula_web_shot",
+      "path": "tarantula_web_shot"
+    },
+    {
+      "constant": "TARANTULA_WEB_STICK",
+      "id": "ow:tarantula_web_stick",
+      "path": "tarantula_web_stick"
+    },
+    {
+      "constant": "TARANTULA_WEB_UNSTICK",
+      "id": "ow:tarantula_web_unstick",
+      "path": "tarantula_web_unstick"
+    },
+    {
+      "constant": "TARANTULA_WEB_REEL",
+      "id": "ow:tarantula_web_reel",
+      "path": "tarantula_web_reel"
+    },
+    {
       "constant": "PEACOCK_IDLE",
       "id": "ow:peacock_idle",
       "path": "peacock_idle"
@@ -24962,6 +26145,16 @@
           "minecraft:salmon"
         ],
         "id": "ow:chameleon_food"
+      },
+      {
+        "constant": "TARANTULA_FOOD",
+        "entries": [
+          "minecraft:spider_eye",
+          "minecraft:fermented_spider_eye",
+          "minecraft:chicken",
+          "minecraft:rabbit"
+        ],
+        "id": "ow:tarantula_food"
       },
       {
         "constant": "GORILLA_FOOD",
@@ -30123,6 +31316,18 @@
           ]
         },
         {
+          "archetype": "MARAUDER",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:tarantula",
+          "path": "tarantula",
+          "probe_resolved": true,
+          "terrain_mask": 1,
+          "terrains": [
+            "TERRESTRIAL"
+          ]
+        },
+        {
           "archetype": "BERSERKER",
           "danger": 1.0,
           "fights_in_arena": true,
@@ -30818,6 +32023,11 @@
           "carries_flag": false,
           "id": "ow:chameleon",
           "model": "ChameleonModel"
+        },
+        {
+          "carries_flag": false,
+          "id": "ow:tarantula",
+          "model": "TarantulaModel"
         },
         {
           "carries_flag": false,
@@ -35131,6 +36341,19 @@
         },
         {
           "danger": 1.0,
+          "id": "ow:tarantula",
+          "path": "tarantula",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
           "id": "ow:gorilla",
           "path": "gorilla",
           "value_by_level": {
@@ -35457,6 +36680,19 @@
         "max_count": 1,
         "min_count": 1,
         "weight": 25
+      },
+      {
+        "biome_modifier": "ow:spawn_tarantula",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:sparse_jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:tarantula",
+        "max_count": 2,
+        "min_count": 1,
+        "weight": 20
       },
       {
         "biome_modifier": "ow:spawn_orca",

@@ -1,4 +1,4 @@
-// 1.21	2026-11-26T20:49:47.0705457	Tags for minecraft:item mod id ow
+// 1.21	2026-11-27T22:16:55.2846039	Tags for minecraft:item mod id ow
 b92abfac4c9de067fab29f9b4732a719cb806e4b data/c/tags/item/foods.json
 26a434c4a2555410c3c8b33b2779d316ee9507c0 data/c/tags/item/foods/cooked_meat.json
 d6a2720e7041cdea9ac61b45bccdf0538aa57b94 data/c/tags/item/foods/raw_meat.json
@@ -37,4 +37,5 @@ d66078fe03c4a07a0a12934d4bb5bbf3b63a223e data/ow/tags/item/red_panda_eggs_common
 e9a44b131906e9875f506987f15d2b93b4d4a7d5 data/ow/tags/item/red_panda_food.json
 cd4d98ca0f65d7c792582aaa7c1461f178d7cc7a data/ow/tags/item/red_panda_stealable_eggs.json
 4f6abfc05546087dae7b3792b756777d40eb3b1d data/ow/tags/item/somnolence_food.json
+9905d16ae1165b830039f1ce5f07177230ffc6cb data/ow/tags/item/tarantula_food.json
 af74db7c26d6996937716831062ceb36f174264a data/ow/tags/item/tiger_food.json

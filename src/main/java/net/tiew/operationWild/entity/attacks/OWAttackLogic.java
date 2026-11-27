@@ -1441,6 +1441,30 @@ public class OWAttackLogic {
         recordAttackClick(attack.getId(), false);
     }
 
+    private static void handleCondorTalons(OWAttack attack,
+                                           net.tiew.operationWild.entity.animals.flying.CondorEntity condor,
+                                           Player player) {
+        int phase = condor.getTalonPhase();
+        boolean holding = phase == net.tiew.operationWild.entity.animals.flying.CondorEntity.TALON_CARRY
+                || (phase == net.tiew.operationWild.entity.animals.flying.CondorEntity.TALON_GRAB && condor.isCarryingPrey());
+        if (holding) {
+            PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+        if (!condor.canUseTalons() || isCharging || condor.isCombo() || condor.isAttackLocked() || playerHoldsUsableItem(player)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (condor.getVitalEnergy() > condor.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+            condor.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(attack.getId(), false);
+    }
+
     private static void handleColossalSquidGrab(OWAttack attack,
                                                 net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid,
                                                 Player player, int action) {
@@ -1517,7 +1541,7 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         OWEntity owEntity = RedPandaEntity.resolveControlledEntity(mc.player);
-        if (owEntity == null) return;
+        if (owEntity == null || owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) return;
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (!isCarriedOnShoulder(owEntity) && owEntity.getPassengers().indexOf(mc.player) != 0) return;
         if (!owEntity.canPilotAttacks(mc.player)) return;
@@ -1792,7 +1816,7 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         OWEntity owEntity = RedPandaEntity.resolveControlledEntity(mc.player);
-        if (owEntity == null) return;
+        if (owEntity == null || owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) return;
         // Avant toute chose : la proie ne pilote pas. On laisse passer ses clics.
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (!isCarriedOnShoulder(owEntity) && owEntity.getPassengers().indexOf(mc.player) != 0) return;
@@ -1993,6 +2017,18 @@ public class OWAttackLogic {
             }
             if (grab != null) {
                 handleColossalSquidGrab(grab, squid, mc.player, event.getAction());
+                return;
+            }
+        }
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof net.tiew.operationWild.entity.animals.flying.CondorEntity condor) {
+            OWAttack talons = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (talons != null && talons.getId() == OWAttacksHandler.CONDOR_TALONS_ID) {
+                if (event.getAction() == GLFW.GLFW_PRESS) {
+                    handleCondorTalons(talons, condor, mc.player);
+                    event.setCanceled(true);
+                }
                 return;
             }
         }

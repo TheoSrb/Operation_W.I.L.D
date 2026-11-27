@@ -78,6 +78,7 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
         this.add(OWEntityRegistry.ELEPHANT.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.RED_PANDA.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.CHAMELEON.get(), LootTable.lootTable());
+        this.add(OWEntityRegistry.TARANTULA.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.GORILLA.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.HIPPOPOTAMUS.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.LION.get(), LootTable.lootTable());

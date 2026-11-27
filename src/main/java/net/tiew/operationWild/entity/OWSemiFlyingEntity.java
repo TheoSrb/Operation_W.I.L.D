@@ -11,10 +11,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
@@ -67,6 +71,7 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
     private float wildYaw = 0f;
     private double wildSpeed = 0;
     private int wildSteerTick = Integer.MIN_VALUE;
+    private double referenceMovementSpeed = 0;
 
     private int seenTakeoff = 0;
     private int seenLand = 0;
@@ -110,17 +115,22 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
         return Flight.FLY_RUN_SPEED;
     }
 
-    /** Top speed reached in a dive; the steeper the dive, the closer the mount gets to it. */
+    /** Top speed a glide can build up while diving. Flapping flight never dives faster than its own speed. */
     public double vehicleDiveSpeed() {
         return Flight.DIVE_SPEED;
     }
 
-    /** Speed above which the mount switches to gliding. Set higher than the fast flight speed so that only a dive can reach it. */
-    public double vehicleGlideEntrySpeed() {
-        return Flight.GLIDE_ENTRY_SPEED;
+    /** Whether this species can glide at all. When false, it always flaps: diving only changes direction without building speed, and an exhausted flyer sinks slowly instead of gliding down. */
+    public boolean canGlideInFlight() {
+        return true;
     }
 
-    /** Speed below which a glide ends and the mount starts flapping again. */
+    /** Nose-down angle in degrees from which flying forward turns into a glide. Steeper values ask for a franker dive. */
+    public float vehicleGlideEntryPitch() {
+        return Flight.GLIDE_ENTRY_PITCH;
+    }
+
+    /** Speed below which a glide ends and the mount starts flapping again, once it no longer dives past the entry angle. */
     public double vehicleGlideExitSpeed() {
         return Flight.GLIDE_EXIT_SPEED;
     }
@@ -150,14 +160,19 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
         return Flight.GLIDE_LIFT_FACTOR;
     }
 
-    /** Vertical speed while the rider holds Jump to climb. */
+    /** Vertical speed while the rider holds Jump to climb; also caps how fast flying forward nose up can climb. */
     public double vehicleClimbSpeed() {
         return Flight.CLIMB_SPEED;
     }
 
-    /** Maximum sink speed while hovering, reached by looking straight down. */
+    /** Maximum sink speed while hovering, reached by looking down. */
     public double vehicleDescendSpeed() {
         return Flight.DESCEND_SPEED;
+    }
+
+    /** Length of the takeoff rise in ticks. A longer takeoff reaches the same height, just more slowly. */
+    public int vehicleTakeoffDuration() {
+        return Flight.TAKEOFF_TICKS;
     }
 
     /** Initial upward impulse on takeoff, which sets how high the mount jumps off the ground. */
@@ -195,7 +210,7 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
         return Flight.FLY_ENERGY;
     }
 
-    /** Extra vital energy per tick during fast flight, on top of the regular running cost of OWEntity. */
+    /** Extra vital energy per tick during fast flight, on top of the flapping cost. It replaces the ground running cost while airborne. */
     public float flyRunEnergyCost() {
         return Flight.FLY_RUN_ENERGY;
     }
@@ -270,6 +285,7 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
     }
 
     public int getFlightState() {
+        if (flight == null) return FLIGHT_GROUND;
         if (flight.isLocalPilot()) return flight.localState();
         return getSyncedFlightState();
     }
@@ -320,6 +336,28 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
     public float flightEnergyRatio() {
         float capacity = this.getVitalEnergyCapacity();
         return capacity <= 0f ? 1f : this.getVitalEnergy() / capacity;
+    }
+
+    /** Multiplier applied to every flight speed: the mount's current movement speed (stat upgrades, natural variation, potion effects) divided by its species default, clamped between 0.5 and 2. */
+    public double flightSpeedFactor() {
+        if (referenceMovementSpeed <= 0) {
+            AttributeSupplier defaults = DefaultAttributes.getSupplier((EntityType<? extends LivingEntity>) this.getType());
+            referenceMovementSpeed = defaults != null && defaults.hasAttribute(Attributes.MOVEMENT_SPEED) ? defaults.getBaseValue(Attributes.MOVEMENT_SPEED) : 0;
+            if (referenceMovementSpeed <= 0) return 1.0;
+        }
+        return Mth.clamp(this.getAttributeValue(Attributes.MOVEMENT_SPEED) / referenceMovementSpeed, 0.5, 2.0);
+    }
+
+    /** Airborne, the ground running cost is replaced by {@link #flyRunEnergyCost()}, charged with the flight energy. */
+    @Override
+    protected float runningEnergyCost() {
+        return isAirborneFlight() ? 0f : super.runningEnergyCost();
+    }
+
+    /** A gliding mount is never running: sprint has no effect on a glide, and the running energy drain stops while it lasts. */
+    @Override
+    public boolean isRunning() {
+        return super.isRunning() && getFlightState() != FLIGHT_GLIDE;
     }
 
     public float flightFovModifier() {
@@ -504,7 +542,7 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
         wildYaw = this.getYRot();
         wildSpeed = this.getDeltaMovement().horizontalDistance();
         Vec3 motion = this.getDeltaMovement();
-        this.setDeltaMovement(motion.x, vehicleTakeoffLift(), motion.z);
+        this.setDeltaMovement(motion.x, vehicleTakeoffLift() * Flight.TAKEOFF_TICKS / (double) Math.max(1, vehicleTakeoffDuration()), motion.z);
         this.hasImpulse = true;
         keepAirborne(Flight.AIR_TASK_GRACE_TICKS * 3);
         return true;
@@ -516,49 +554,165 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
         landingTarget = spot != null ? spot : findLandingSpot(false);
     }
 
-    private boolean wantsToStayAirborne() {
-        if (this.isSedatedFleeing()) return true;
-        LivingEntity target = this.getTarget();
-        if (target != null && target.isAlive() && target.getY() - this.getY() > 3.0) return true;
-        if (this.isTame() && !this.isSitting() && this.isFollowingOwner()) {
-            LivingEntity owner = this.getOwner();
-            if (owner != null && owner.level() == this.level()) {
-                if (isOwnerAirborne(owner)) return true;
-                double dx = owner.getX() - this.getX();
-                double dz = owner.getZ() - this.getZ();
-                return dx * dx + dz * dz > Flight.OWNER_LAND_DISTANCE * Flight.OWNER_LAND_DISTANCE;
-            }
-        }
-        return false;
+    /** A flyer that can take off joins its owner by air, so it only teleports when the owner is really far away. */
+    @Override
+    public boolean shouldTryTeleportToOwner() {
+        if (!super.shouldTryTeleportToOwner()) return false;
+        LivingEntity owner = this.getOwner();
+        if (owner == null || !canFlyNow()) return true;
+        return this.distanceToSqr(owner) >= Flight.OWNER_TELEPORT_DISTANCE * Flight.OWNER_TELEPORT_DISTANCE;
     }
 
-    private static boolean isOwnerAirborne(LivingEntity owner) {
-        if (owner.isFallFlying()) return true;
-        if (owner.getRootVehicle() instanceof OWSemiFlyingEntity mount && mount.isAirborneFlight()) return true;
-        return owner instanceof Player player && player.getAbilities().flying;
+    private enum AirIntent { NONE, FOLLOW, CHASE, FLEE }
+
+    private AirIntent airIntent() {
+        if (fleeThreatPosition() != null) return AirIntent.FLEE;
+        LivingEntity target = this.getTarget();
+        if (target != null && target.isAlive() && target.level() == this.level()) return AirIntent.CHASE;
+        if (this.isTame() && !this.isSitting() && this.isFollowingOwner()) {
+            LivingEntity owner = this.getOwner();
+            if (owner != null && owner.isAlive() && owner.level() == this.level()) return AirIntent.FOLLOW;
+        }
+        return AirIntent.NONE;
+    }
+
+    @Nullable
+    private Vec3 fleeThreatPosition() {
+        if (this.isTame()) return null;
+        if (this.isSedatedFleeing()) {
+            Entity threat = this.aggressiveTaming.getThreat();
+            return threat != null ? threat.position() : null;
+        }
+        if (this.sedationResponse != null && this.sedationResponse.isRetreating()) return this.sedationResponse.getThreatPosition();
+        return null;
+    }
+
+    private double horizontalDistanceTo(Entity entity) {
+        double dx = entity.getX() - this.getX();
+        double dz = entity.getZ() - this.getZ();
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    private static boolean isEntityAirborne(LivingEntity entity) {
+        if (entity.isFallFlying()) return true;
+        if (entity.getRootVehicle() instanceof OWSemiFlyingEntity mount && mount.isAirborneFlight()) return true;
+        if (entity instanceof OWSemiFlyingEntity flyer && flyer.isAirborneFlight()) return true;
+        if (entity instanceof Player player && player.getAbilities().flying) return true;
+        return !entity.onGround() && !entity.isInWater() && entity.isNoGravity();
+    }
+
+    private boolean wantsToStayAirborne() {
+        return switch (airIntent()) {
+            case FLEE -> true;
+            case CHASE -> {
+                LivingEntity target = this.getTarget();
+                yield target != null && (isEntityAirborne(target) || horizontalDistanceTo(target) > Flight.CHASE_LAND_DISTANCE
+                        || target.getY() - this.getY() > Flight.TARGET_ABOVE_HEIGHT);
+            }
+            case FOLLOW -> {
+                LivingEntity owner = this.getOwner();
+                yield owner != null && (isEntityAirborne(owner) || horizontalDistanceTo(owner) > Flight.OWNER_LAND_DISTANCE
+                        || owner.getY() - this.getY() > Flight.OWNER_AIRBORNE_HEIGHT);
+            }
+            case NONE -> false;
+        };
     }
 
     private void tickWildGrounded() {
         if (takeoffCooldown > 0 || !canFlyNow() || this.isSitting()) return;
-        boolean wants = this.isSedatedFleeing();
-        LivingEntity target = this.getTarget();
-        if (!wants && target != null && target.isAlive() && target.getY() - this.getY() > 4.0) wants = true;
-        if (!wants && this.isTame() && this.isFollowingOwner()) {
-            LivingEntity owner = this.getOwner();
-            if (owner != null && owner.level() == this.level()) {
-                double distance = this.distanceTo(owner);
-                boolean ownerHigh = owner.getY() - this.getY() > Flight.OWNER_AIRBORNE_HEIGHT && distance > 4.0;
-                wants = distance > Flight.OWNER_TAKEOFF_DISTANCE || ownerHigh || (isOwnerAirborne(owner) && distance > 6.0);
+        boolean wants = switch (airIntent()) {
+            case FLEE -> true;
+            case CHASE -> {
+                LivingEntity target = this.getTarget();
+                yield target != null && (isEntityAirborne(target) || horizontalDistanceTo(target) > Flight.CHASE_TAKEOFF_DISTANCE
+                        || target.getY() - this.getY() > Flight.TARGET_ABOVE_HEIGHT);
+            }
+            case FOLLOW -> {
+                LivingEntity owner = this.getOwner();
+                yield owner != null && (horizontalDistanceTo(owner) > Flight.OWNER_TAKEOFF_DISTANCE
+                        || owner.getY() - this.getY() > Flight.OWNER_AIRBORNE_HEIGHT
+                        || (isEntityAirborne(owner) && this.distanceTo(owner) > Flight.OWNER_LAND_DISTANCE));
+            }
+            case NONE -> false;
+        };
+        if (wants) requestWildTakeoff();
+    }
+
+    @Nullable
+    private Vec3 intentLandingSpot(AirIntent intent) {
+        LivingEntity anchor = switch (intent) {
+            case CHASE -> this.getTarget();
+            case FOLLOW -> this.getOwner();
+            default -> null;
+        };
+        if (anchor == null) return null;
+        double offset = (intent == AirIntent.CHASE ? Flight.CHASE_LANDING_OFFSET : Flight.OWNER_LANDING_OFFSET) + this.getBbWidth() * 0.5;
+        Vec3 away = new Vec3(this.getX() - anchor.getX(), 0, this.getZ() - anchor.getZ());
+        away = away.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0f, this.getYRot()).scale(-1) : away.normalize();
+        double x = anchor.getX() + away.x * offset;
+        double z = anchor.getZ() + away.z * offset;
+        return new Vec3(x, groundBelow(Mth.floor(x), Mth.floor(z)), z);
+    }
+
+    @Nullable
+    private Vec3 intentSteerPoint(AirIntent intent) {
+        switch (intent) {
+            case FLEE -> {
+                Vec3 threat = fleeThreatPosition();
+                if (threat == null) return null;
+                Vec3 away = new Vec3(this.getX() - threat.x, 0, this.getZ() - threat.z);
+                away = away.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0f, this.getYRot()) : away.normalize();
+                double x = this.getX() + away.x * Flight.FLEE_DISTANCE;
+                double z = this.getZ() + away.z * Flight.FLEE_DISTANCE;
+                double y = Math.max(groundBelow(Mth.floor(x), Mth.floor(z)) + Flight.FLEE_ALTITUDE, this.getY() + 1.0);
+                return new Vec3(x, Math.min(y, this.level().getMaxBuildHeight() - 4), z);
+            }
+            case CHASE -> {
+                LivingEntity target = this.getTarget();
+                if (target == null) return null;
+                if (isEntityAirborne(target)) return target.position().add(0, target.getBbHeight() * 0.5, 0);
+                if (horizontalDistanceTo(target) > Flight.CHASE_SWOOP_DISTANCE) {
+                    return new Vec3(target.getX(), Math.max(target.getY(), this.getY() - 2.0) + Flight.APPROACH_ALTITUDE, target.getZ());
+                }
+                return target.position().add(0, target.getBbHeight() * 0.6, 0);
+            }
+            case FOLLOW -> {
+                LivingEntity owner = this.getOwner();
+                if (owner == null) return null;
+                if (isEntityAirborne(owner)) {
+                    Vec3 look = owner.getLookAngle();
+                    Vec3 back = new Vec3(look.x, 0, look.z);
+                    back = back.lengthSqr() < 1.0E-4 ? Vec3.ZERO : back.normalize().scale(-Flight.OWNER_TRAIL_DISTANCE);
+                    return owner.position().add(back.x, 1.0, back.z);
+                }
+                if (horizontalDistanceTo(owner) > Flight.OWNER_TAKEOFF_DISTANCE) {
+                    return new Vec3(owner.getX(), Math.max(owner.getY(), this.getY() - 2.0) + Flight.APPROACH_ALTITUDE, owner.getZ());
+                }
+                return owner.position().add(0, 2.0, 0);
+            }
+            default -> {
+                return null;
             }
         }
-        if (wants) requestWildTakeoff();
+    }
+
+    private double intentSpeedModifier(AirIntent intent) {
+        return switch (intent) {
+            case FLEE, CHASE -> Flight.URGENT_SPEED_MODIFIER;
+            case FOLLOW -> {
+                LivingEntity owner = this.getOwner();
+                yield owner != null && (this.distanceTo(owner) > Flight.OWNER_FAR_DISTANCE || isEntityAirborne(owner))
+                        ? Flight.URGENT_SPEED_MODIFIER : 1.0;
+            }
+            case NONE -> 1.0;
+        };
     }
 
     private void tickWildAirborne() {
         if (airTaskTicks > 0) airTaskTicks--;
         boolean exhausted = flightEnergyRatio() >= 0.98f;
         boolean task = !exhausted && !this.isSitting() && (airTaskTicks > 0 || wantsToStayAirborne());
-        if (!task && !landingRequested) requestWildLanding(null);
+        if (!task && !landingRequested) requestWildLanding(exhausted ? null : intentLandingSpot(airIntent()));
         if (task && landingRequested) landingRequested = false;
 
         steerWild(exhausted);
@@ -571,17 +725,24 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
     }
 
     private void steerWild(boolean exhausted) {
+        double k = flightSpeedFactor();
         Vec3 target = null;
         double speedModifier = 1.0;
         if (landingRequested) {
             if (landingTarget == null) landingTarget = findLandingSpot(false);
             target = landingTarget;
-        } else if (this.moveControl instanceof OWFlyMoveControl fly && fly.hasWanted()) {
+        }
+        AirIntent intent = landingRequested ? AirIntent.NONE : airIntent();
+        Vec3 intentPoint = landingRequested ? null : intentSteerPoint(intent);
+        if (intentPoint != null) {
+            target = intentPoint;
+            speedModifier = intentSpeedModifier(intent);
+        } else if (!landingRequested && this.moveControl instanceof OWFlyMoveControl fly && fly.hasWanted()) {
             target = new Vec3(fly.getWantedX(), fly.getWantedY(), fly.getWantedZ());
             speedModifier = Mth.clamp(fly.getSpeedModifier(), 0.6, 1.6);
         }
 
-        boolean urgent = this.isSedatedFleeing() || this.getTarget() != null;
+        boolean urgent = intent == AirIntent.FLEE || intent == AirIntent.CHASE || speedModifier > 1.2;
         Vec3 motion = this.getDeltaMovement();
         double vx = motion.x;
         double vy = motion.y;
@@ -596,9 +757,9 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
 
         if (target == null) {
             wildYaw += wildFlyTurnSpeed() * 0.5f;
-            wildSpeed += (wildGlideSpeed() - wildSpeed) * Flight.WILD_ACCEL;
-            vy += (-vehicleGlideSink() * 0.6 - vy) * 0.15;
-            state = FLIGHT_GLIDE;
+            wildSpeed += ((wildGlideSpeed() * k) - wildSpeed) * Flight.WILD_ACCEL;
+            vy += (-(vehicleGlideSink() * k) * 0.6 - vy) * 0.15;
+            state = canGlideInFlight() ? FLIGHT_GLIDE : FLIGHT_FLAP;
         } else {
             double dx = target.x - this.getX();
             double dy = target.y - this.getY();
@@ -613,16 +774,16 @@ public abstract class OWSemiFlyingEntity extends OWEntity {
             wildYaw = Mth.approachDegrees(wildYaw, desiredYaw, turn);
             double align = Mth.clamp(Mth.cos(Mth.wrapDegrees(desiredYaw - wildYaw) * Mth.DEG_TO_RAD), 0.25, 1.0);
 
-            double cruise = (urgent ? wildFlySpeed() * 1.35 : wildFlySpeed()) * speedModifier;
+            double cruise = (wildFlySpeed() * k) * speedModifier;
             if (landingRequested || horizontal < 8.0) cruise = Math.min(cruise, horizontal * LANDING_SLOWDOWN + 0.06);
 
-            double vyTarget = Mth.clamp(dy * 0.12, -0.45, vehicleClimbSpeed());
+            double vyTarget = Mth.clamp(dy * 0.12, -0.45, (vehicleClimbSpeed() * k));
             boolean climbing = vyTarget > 0.06 && !exhausted;
-            boolean glide = exhausted || (!climbing && !urgent && dy <= 1.5);
-            if (glide && !exhausted && !landingRequested) vyTarget = Math.min(vyTarget, -vehicleGlideSink() * 0.5);
-            if (exhausted) vyTarget = Math.min(vyTarget, -vehicleGlideSink());
+            boolean glide = canGlideInFlight() && (exhausted || (!climbing && !urgent && dy <= 1.5));
+            if (glide && !exhausted && !landingRequested) vyTarget = Math.min(vyTarget, -(vehicleGlideSink() * k) * 0.5);
+            if (exhausted) vyTarget = Math.min(vyTarget, -(vehicleGlideSink() * k));
 
-            double wanted = glide ? Math.min(cruise, wildGlideSpeed() * speedModifier) : cruise;
+            double wanted = glide ? Math.min(cruise, (wildGlideSpeed() * k) * speedModifier) : cruise;
             wildSpeed += (wanted * align - wildSpeed) * Flight.WILD_ACCEL;
             vy += (vyTarget - vy) * 0.15;
             state = glide ? FLIGHT_GLIDE : vyTarget > 0.15 ? FLIGHT_CLIMB : urgent && !landingRequested ? FLIGHT_FAST : FLIGHT_FLAP;

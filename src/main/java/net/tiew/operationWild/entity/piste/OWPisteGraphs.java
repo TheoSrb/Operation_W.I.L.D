@@ -12,7 +12,7 @@ public final class OWPisteGraphs {
     private static final Map<String, OWPisteGraph> BY_SPECIES = new HashMap<>();
 
     static {
-        BY_SPECIES.put("KodiakEntity", buildKodiak());
+        BY_SPECIES.put("KodiakEntity", buildKodiak(0, 1, 35));
         BY_SPECIES.put("TigerEntity", buildTiger());
         BY_SPECIES.put("CrocodileEntity", buildCrocodile());
         BY_SPECIES.put("ColossalSquidEntity", buildCrocodile());
@@ -20,7 +20,8 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
         BY_SPECIES.put("PeacockEntity", buildPeacock());
         BY_SPECIES.put("ChameleonEntity", buildChameleon());
-        BY_SPECIES.put("CondorEntity", buildKodiak());
+        BY_SPECIES.put("TarantulaEntity", buildTarantula());
+        BY_SPECIES.put("CondorEntity", buildKodiak(net.tiew.operationWild.entity.attacks.OWPistePassives.TAILWIND, net.tiew.operationWild.entity.attacks.OWPistePassives.IRON_TALONS, 45));
     }
 
     public static OWPisteGraph forEntity(OWEntity entity) {
@@ -34,9 +35,8 @@ public final class OWPisteGraphs {
 
     private static final int U = 32;
 
-    private static OWPisteGraph buildKodiak() {
-        return OWPisteMaze.create(U)
-                .map("""
+    private static OWPisteGraph buildKodiak(int firstPassive, int secondPassive, int passiveLevel) {
+        String art = """
                          B
                          |
                          |
@@ -58,12 +58,14 @@ public final class OWPisteGraphs {
                      |   |     |
                      |   N     |
                      |   |     |
-                 o---E-A |     B
+                 o---E-A |     J
                      |   G---H
                      |
                      |
                      V
-                """)
+                """;
+        OWPisteMaze maze = OWPisteMaze.create(U)
+                .map(art)
                 .coins('O', 2, 5, 0)
                 .fork('O')
                 .xp('C', 25, 5, 4)
@@ -85,12 +87,13 @@ public final class OWPisteGraphs {
                 .coins('M', 12, 10, 34)
                 .step('Q', 20, 36)
                 .coins('D', 6, 15, 39)
-                .attack('B', 0, 1, 75, 35)
+                .attack('B', firstPassive, secondPassive, 75, passiveLevel)
                 .xp('Y', 65, 10, 42)
                 .coins('W', 6, 15, 48)
                 .step('V', 25, 46)
-                .xp('Z', 250, 15, 50).requireAll('Z')
-                .build();
+                .coins('J', 6, 15, 44)
+                .xp('Z', 250, 15, 50).requireAll('Z');
+        return maze.build();
     }
 
     private static OWPisteGraph buildTiger() {
@@ -209,6 +212,10 @@ public final class OWPisteGraphs {
 
     private static OWPisteGraph buildChameleon() {
         return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.LONG_TONGUE, net.tiew.operationWild.entity.attacks.OWPistePassives.SLOW_FADE, 38);
+    }
+
+    private static OWPisteGraph buildTarantula() {
+        return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.SILK_REACH, net.tiew.operationWild.entity.attacks.OWPistePassives.FAST_SPOOL, 36);
     }
 
     private static OWPisteGraph buildHealerMaze(boolean redPandaPassives) {

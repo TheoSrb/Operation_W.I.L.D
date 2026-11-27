@@ -27,6 +27,10 @@ public final class OWPisteAttacks {
         register(5, "piste.attack.5.name", "piste.attack.5.desc", "textures/misc/attacks/peacock_upgrading_skill_1.png");
         register(6, "piste.attack.6.name", "piste.attack.6.desc", "textures/misc/attacks/chameleon_upgrading_skill_0.png");
         register(7, "piste.attack.7.name", "piste.attack.7.desc", "textures/misc/attacks/chameleon_upgrading_skill_1.png");
+        register(8, "piste.attack.8.name", "piste.attack.8.desc", "textures/misc/attacks/condor_upgrading_skill_0.png");
+        register(9, "piste.attack.9.name", "piste.attack.9.desc", "textures/misc/attacks/condor_upgrading_skill_1.png");
+        register(10, "piste.attack.10.name", "piste.attack.10.desc", "textures/misc/attacks/tarantula_upgrading_skill_0.png");
+        register(11, "piste.attack.11.name", "piste.attack.11.desc", "textures/misc/attacks/tarantula_upgrading_skill_1.png");
     }
 
     private static void register(int id, String nameKey, String descKey, String iconPath) {

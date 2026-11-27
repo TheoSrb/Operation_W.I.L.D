@@ -916,14 +916,13 @@ public class OWAttacksConstants {
         public static final double FLY_SPEED = 0.55;
         public static final double FLY_RUN_SPEED = 0.95;
         public static final double DIVE_SPEED = 1.55;
-        public static final double GLIDE_ENTRY_SPEED = 1.05;
         public static final double GLIDE_EXIT_SPEED = 0.6;
         public static final double GLIDE_DRAG = 0.012;
         public static final double GLIDE_SINK = 0.05;
         public static final double GLIDE_DIVE_GAIN = 0.04;
-        public static final double GLIDE_CLIMB_LOSS = 0.085;
-        public static final double GLIDE_LIFT_FACTOR = 0.55;
-        public static final double GLIDE_MAX_CLIMB = 0.12;
+        public static final double GLIDE_CLIMB_LOSS = 0.05;
+        public static final double GLIDE_LIFT_FACTOR = 0.9;
+        public static final double GLIDE_MAX_CLIMB = 0.32;
         public static final double EXHAUSTED_SINK = 0.14;
         public static final double CLIMB_SPEED = 0.26;
         public static final double DESCEND_SPEED = 0.22;
@@ -931,7 +930,6 @@ public class OWAttacksConstants {
         public static final double FLY_DECELERATION = 0.09;
         public static final double BRAKE_DECELERATION = 0.2;
         public static final float HOVER_DESCEND_PITCH = 30f;
-        public static final double DIVE_ACCELERATION = 0.06;
         public static final double VERTICAL_RESPONSE = 0.12;
         public static final double DRIFT_RESPONSE = 0.32;
         public static final double HOVER_DRIFT_RESPONSE = 0.22;
@@ -942,11 +940,15 @@ public class OWAttacksConstants {
         public static final float TURN_GAIN = 0.12f;
         public static final float TURN_SMOOTHING = 0.16f;
         public static final float PITCH_RESPONSE = 0.07f;
+        public static final float GLIDE_PITCH_RESPONSE = 0.11f;
+        public static final double GLIDE_VERTICAL_RESPONSE = 0.17;
+        public static final double GLIDE_PULL_UP_BRAKE = 0.02;
         public static final float PITCH_MIN = -55f;
         public static final float PITCH_MAX = 65f;
-        public static final float GLIDE_ENTRY_MIN_PITCH = -10f;
+        public static final float GLIDE_ENTRY_PITCH = 20f;
+        public static final float GLIDE_DIVE_DEAD_ZONE = 15f;
         public static final float FLY_ENERGY = 0.16f;
-        public static final float FLY_RUN_ENERGY = 0f;
+        public static final float FLY_RUN_ENERGY = 0.3f;
         public static final float HOVER_ENERGY = 0.22f;
         public static final float CLIMB_ENERGY = 0.32f;
         public static final float GLIDE_ENERGY = 0.04f;
@@ -976,12 +978,47 @@ public class OWAttacksConstants {
         public static final float WILD_TAKEOFF_MAX_ENERGY_RATIO = 0.35f;
         public static final float WILD_LAND_ENERGY_RATIO = 0.7f;
         public static final int AIR_TASK_GRACE_TICKS = 40;
-        public static final double OWNER_TAKEOFF_DISTANCE = 22.0;
-        public static final double OWNER_AIRBORNE_HEIGHT = 6.0;
-        public static final double OWNER_LAND_DISTANCE = 8.0;
+        public static final double OWNER_TAKEOFF_DISTANCE = 12.0;
+        public static final double OWNER_AIRBORNE_HEIGHT = 5.0;
+        public static final double OWNER_LAND_DISTANCE = 6.0;
+        public static final double OWNER_FAR_DISTANCE = 24.0;
+        public static final double OWNER_TRAIL_DISTANCE = 5.0;
+        public static final double OWNER_LANDING_OFFSET = 2.5;
+        public static final double CHASE_TAKEOFF_DISTANCE = 8.0;
+        public static final double CHASE_LAND_DISTANCE = 3.5;
+        public static final double CHASE_SWOOP_DISTANCE = 10.0;
+        public static final double CHASE_LANDING_OFFSET = 1.5;
+        public static final double TARGET_ABOVE_HEIGHT = 3.0;
+        public static final double FLEE_DISTANCE = 18.0;
+        public static final double FLEE_ALTITUDE = 10.0;
+        public static final double APPROACH_ALTITUDE = 6.0;
+        public static final double URGENT_SPEED_MODIFIER = 1.4;
+        public static final double OWNER_TELEPORT_DISTANCE = 48.0;
         public static final double KO_FALL_SPEED_LIMIT = 0.7;
-        public static final float RIDER_ROLL_SHARE = 0.5f;
-        public static final float RIDER_PITCH_SHARE = 0.8f;
+    }
+
+    public static class Condor {
+        public static final float TALON_ENERGY = 40f;
+        public static final int TALON_COOLDOWN_TICKS = 200;
+        public static final int TALON_MISS_COOLDOWN_TICKS = 30;
+        public static final int TALON_GRAB_TICKS = 20;
+        public static final int TALON_CATCH_TICK = 10;
+        public static final int TALON_DROP_TICKS = 15;
+        public static final double TALON_REACH_RADIUS = 2.4;
+        public static final double TALON_REACH_AHEAD = 0.6;
+        public static final double TALON_REACH_BELOW = 4.0;
+        public static final double TALON_REACH_ABOVE = 0.6;
+        public static final double TALON_CATCH_TOLERANCE = 1.6;
+        public static final double TALON_HOLD_AHEAD = 0.25;
+        public static final double TALON_HOLD_GRIP = 0.2;
+        public static final double PREY_MAX_WIDTH = 1.6;
+        public static final double PREY_MAX_HEIGHT = 2.0;
+        public static final double PREY_MAX_VOLUME = 3.0;
+        public static final int ENEMY_MAX_CARRY_TICKS = 300;
+        public static final double CARRY_SPEED_FACTOR = 0.75;
+        public static final float EXHAUSTED_MARGIN = 0.5f;
+        public static final float CARRY_ENERGY_PER_TICK = 0.25f;
+        public static final int SOFT_LANDING_MAX_TICKS = 200;
     }
 
     public static class Slide {
@@ -1145,5 +1182,54 @@ public class OWAttacksConstants {
         public static final int MIMICRY_CAST_TICKS = 20;
         public static final int MIMICRY_FADE_TICKS = 20;
         public static final long MIMICRY_DURATION_MS = MIMICRY_DURATION_TICKS * 50L;
+    }
+
+    public static class Tarantula {
+        public static final double WEB_RANGE = 32.0;
+        public static final double WEB_RANGE_SILK_REACH = 40.0;
+        public static final float WEB_ENERGY = 30f;
+        public static final int WEB_COOLDOWN_TICKS = 8;
+        public static final int EAT_TICKS = 22;
+        public static final int EAT_SOUND_INTERVAL = 6;
+        public static final int SELECT_FLASH_MS = 300;
+        public static final int SELECT_ANIMATION_TICKS = 12;
+        public static final float WEB_DAMAGE_RATIO = 0.5f;
+        public static final int WEB_SLOWNESS_TICKS = 60;
+        public static final int WEB_SLOWNESS_AMPLIFIER = 1;
+        public static final int WEB_WINDUP_TICKS = 4;
+        public static final int WEB_SHOT_TICKS = 14;
+        public static final double WEB_EXTEND_SPEED = 5.0;
+        public static final int WEB_EXTEND_MAX_TICKS = 9;
+        public static final int REFUSE_TICKS = 18;
+        public static final double WEB_RETRACT_SPEED = 3.0;
+        public static final int WEB_RETRACT_MAX_TICKS = 8;
+        public static final int WEB_IMPACT_HOLD_TICKS = 2;
+        public static final double WEB_ENTITY_PICK_RADIUS = 0.35;
+        public static final double WEB_ITEM_PICK_RADIUS = 0.45;
+        public static final long WEB_TAP_MS = 280L;
+
+        public static final int ANCHOR_MAX_TICKS = 600;
+        public static final float ANCHOR_ENERGY_PER_TICK = 0.35f;
+        public static final double ANCHOR_RELEASE_SLACK = 6.0;
+        public static final double ROPE_MIN_LENGTH = 1.2;
+        public static final double ROPE_HARD_SLACK = 0.3;
+        public static final double ROPE_AIR_KEEP = 0.95;
+        public static final double AIR_FRICTION = 0.91;
+
+        public static final double REEL_PULL = 0.075;
+        public static final double REEL_MAX_SPEED = 0.85;
+        public static final int REEL_RAMP_TICKS = 25;
+        public static final double REEL_SLOW_DISTANCE = 4.0;
+        public static final double REEL_MIN_APPROACH = 0.35;
+        public static final double REEL_LATERAL_KEEP = 0.97;
+        public static final double REEL_GRAVITY_SHARE = 0.7;
+        public static final double REEL_FAST_SPOOL_FACTOR = 1.35;
+        public static final double REEL_ARRIVE_DISTANCE = 1.3;
+        public static final double REEL_HOLD_GAIN = 0.12;
+        public static final double REEL_HOLD_DAMPING = 0.75;
+        public static final double DETACH_HOP_DISTANCE = 2.5;
+        public static final double DETACH_HOP_LIFT = 0.42;
+        public static final double DETACH_HOP_PUSH = 0.18;
+        public static final int PREDICTION_TIMEOUT_TICKS = 10;
     }
 }

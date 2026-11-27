@@ -39,6 +39,7 @@ public final class OWPlayerPoses {
             OWRiderPoses.PRONE,
             OWAssailedPoses.HYPNOSIS,
             OWAssailedPoses.DIZZY,
+            OWTarantulaArmPose.INSTANCE,
             OWShoulderPetPose.INSTANCE);
 
     private static final int SPEAR_THROW = POSES.indexOf(OWSpearThrowPose.INSTANCE);

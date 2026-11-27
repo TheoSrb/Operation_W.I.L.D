@@ -472,6 +472,9 @@ public class OWRendererUtils {
             case "ChameleonEntity" -> {
                 return "entity.ow.chameleon";
             }
+            case "TarantulaEntity" -> {
+                return "entity.ow.tarantula";
+            }
             case "HyenaEntity" -> {
                 return "entity.ow.hyena";
             }

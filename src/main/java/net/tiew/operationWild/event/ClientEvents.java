@@ -592,7 +592,8 @@ public class ClientEvents {
         if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.FOOD_LEVEL)) {
             Player player = Minecraft.getInstance().player;
             if (player != null
-                    && net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null) {
+                    && net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null
+                    && !net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriesAny(player)) {
                 event.setCanceled(true);
             }
         }

@@ -35,6 +35,7 @@ public final class OWFlightController {
     private int staleTicks = 0;
     private int liftProbeTicks = 0;
     private double cachedLift = 0;
+    private double k = 1.0;
 
     private float fastBlend, fastBlendO;
     private double visLastX, visLastY, visLastZ;
@@ -72,6 +73,7 @@ public final class OWFlightController {
     }
 
     private void tickLocal(Player player) {
+        k = owner.flightSpeedFactor();
         boolean jump = OWClientHooks.isJumpKeyDown() && !OWClientHooks.isScreenOpen();
         if (cooldown > 0) cooldown--;
         modeTicks++;
@@ -134,16 +136,21 @@ public final class OWFlightController {
         float maxTurn = switch (mode) {
             case GLIDE -> owner.vehicleGlideTurnSpeed();
             case TAKEOFF -> owner.vehicleFlyTurnSpeed() * 0.6f;
-            default -> speed < owner.vehicleFlySpeed() * 0.3 ? Flight.HOVER_TURN_SPEED
+            default -> speed < (owner.vehicleFlySpeed() * k) * 0.3 ? Flight.HOVER_TURN_SPEED
                     : owner.isRunning() ? owner.vehicleFlyRunTurnSpeed() : owner.vehicleFlyTurnSpeed();
         };
+        boolean moving = player.zza != 0 || player.xxa != 0 || mode == Mode.GLIDE;
         float error = Mth.wrapDegrees(player.getYRot() - yaw);
-        float wantedRate = Mth.clamp(error * Flight.TURN_GAIN, -maxTurn, maxTurn);
+        float wantedRate = moving ? Mth.clamp(error * Flight.TURN_GAIN, -maxTurn, maxTurn) : 0f;
         yawRate += (wantedRate - yawRate) * Flight.TURN_SMOOTHING;
         yaw += yawRate;
 
         float targetPitch = Mth.clamp(player.getXRot(), Flight.PITCH_MIN, Flight.PITCH_MAX);
-        pitch += (targetPitch - pitch) * Flight.PITCH_RESPONSE;
+        pitch += (targetPitch - pitch) * (mode == Mode.GLIDE ? Flight.GLIDE_PITCH_RESPONSE : Flight.PITCH_RESPONSE);
+    }
+
+    private double takeoffTimeScale() {
+        return Flight.TAKEOFF_TICKS / (double) Math.max(1, owner.vehicleTakeoffDuration());
     }
 
     private void adoptAirborne(int syncedState) {
@@ -156,7 +163,7 @@ public final class OWFlightController {
         yawRate = 0f;
         pitch = 0f;
         modeTicks = 0;
-        mode = syncedState == OWSemiFlyingEntity.FLIGHT_GLIDE ? Mode.GLIDE : Mode.AIR;
+        mode = syncedState == OWSemiFlyingEntity.FLIGHT_GLIDE && owner.canGlideInFlight() ? Mode.GLIDE : Mode.AIR;
         localState = syncedState;
     }
 
@@ -168,7 +175,7 @@ public final class OWFlightController {
         pitch = -10f;
         vx = motion.x;
         vz = motion.z;
-        vy = owner.vehicleTakeoffLift();
+        vy = owner.vehicleTakeoffLift() * takeoffTimeScale();
         mode = Mode.TAKEOFF;
         modeTicks = 0;
         cooldown = Flight.TAKEOFF_COOLDOWN_TICKS;
@@ -179,13 +186,15 @@ public final class OWFlightController {
     }
 
     private void driveTakeoff(Player player) {
-        double progress = Math.min(1.0, modeTicks / (double) Flight.TAKEOFF_TICKS);
-        double sustain = Flight.TAKEOFF_SUSTAIN * (1.0 - progress);
-        vy += (sustain - vy) * 0.12;
-        double target = player.zza > 0 ? owner.vehicleFlySpeed() * 0.5 : 0;
+        int duration = owner.vehicleTakeoffDuration();
+        double scale = takeoffTimeScale();
+        double progress = Math.min(1.0, modeTicks / (double) duration);
+        double sustain = Flight.TAKEOFF_SUSTAIN * scale * (1.0 - progress);
+        vy += (sustain - vy) * 0.12 * scale;
+        double target = player.zza > 0 ? (owner.vehicleFlySpeed() * k) * 0.5 : 0;
         speed += (target - speed) * 0.06;
         setHorizontal(speed, Flight.HOVER_DRIFT_RESPONSE);
-        if (modeTicks >= Flight.TAKEOFF_TICKS) {
+        if (modeTicks >= duration) {
             mode = Mode.AIR;
             modeTicks = 0;
         }
@@ -193,7 +202,14 @@ public final class OWFlightController {
 
     private void driveAir(Player player, boolean jump) {
         if (exhausted) {
-            enterGlide();
+            if (owner.canGlideInFlight()) {
+                enterGlide();
+                return;
+            }
+            speed += (0 - speed) * (owner.vehicleFlyDeceleration());
+            vy += (-Flight.EXHAUSTED_SINK - vy) * Flight.VERTICAL_RESPONSE;
+            setHorizontal(speed, Flight.HOVER_DRIFT_RESPONSE);
+            setState(OWSemiFlyingEntity.FLIGHT_HOVER);
             return;
         }
 
@@ -210,25 +226,22 @@ public final class OWFlightController {
             speed += (0 - speed) * (back ? Flight.BRAKE_DECELERATION : owner.vehicleFlyDeceleration());
             if (speed < 1.0E-3) speed = 0;
             double lookDown = Mth.clamp((pitch - Flight.HOVER_DESCEND_PITCH) / (Flight.PITCH_MAX - Flight.HOVER_DESCEND_PITCH), 0f, 1f);
-            vyTarget = climb ? owner.vehicleClimbSpeed() : -owner.vehicleDescendSpeed() * lookDown;
+            vyTarget = climb ? (owner.vehicleClimbSpeed() * k) : -(owner.vehicleDescendSpeed() * k) * lookDown;
             setHorizontal(speed, back ? Flight.DRIFT_RESPONSE : Flight.HOVER_DRIFT_RESPONSE);
             state = climb ? OWSemiFlyingEntity.FLIGHT_CLIMB : OWSemiFlyingEntity.FLIGHT_HOVER;
         } else {
-            double base = fast ? owner.vehicleFlyRunSpeed() : owner.vehicleFlySpeed();
-            double target = sin > 0 ? base + (owner.vehicleDiveSpeed() - base) * sin : base;
-            if (climb) target *= 0.8;
-            double response = target > speed
-                    ? (sin > 0.2 ? Flight.DIVE_ACCELERATION : owner.vehicleFlyAcceleration())
-                    : owner.vehicleFlyDeceleration();
+            double base = fast ? (owner.vehicleFlyRunSpeed() * k) : (owner.vehicleFlySpeed() * k);
+            double target = climb ? base * 0.8 : base;
+            double response = target > speed ? owner.vehicleFlyAcceleration() : owner.vehicleFlyDeceleration();
             speed += (target - speed) * response;
 
             vyTarget = -sin * speed;
-            if (climb) vyTarget = Math.max(vyTarget, owner.vehicleClimbSpeed());
-            vyTarget = Math.min(vyTarget, owner.vehicleClimbSpeed() * 1.3);
+            if (climb) vyTarget = Math.max(vyTarget, (owner.vehicleClimbSpeed() * k));
+            vyTarget = Math.min(vyTarget, (owner.vehicleClimbSpeed() * k) * 1.3);
             setHorizontal(speed * Math.max(cos, 0.3), Flight.DRIFT_RESPONSE);
             state = climb ? OWSemiFlyingEntity.FLIGHT_CLIMB : fast ? OWSemiFlyingEntity.FLIGHT_FAST : OWSemiFlyingEntity.FLIGHT_FLAP;
 
-            if (!climb && !fast && speed > owner.vehicleGlideEntrySpeed() && pitch > Flight.GLIDE_ENTRY_MIN_PITCH) {
+            if (owner.canGlideInFlight() && !climb && speed > (owner.vehicleFlySpeed() * k) * 0.5 && pitch > owner.vehicleGlideEntryPitch()) {
                 vy += (vyTarget - vy) * Flight.VERTICAL_RESPONSE;
                 enterGlide();
                 return;
@@ -248,7 +261,7 @@ public final class OWFlightController {
     private void driveGlide(Player player, boolean jump) {
         boolean back = player.zza < 0;
 
-        if (!exhausted && (jump || speed < owner.vehicleGlideExitSpeed() || (owner.isRunning() && speed < owner.vehicleFlyRunSpeed()))) {
+        if (!exhausted && (jump || (speed < (owner.vehicleGlideExitSpeed() * k) && pitch < owner.vehicleGlideEntryPitch()))) {
             mode = Mode.AIR;
             modeTicks = 0;
             driveAir(player, jump);
@@ -256,20 +269,22 @@ public final class OWFlightController {
         }
 
         double sin = Mth.sin(pitch * Mth.DEG_TO_RAD);
-        speed += sin > 0 ? sin * owner.vehicleGlideDiveGain() : sin * owner.vehicleGlideClimbLoss();
-        speed -= owner.vehicleGlideDrag() * (0.5 + speed / owner.vehicleFlySpeed() * 0.5);
-        if (back) speed -= owner.vehicleGlideDrag() * 5.0;
-        speed = Mth.clamp(speed, 0.0, owner.vehicleDiveSpeed());
+        double diveSin = Math.max(0.0, Mth.sin((pitch - Flight.GLIDE_DIVE_DEAD_ZONE) * Mth.DEG_TO_RAD));
+        speed += sin > 0 ? diveSin * (owner.vehicleGlideDiveGain() * k) : sin * (owner.vehicleGlideClimbLoss() * k);
+        if (sin < 0) speed += sin * speed * Flight.GLIDE_PULL_UP_BRAKE;
+        speed -= (owner.vehicleGlideDrag() * k) * (0.5 + speed / (owner.vehicleFlySpeed() * k) * 0.5);
+        if (back) speed -= (owner.vehicleGlideDrag() * k) * 5.0;
+        speed = Mth.clamp(speed, 0.0, (owner.vehicleDiveSpeed() * k));
 
         double vyTarget;
-        if (exhausted && speed < owner.vehicleGlideExitSpeed()) {
+        if (exhausted && speed < (owner.vehicleGlideExitSpeed() * k)) {
             vyTarget = -Flight.EXHAUSTED_SINK;
         } else {
             double pitchFollow = sin > 0 ? 1.0 : owner.vehicleGlideLiftFactor();
             vyTarget = -owner.vehicleGlideSink() - sin * speed * pitchFollow + probeLift();
             vyTarget = Math.min(vyTarget, Flight.GLIDE_MAX_CLIMB);
         }
-        vy += (vyTarget - vy) * Flight.VERTICAL_RESPONSE;
+        vy += (vyTarget - vy) * Flight.GLIDE_VERTICAL_RESPONSE;
         setHorizontal(speed * Math.max(Mth.cos(pitch * Mth.DEG_TO_RAD), 0.3), Flight.DRIFT_RESPONSE * 0.6);
         setState(OWSemiFlyingEntity.FLIGHT_GLIDE);
     }
@@ -332,7 +347,7 @@ public final class OWFlightController {
         setState(OWSemiFlyingEntity.FLIGHT_GROUND);
         if (!wasAirborne) return;
         OWClientHooks.sendFlight(OWClientHooks.FLIGHT_LAND, OWSemiFlyingEntity.FLIGHT_GROUND);
-        if (carry) owner.carryRiddenSpeed((float) Math.min(Math.sqrt(vx * vx + vz * vz), owner.vehicleFlySpeed()) * 0.5f);
+        if (carry) owner.carryRiddenSpeed((float) Math.min(Math.sqrt(vx * vx + vz * vz), (owner.vehicleFlySpeed() * k)) * 0.5f);
     }
 
     private void setState(int state) {
@@ -354,6 +369,7 @@ public final class OWFlightController {
     }
 
     void tickVisuals() {
+        k = owner.flightSpeedFactor();
         double dx = 0, dy = 0, dz = 0;
         if (visValid) {
             dx = owner.getX() - visLastX;
@@ -378,14 +394,14 @@ public final class OWFlightController {
         }
 
         double travelled = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        speedFactor += ((float) Mth.clamp(travelled / owner.vehicleFlyRunSpeed(), 0.0, 1.6) - speedFactor) * 0.15f;
+        speedFactor += ((float) Mth.clamp(travelled / (owner.vehicleFlyRunSpeed() * k), 0.0, 1.6) - speedFactor) * 0.15f;
 
         boolean fastNow = owner.getFlightState() == OWSemiFlyingEntity.FLIGHT_FAST;
         fastBlendO = fastBlend;
         fastBlend += ((fastNow ? 1f : 0f) - fastBlend) * 0.1f;
 
         boolean soaring = owner.getFlightState() == OWSemiFlyingEntity.FLIGHT_GLIDE;
-        if (owner.isAirborneFlight() && (soaring || speedFactor > 0.75f) && owner.tickCount % 2 == 0) spawnWingTrails();
+        if (soaring && speedFactor > 0.55f && owner.tickCount % 2 == 0) spawnWingTrails();
 
         if (local && owner.isAirborneFlight() && !windStarted) {
             windStarted = true;

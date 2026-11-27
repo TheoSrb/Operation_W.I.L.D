@@ -94,6 +94,9 @@ public class OWAdvancementProvider extends AdvancementProvider {
             AdvancementHolder chameleonTamingAdvancement =
                     createNewTamingAdvancement(renownedTamer, saver, OWItems.CHAMELEON_SPAWN_EGG.get(), OWEntityRegistry.CHAMELEON.get(), "master_of_disguise", AdvancementType.GOAL);
 
+            AdvancementHolder tarantulaTamingAdvancement =
+                    createNewTamingAdvancement(renownedTamer, saver, OWItems.TARANTULA_SPAWN_EGG.get(), OWEntityRegistry.TARANTULA.get(), "eight_legged_friend", AdvancementType.GOAL);
+
             AdvancementHolder hippopotamusTamingAdvancement =
                     createNewTamingAdvancement(renownedTamer, saver, OWItems.HIPPOPOTAMUS_SPAWN_EGG.get(), OWEntityRegistry.HIPPOPOTAMUS.get(), "river_giant", AdvancementType.GOAL);
 

@@ -55,7 +55,8 @@ public class OWTabsRenderer {
      */
     private static boolean hasDailyQuests(OWEntity entity) {
         return !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity)
-                && !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity);
+                && !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity)
+                && !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity);
     }
 
     /**

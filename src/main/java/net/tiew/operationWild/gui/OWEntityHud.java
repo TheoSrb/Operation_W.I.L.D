@@ -30,6 +30,10 @@ public class OWEntityHud {
         if (Minecraft.getInstance().options.hideGui) return;
 
         if (rider != null) {
+            if (rider.getVehicle() == null && net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriesAny(rider)) {
+                renderTarantulaHUDs(guiGraphics, rider, screenWidth, screenHeight);
+                return;
+            }
             if (rider.getVehicle() == null) {
                 OWEntity shoulderPanda = net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(rider);
                 if (shoulderPanda != null && shoulderPanda.isTame()) {
@@ -70,6 +74,24 @@ public class OWEntityHud {
                 }
             }
         }
+    }
+
+    private static void renderTarantulaHUDs(GuiGraphics guiGraphics, Player rider, int screenWidth, int screenHeight) {
+        OWEntity active = net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(rider);
+        if (!(active instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) || !active.isTame()) return;
+        companionTop = survivalTop(rider, screenHeight);
+        try {
+            createHUD(guiGraphics, active, screenWidth, screenHeight);
+        } finally {
+            companionTop = -1;
+        }
+    }
+
+    private static int survivalTop(Player player, int screenHeight) {
+        if (player.isCreative() || player.isSpectator()) return screenHeight - BASE_ROW_HEIGHT;
+        int height = BASE_ROW_HEIGHT + ROW_HEIGHT;
+        if (player.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) || player.getAirSupply() < player.getMaxAirSupply()) height += ROW_HEIGHT;
+        return screenHeight - height - GAUGE_OVERHANG;
     }
 
     public static void createHUD(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
@@ -148,6 +170,7 @@ public class OWEntityHud {
             case "HippopotamusEntity": return 15;
             case "ColossalSquidEntity": return 16;
             case "ChameleonEntity": return 27;
+            case "TarantulaEntity": return 21;
             case "CondorEntity": return 25;
             default: return 0;
         }
@@ -174,7 +197,7 @@ public class OWEntityHud {
 
     public static void createHealthBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         int xPlacement = x / 2 + 10;
-        int yPlacement = y - 39;
+        int yPlacement = companionTop >= 0 ? companionTop : y - 39;
 
         guiGraphics.blit(HUD, xPlacement, yPlacement, 0, 0, 81, 9);
 
@@ -227,6 +250,8 @@ public class OWEntityHud {
             return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity) {
             return new EntityIconData(189, 124, 18, 20, -(18 / 2), -11);
+        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) {
+            return new EntityIconData(206, 203, 14, 13, -(14 / 2), -6);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.flying.CondorEntity) {
             return new EntityIconData(213, 146, 14, 18, -(14 / 2), -10);
         } else if (entity instanceof ColossalSquidEntity) {
@@ -235,15 +260,21 @@ public class OWEntityHud {
         return null;
     }
 
+    private static final int BASE_ROW_HEIGHT = 39;
+    private static final int ROW_HEIGHT = 10;
+    private static final int GAUGE_OVERHANG = 0;
+    private static int companionTop = -1;
+
     private static final long ENERGY_LACK_FLASH_MS = 1200L;
     private static long energyLackUntilMs = 0L;
     private static int energyLackEntityId = -1;
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         int xPlacement = x / 2 + 10;
-        int yPlacement = y - 39;
+        int yPlacement = companionTop >= 0 ? companionTop : y - 39;
+        int gaugeX = xPlacement + 81 + 5;
 
-        guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
+        guiGraphics.blit(HUD, gaugeX, yPlacement, 0, 230, 8, 14);
 
         if (entity.canShowVitalEnergyLack) {
             entity.canShowVitalEnergyLack = false;
@@ -254,9 +285,9 @@ public class OWEntityHud {
         if (isEnergyLackFlashing(entity.getId())) {
             boolean beat = (System.currentTimeMillis() / 90L) % 2 == 0;
             if (beat) RenderSystem.setShaderColor(1.35f, 0.45f, 1.9f, 1.0f);
-            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
+            guiGraphics.blit(HUD, gaugeX + 1, yPlacement + 1, 1, 244, 6, 12);
             if (beat) RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6,
+            guiGraphics.blit(HUD, gaugeX + 1, yPlacement + 1, 7, 244, 6,
                     (int) (12 * ((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity()))));
             return;
         }
@@ -267,11 +298,11 @@ public class OWEntityHud {
 
         if ((entity.tickCount / 5) % 2 == 0 && isActuallySpendingEnergy && ((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())) < 0.75) {
             RenderSystem.setShaderColor(0.81f, 0.85f, 0.91f, 0.75f);
-            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
+            guiGraphics.blit(HUD, gaugeX + 1, yPlacement + 1, 1, 244, 6, 12);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        } else guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
+        } else guiGraphics.blit(HUD, gaugeX + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
 
-        guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())))));
+        guiGraphics.blit(HUD, gaugeX + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())))));
     }
 
     public static boolean isEnergyLackFlashing(int entityId) {

@@ -2922,6 +2922,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    protected float runningEnergyCost() {
+        return 0.65f;
+    }
+
     private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
 
     protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
@@ -3057,11 +3061,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         this.setDeltaMovement(0, yVel, 0);
                         this.move(MoverType.SELF, new Vec3(0, yVel, 0));
                     } else {
-                        yVel = cur.y;
+                        yVel = this.isInWater() ? 0.0 : cur.y;
                         this.setDeltaMovement(0, yVel, 0);
                     }
 
                     this.tryCheckInsideBlocks();
+                } else {
+                    this.setDeltaMovement(Vec3.ZERO);
                 }
             }
         } catch (Exception e) {
@@ -4052,7 +4058,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 if (this instanceof KangarooEntity) return;
 
-                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.65f : 0.35f));
+                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? runningEnergyCost() : 0.35f));
             }
 
             if (getVitalEnergy() < 0f) {

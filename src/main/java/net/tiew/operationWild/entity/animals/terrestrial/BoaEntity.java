@@ -1236,6 +1236,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.entityData.set(GRAB_HOLD_Z, (float) p.z);
     }
 
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity living) {
+        if (living == this.getGrabbedTarget() && this.level().noBlockCollision(living, living.getBoundingBox())) {
+            return living.position();
+        }
+        return super.getDismountLocationForPassenger(living);
+    }
+
     private Vec3 getGrabHold() {
         return new Vec3(this.entityData.get(GRAB_HOLD_X), this.entityData.get(GRAB_HOLD_Y), this.entityData.get(GRAB_HOLD_Z));
     }

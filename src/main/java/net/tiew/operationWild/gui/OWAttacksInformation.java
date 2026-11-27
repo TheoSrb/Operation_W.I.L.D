@@ -418,7 +418,9 @@ public class OWAttacksInformation {
 
                 new AttackSlot(216, 100, "RMB",
                         title("ow.attacks.condor.talons.title"),
-                        e -> desc("ow.attacks.condor.talons.desc")
+                        e -> desc("ow.attacks.condor.talons.desc",
+                                val(OWAttacksConstants.Condor.ENEMY_MAX_CARRY_TICKS / 20),
+                                val(OWAttacksConstants.Condor.TALON_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(236, 100, "X",
@@ -702,6 +704,24 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.red_panda.vital_sense.desc",
                                 val((int) OWAttacksConstants.RedPanda.VITAL_SENSE_RADIUS))
                 )
+
+        ));
+
+        PROFILES.put(net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.class, new EntityProfile(
+
+                null,
+
+                new AttackSlot(100, 0, "LMB/RMB",
+                        title("ow.attacks.tarantula.web_grapple.title"),
+                        e -> desc("ow.attacks.tarantula.web_grapple.desc",
+                                val((int) OWAttacksConstants.Tarantula.WEB_RANGE),
+                                val(OWAttacksConstants.Tarantula.ANCHOR_MAX_TICKS / 20),
+                                val(OWAttacksConstants.Tarantula.WEB_COOLDOWN_TICKS / 20f))
+                ),
+
+                null,
+
+                null
 
         ));
 

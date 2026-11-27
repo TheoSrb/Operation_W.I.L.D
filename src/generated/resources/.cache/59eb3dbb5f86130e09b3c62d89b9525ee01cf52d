@@ -1,4 +1,4 @@
-// 1.21	2026-11-26T20:49:47.0665067	Loot Tables
+// 1.21	2026-11-27T22:16:55.2819011	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -67,4 +67,5 @@ f57f3773458f05cce755ed7d40523663a1cc00a8 data/ow/loot_table/entities/orca.json
 d5c54b99a44c09e946b9fae89c9dd591b276777e data/ow/loot_table/entities/seabug_shard_0.json
 cabe4742023d54715447bac71ffbca3813bb261e data/ow/loot_table/entities/seabug_shard_1.json
 220dce711573da97d4a664fa414f85891940e5fb data/ow/loot_table/entities/seabug_shard_2.json
+c1edab15aa01dc7a224ed0fb45e8dc02066ab2e9 data/ow/loot_table/entities/tarantula.json
 4fbe76e7eacb8358a1ddbd2ba186ceff3a61bd7a data/ow/loot_table/entities/tiger.json

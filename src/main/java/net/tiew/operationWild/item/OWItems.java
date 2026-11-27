@@ -206,6 +206,8 @@ public class OWItems {
             () -> new DeferredSpawnEggItem(OWEntityRegistry.RED_PANDA, 0xec8925, 0xd15d2a, new Item.Properties()));
     public static final DeferredHolder<Item, Item> CHAMELEON_SPAWN_EGG = ITEMS.register("chameleon_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.CHAMELEON, 0x6e8d40, 0xa8b74c, new Item.Properties()));
+    public static final DeferredHolder<Item, Item> TARANTULA_SPAWN_EGG = ITEMS.register("tarantula_spawn_egg",
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.TARANTULA, 0x4f3429, 0x372a2f, new Item.Properties()));
     public static final DeferredHolder<Item, Item> PEACOCK_SPAWN_EGG = ITEMS.register("peacock_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.PEACOCK, 0x286ec3, 0x3e7439, new Item.Properties()));
     public static final DeferredHolder<Item, Item> CONDOR_SPAWN_EGG = ITEMS.register("condor_spawn_egg",

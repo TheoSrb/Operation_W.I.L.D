@@ -43,6 +43,7 @@ public final class ResurrectionWaveRoster {
     public static final Map<String, Integer> POWER_TIERS = new HashMap<>(Map.ofEntries(
             Map.entry("red_panda", 1),
             Map.entry("chameleon", 1),
+            Map.entry("tarantula", 1),
             Map.entry("peacock", 1),
             Map.entry("boa", 2),
             Map.entry("tiger", 3),

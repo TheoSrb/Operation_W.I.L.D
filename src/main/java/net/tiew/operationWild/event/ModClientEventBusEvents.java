@@ -46,6 +46,7 @@ public class ModClientEventBusEvents {
         for (net.minecraft.client.resources.PlayerSkin.Model skin : event.getSkins()) {
             if (event.getSkin(skin) instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer playerRenderer) {
                 playerRenderer.addLayer(new net.tiew.operationWild.entity.client.layer.ChameleonCamouflageLayer<>(playerRenderer));
+                playerRenderer.addLayer(new net.tiew.operationWild.entity.client.layer.TarantulaWristLayer(playerRenderer, event.getEntityModels()));
             }
         }
     }
@@ -59,6 +60,8 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(RedPandaModel.LAYER_LOCATION, RedPandaModel::createBodyLayer);
         event.registerLayerDefinition(net.tiew.operationWild.entity.client.model.ChameleonModel.LAYER_LOCATION,
                 net.tiew.operationWild.entity.client.model.ChameleonModel::createBodyLayer);
+        event.registerLayerDefinition(net.tiew.operationWild.entity.client.model.TarantulaModel.LAYER_LOCATION,
+                net.tiew.operationWild.entity.client.model.TarantulaModel::createBodyLayer);
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
         event.registerLayerDefinition(BoaModel.LAYER_LOCATION, BoaModel::createBodyLayer);
         event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);

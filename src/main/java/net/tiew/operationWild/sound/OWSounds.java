@@ -87,6 +87,17 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_TONGUE_MISS = registerSoundEvent("chameleon_tongue_miss");
     public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_CAMOUFLAGE = registerSoundEvent("chameleon_camouflage");
     public static final DeferredHolder<SoundEvent, SoundEvent> CHAMELEON_CAMOUFLAGE_BREAK = registerSoundEvent("chameleon_camouflage_break");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_AMBIENT = registerSoundEvent("tarantula_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_HURT = registerSoundEvent("tarantula_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_DEATH = registerSoundEvent("tarantula_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_SCUTTLE = registerSoundEvent("tarantula_scuttle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_HOP = registerSoundEvent("tarantula_hop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_WEB_SHOT = registerSoundEvent("tarantula_web_shot");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_WEB_STICK = registerSoundEvent("tarantula_web_stick");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_WEB_UNSTICK = registerSoundEvent("tarantula_web_unstick");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_WEB_REEL = registerSoundEvent("tarantula_web_reel");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_REFUSE = registerSoundEvent("tarantula_refuse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TARANTULA_EAT = registerSoundEvent("tarantula_eat");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_IDLE = registerSoundEvent("peacock_idle");
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_HURT = registerSoundEvent("peacock_hurt");

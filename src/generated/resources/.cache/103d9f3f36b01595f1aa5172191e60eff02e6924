@@ -1,4 +1,4 @@
-// 1.21	2026-11-26T20:49:47.0690349	Registries
+// 1.21	2026-11-27T22:16:55.2835989	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -25,6 +25,7 @@ dbc709bd29c192a4b52bb9c7655bd6058c47e0ac data/ow/neoforge/biome_modifier/spawn_o
 c6ce13075823c1a28dcca0c98f12368a93034341 data/ow/neoforge/biome_modifier/spawn_peacock.json
 841aa7b40b0f078cc9e518273428483a57706858 data/ow/neoforge/biome_modifier/spawn_peacock_meadow.json
 6a456ebde8b3c0953ebbabffab82d64289adc55b data/ow/neoforge/biome_modifier/spawn_red_panda.json
+c34dbcd4435facdd959f75107d9de4cf4f3e7b25 data/ow/neoforge/biome_modifier/spawn_tarantula.json
 a2267063fc1c45a7b32f6126a96105b18970be27 data/ow/neoforge/biome_modifier/spawn_tiger.json
 62cda710c6e4fadeb94242cc5192c0d6c68ef6eb data/ow/worldgen/biome/arena.json
 8fa483b90301bd0fc755d570284909cefbb43b92 data/ow/worldgen/biome/arena_aquatic.json

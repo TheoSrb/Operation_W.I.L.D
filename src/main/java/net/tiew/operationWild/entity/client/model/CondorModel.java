@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.animation.AnimationChannel;
 import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -20,7 +21,6 @@ import net.tiew.operationWild.entity.animals.flying.CondorEntity;
 import net.tiew.operationWild.entity.client.animation.CondorAnimations;
 import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
 import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
-import net.tiew.operationWild.entity.attacks.OWAttacksConstants.Flight;
 import org.joml.Vector3f;
 
 public class CondorModel<T extends CondorEntity> extends OWComboModel<T> implements OWFlagModel {
@@ -32,7 +32,7 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
 
     private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
-    private static final float WALK_ANIM_SPEED = 2.5f;
+    private static final float WALK_ANIM_SPEED = 3.5f;
     private static final float RUN_ANIM_SPEED = 1.0f;
     private static final float WALK_WEIGHT_FACTOR = 4.0f;
     private static final float RUN_WEIGHT_FACTOR = 1.25f;
@@ -40,7 +40,10 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
     private static final float GESTURE_FADE_MS = 300f;
     private static final float ONE_SHOT_FADE_MS = 200f;
     private static final Vector3f ANIM_VECTOR = new Vector3f();
-    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(CondorAnimations.SEDATED_FALL, CondorAnimations.SEDATED_REST, CondorAnimations.SEDATED_WAKE);
+    private static final AnimationDefinition GRAB_LEGS = legsOnly(CondorAnimations.FLY_GRAB);
+    private static final AnimationDefinition CARRY_LEGS = legsOnly(CondorAnimations.FLY_CARRY);
+    private static final AnimationDefinition DROP_LEGS = legsOnly(CondorAnimations.FLY_DROP);
+    private static final OWSedationAnimationSet SEDATION =new OWSedationAnimationSet(CondorAnimations.SEDATED_FALL, CondorAnimations.SEDATED_REST, CondorAnimations.SEDATED_WAKE);
 
     public float externalRiderPitch = 0f;
     public float externalBankRoll = 0f;
@@ -65,6 +68,7 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
     private final ModelPart flag;
     private final ModelPart left_leg;
     private final ModelPart right_leg;
+    private final org.joml.Matrix4f talonRestInverse;
 
     public CondorModel(ModelPart root) {
         this.ALL2 = root.getChild("ALL2");
@@ -87,6 +91,11 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
         this.right_leg = this.ALL.getChild("right_leg");
 
         if (this.mainFlag != null) this.mainFlag.visible = false;
+
+        PoseStack rest = new PoseStack();
+        this.ALL2.translateAndRotate(rest);
+        this.ALL.translateAndRotate(rest);
+        this.talonRestInverse = new org.joml.Matrix4f(rest.last().pose()).invert();
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -273,7 +282,17 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
         }
         animateSwim(condor, CondorAnimations.SWIM, ageInTicks, stance * swim);
 
-        if (air > 0.001f) animateFlight(condor, pt, time, air, soar, dash);
+        float drop = oneShotWeight(CondorAnimations.FLY_DROP, condor.talonDropSeconds(pt));
+        float grab = oneShotWeight(CondorAnimations.FLY_GRAB, condor.talonGrabSeconds(pt)) * (1f - drop);
+        float carry = smoothStep(condor.carryBlend(pt)) * (1f - grab) * (1f - drop);
+        float flapping = 1f - soar;
+        float talon = Mth.clamp((grab + drop + carry) * flapping, 0f, 1f);
+
+        float flight = air * (1f - talon);
+        if (flight > 0.001f) animateFlight(condor, pt, time, flight, soar, dash);
+        if (air * talon > 0.001f) animateTalons(condor, pt, air * grab * flapping, air * carry * flapping, air * drop * flapping);
+        float glidingTalons = air * soar * Mth.clamp(grab + drop + carry, 0f, 1f);
+        if (glidingTalons > 0.001f) holdTalonLegs(condor, pt, grab, carry, drop, glidingTalons);
 
         animateOneShot(CondorAnimations.TAKEOFF, condor.takeoffSeconds(pt), 1f);
         animateOneShot(CondorAnimations.LANDING, condor.landingSeconds(pt), 1f);
@@ -320,6 +339,70 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
         this.neck.zRot -= roll * 8f * Mth.DEG_TO_RAD;
         this.left_wing2.yRot += Math.max(0f, roll) * 10f * Mth.DEG_TO_RAD * soar;
         this.right_wing2.yRot -= Math.max(0f, -roll) * 10f * Mth.DEG_TO_RAD * soar;
+    }
+
+    private void animateTalons(T condor, float pt, float grab, float carry, float drop) {
+        if (grab > 0.001f) {
+            KeyframeAnimations.animate(this, CondorAnimations.FLY_GRAB, (long) (condor.talonGrabSeconds(pt) * 1000f), grab, ANIM_VECTOR);
+        }
+        if (carry > 0.001f) {
+            long ms = (long) (condor.flapPhase(pt) * CondorAnimations.FLY_CARRY.lengthInSeconds() * 1000f);
+            KeyframeAnimations.animate(this, CondorAnimations.FLY_CARRY, ms, carry, ANIM_VECTOR);
+        }
+        if (drop > 0.001f) {
+            KeyframeAnimations.animate(this, CondorAnimations.FLY_DROP, (long) (condor.talonDropSeconds(pt) * 1000f), drop, ANIM_VECTOR);
+        }
+    }
+
+    private void holdTalonLegs(T condor, float pt, float grab, float carry, float drop, float weight) {
+        float total = grab + carry + drop;
+        if (total <= 0.001f) return;
+        PartPose leftBefore = this.left_leg.storePose();
+        PartPose rightBefore = this.right_leg.storePose();
+        this.left_leg.resetPose();
+        this.right_leg.resetPose();
+        if (grab > 0.001f) {
+            KeyframeAnimations.animate(this, GRAB_LEGS, (long) (condor.talonGrabSeconds(pt) * 1000f), grab / total, ANIM_VECTOR);
+        }
+        if (carry > 0.001f) {
+            long ms = (long) (condor.flapPhase(pt) * CARRY_LEGS.lengthInSeconds() * 1000f);
+            KeyframeAnimations.animate(this, CARRY_LEGS, ms, carry / total, ANIM_VECTOR);
+        }
+        if (drop > 0.001f) {
+            KeyframeAnimations.animate(this, DROP_LEGS, (long) (condor.talonDropSeconds(pt) * 1000f), drop / total, ANIM_VECTOR);
+        }
+        blendPart(this.left_leg, leftBefore, weight);
+        blendPart(this.right_leg, rightBefore, weight);
+    }
+
+    private static void blendPart(ModelPart part, PartPose from, float weight) {
+        part.x = Mth.lerp(weight, from.x, part.x);
+        part.y = Mth.lerp(weight, from.y, part.y);
+        part.z = Mth.lerp(weight, from.z, part.z);
+        part.xRot = Mth.lerp(weight, from.xRot, part.xRot);
+        part.yRot = Mth.lerp(weight, from.yRot, part.yRot);
+        part.zRot = Mth.lerp(weight, from.zRot, part.zRot);
+    }
+
+    private static AnimationDefinition legsOnly(AnimationDefinition source) {
+        AnimationDefinition.Builder builder = AnimationDefinition.Builder.withLength(source.lengthInSeconds());
+        if (source.looping()) builder.looping();
+        for (String bone : new String[]{"left_leg", "right_leg"}) {
+            for (AnimationChannel channel : source.boneAnimations().getOrDefault(bone, java.util.List.of())) {
+                builder.addAnimation(bone, channel);
+            }
+        }
+        return builder.build();
+    }
+
+    private static float oneShotWeight(AnimationDefinition animation, float seconds) {
+        if (seconds < 0f) return 0f;
+        long ms = (long) (seconds * 1000f);
+        long total = (long) (animation.lengthInSeconds() * 1000f);
+        if (ms >= total) return 0f;
+        float in = Mth.clamp(ms / ONE_SHOT_FADE_MS, 0f, 1f);
+        float out = Mth.clamp((total - ms) / ONE_SHOT_FADE_MS, 0f, 1f);
+        return smoothStep(Math.min(in, out));
     }
 
     private void animateOneShot(AnimationDefinition animation, float seconds, float weight) {
@@ -374,22 +457,20 @@ public class CondorModel<T extends CondorEntity> extends OWComboModel<T> impleme
 
     private void captureBodyState(CondorEntity condor) {
         if (!condor.level().isClientSide()) return;
-        float savedRoll = this.ALL2.zRot;
-        float savedPitch = this.ALL2.xRot;
-        this.ALL2.zRot *= Flight.RIDER_ROLL_SHARE;
-        this.ALL2.xRot *= Flight.RIDER_PITCH_SHARE;
-
-        condor.setBodyZRot((float) Math.toDegrees(this.ALL2.zRot + this.ALL.zRot + this.body.zRot));
-        condor.setBodyXRot((float) -Math.toDegrees(this.ALL2.xRot + this.ALL.xRot + this.body.xRot));
+        condor.setBodyZRot((float) Math.toDegrees(this.ALL2.zRot + this.ALL.zRot + this.body.zRot + this.body2.zRot));
+        condor.setBodyXRot((float) -Math.toDegrees(this.ALL2.xRot + this.ALL.xRot + this.body.xRot + this.body2.xRot));
 
         PoseStack bones = new PoseStack();
         this.ALL2.translateAndRotate(bones);
         this.ALL.translateAndRotate(bones);
         this.body.translateAndRotate(bones);
+        this.body2.translateAndRotate(bones);
         condor.boneMatrix = new org.joml.Matrix4f(bones.last().pose());
 
-        this.ALL2.zRot = savedRoll;
-        this.ALL2.xRot = savedPitch;
+        PoseStack talons = new PoseStack();
+        this.ALL2.translateAndRotate(talons);
+        this.ALL.translateAndRotate(talons);
+        condor.talonFrame = new org.joml.Matrix4f(talons.last().pose()).mul(this.talonRestInverse);
     }
 
     private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
