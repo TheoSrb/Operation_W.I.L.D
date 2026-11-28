@@ -46,8 +46,9 @@ public class GiraffeLayer extends RenderLayer<GiraffeEntity, GiraffeModel<Giraff
             renderOverlayWithColor(poseStack, bufferSource, NECKLACE_TEXTURE, packedLight, giraffe.getNecklaceColor());
         }
 
-        if (giraffe.isSaddled()) renderOverlay(poseStack, bufferSource, SADDLE_TEXTURE, packedLight);
         if (giraffe.hasPlatform()) renderOverlay(poseStack, bufferSource, PLATFORM_TEXTURE, packedLight);
+        else if (giraffe.isSaddled()) renderOverlay(poseStack, bufferSource, SADDLE_TEXTURE, packedLight);
+
         if (giraffe.carriesTribeFlag()) renderOverlay(poseStack, bufferSource, FLAG_SADDLE_TEXTURE, packedLight);
 
         double healthTier = giraffe.getMaxHealth() / 4;
