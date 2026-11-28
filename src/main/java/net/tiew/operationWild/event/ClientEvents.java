@@ -183,6 +183,8 @@ public class ClientEvents {
             return;
         }
 
+        if (leftButtonIsPressed && net.tiew.operationWild.client.platform.OWPlatformClient.capturesAttack()) return;
+        if (rightButtonIsPressed && net.tiew.operationWild.client.platform.OWPlatformClient.capturesUse()) return;
         if (player != null) {
             Entity ridingEntity = player.getRootVehicle();
             if (ridingEntity instanceof Submarine) {
@@ -586,14 +588,10 @@ public class ClientEvents {
             event.setCanceled(true);
         }
 
-        // Porter un panda roux libère la bande de la faim, exactement comme chevaucher : Minecraft
-        // l'efface de lui-même au profit des jauges de la monture, et les jauges de compagnon sont
-        // placées pour cette bande-là. Sans cela elles se superposaient aux pilons.
         if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.FOOD_LEVEL)) {
             Player player = Minecraft.getInstance().player;
-            if (player != null
-                    && net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null
-                    && !net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity.carriesAny(player)) {
+            if (player != null && (player.getVehicle() != null
+                    || net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) != null)) {
                 event.setCanceled(true);
             }
         }
@@ -1825,6 +1823,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock) {
                 event.setRoll((float) (event.getRoll() + (peacock.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (peacock.getBodyXRot() / 6) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe) {
+                event.setRoll((float) (event.getRoll() + (giraffe.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (giraffe.getBodyXRot() / 6) * intensity));
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.OWSemiFlyingEntity flyer) {
                 event.setRoll((float) (event.getRoll() + flyer.getBankCameraRoll((float) event.getPartialTick()) * intensity));
             }
@@ -2257,6 +2258,7 @@ public class ClientEvents {
             renderRedPandaVitalSense(event);
             renderHealTargetOutline(event);
             net.tiew.operationWild.entity.client.render.misc.PeacockLifeLinkRenderer.render(event);
+            net.tiew.operationWild.entity.client.render.misc.GiraffeSentinelRenderer.render(event);
             computeWaypointScreenPositions(event);
         }
 

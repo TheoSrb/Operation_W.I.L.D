@@ -48,6 +48,7 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_ORCA = registerKey("spawn_orca");
     public static final ResourceKey<BiomeModifier> SPAWN_HIPPOPOTAMUS = registerKey("spawn_hippopotamus");
     public static final ResourceKey<BiomeModifier> SPAWN_CONDOR = registerKey("spawn_condor");
+    public static final ResourceKey<BiomeModifier> SPAWN_GIRAFFE = registerKey("spawn_giraffe");
 
     public static final ArrayList<ResourceKey<Biome>> TIGER_BIOMES = new ArrayList<>(
             List.of(Biomes.BAMBOO_JUNGLE, Biomes.JUNGLE)
@@ -63,6 +64,10 @@ public class OWBiomeModifiers {
 
     public static final ArrayList<ResourceKey<Biome>> PEACOCK_MEADOW_BIOMES = new ArrayList<>(
             List.of(Biomes.MEADOW, Biomes.CHERRY_GROVE)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> GIRAFFE_BIOMES = new ArrayList<>(
+            List.of(Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU)
     );
 
     public static final ArrayList<ResourceKey<Biome>> CONDOR_BIOMES = new ArrayList<>(
@@ -146,7 +151,8 @@ public class OWBiomeModifiers {
             new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4),
             new SpawnRule(SPAWN_PEACOCK, OWEntityRegistry.PEACOCK, PEACOCK_BIOMES, 10, 2, 4),
             new SpawnRule(SPAWN_PEACOCK_MEADOW, OWEntityRegistry.PEACOCK, PEACOCK_MEADOW_BIOMES, 2, 2, 4),
-            new SpawnRule(SPAWN_CONDOR, OWEntityRegistry.CONDOR, CONDOR_BIOMES, 12, 1, 2));
+            new SpawnRule(SPAWN_CONDOR, OWEntityRegistry.CONDOR, CONDOR_BIOMES, 12, 1, 2),
+            new SpawnRule(SPAWN_GIRAFFE, OWEntityRegistry.GIRAFFE, GIRAFFE_BIOMES, 20, 2, 4));
 
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);

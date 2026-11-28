@@ -19,6 +19,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("BoaEntity", buildBoa());
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
         BY_SPECIES.put("PeacockEntity", buildPeacock());
+        BY_SPECIES.put("GiraffeEntity", buildGiraffe());
         BY_SPECIES.put("ChameleonEntity", buildChameleon());
         BY_SPECIES.put("TarantulaEntity", buildTarantula());
         BY_SPECIES.put("CondorEntity", buildKodiak(net.tiew.operationWild.entity.attacks.OWPistePassives.TAILWIND, net.tiew.operationWild.entity.attacks.OWPistePassives.IRON_TALONS, 45));
@@ -210,12 +211,16 @@ public final class OWPisteGraphs {
         return buildHealerMaze(false);
     }
 
+    private static OWPisteGraph buildGiraffe() {
+        return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.GRAND_GUARDIAN, net.tiew.operationWild.entity.attacks.OWPistePassives.SHARED_BLESSING, 46);
+    }
+
     private static OWPisteGraph buildChameleon() {
         return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.LONG_TONGUE, net.tiew.operationWild.entity.attacks.OWPistePassives.SLOW_FADE, 38);
     }
 
     private static OWPisteGraph buildTarantula() {
-        return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.SILK_REACH, net.tiew.operationWild.entity.attacks.OWPistePassives.FAST_SPOOL, 36);
+        return buildCompanionMaze(net.tiew.operationWild.entity.attacks.OWPistePassives.SILK_COCOON, net.tiew.operationWild.entity.attacks.OWPistePassives.STRONG_SILK, 40);
     }
 
     private static OWPisteGraph buildHealerMaze(boolean redPandaPassives) {

@@ -35,6 +35,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.LION_SPAWN_EGG.get());
                         output.accept(OWItems.PEACOCK_SPAWN_EGG.get());
                         output.accept(OWItems.CONDOR_SPAWN_EGG.get());
+                        output.accept(OWItems.GIRAFFE_SPAWN_EGG.get());
                         output.accept(OWItems.COLOSSAL_SQUID_SPAWN_EGG.get());
                         output.accept(OWItems.TIGER_SPAWN_EGG.get());
 
@@ -81,6 +82,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.ORCA_SADDLE.get());
                         output.accept(OWItems.PEACOCK_SADDLE.get());
                         output.accept(OWItems.TIGER_SADDLE.get());
+                        output.accept(OWItems.GIRAFFE_PLATFORM.get());
                         output.accept(OWItems.TIGER_SHARK_SADDLE.get());
                         output.accept(OWItems.BOXING_GLOVES.get());
                         output.accept(OWItems.RESURRECTION_AMULET.get());

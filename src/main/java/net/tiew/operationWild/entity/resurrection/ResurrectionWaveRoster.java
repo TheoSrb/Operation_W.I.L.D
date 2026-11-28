@@ -45,6 +45,7 @@ public final class ResurrectionWaveRoster {
             Map.entry("chameleon", 1),
             Map.entry("tarantula", 1),
             Map.entry("peacock", 1),
+            Map.entry("giraffe", 2),
             Map.entry("boa", 2),
             Map.entry("tiger", 3),
             Map.entry("lion", 3),

@@ -239,6 +239,19 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.PORKCHOP)
                 .add(Items.RABBIT);
 
+        tag(OWTags.Items.GIRAFFE_FOOD)
+                .add(Items.ACACIA_LEAVES)
+                .add(Items.OAK_LEAVES)
+                .add(Items.BIRCH_LEAVES)
+                .add(Items.JUNGLE_LEAVES)
+                .add(Items.DARK_OAK_LEAVES)
+                .add(Items.MANGROVE_LEAVES)
+                .add(Items.CHERRY_LEAVES)
+                .add(Items.APPLE)
+                .add(Items.SWEET_BERRIES)
+                .add(Items.GLOW_BERRIES)
+                .add(OWItems.SAVAGE_BERRIES.get());
+
         tag(OWTags.Items.CONDOR_FOOD)
                 .add(Items.BEEF)
                 .add(Items.MUTTON)

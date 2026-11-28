@@ -223,6 +223,8 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
     private Direction webAnchorFace = null;
     private int anchorTicks = 0;
     private int shotWindup = -1;
+    private boolean halfMealBanked = false;
+    private ItemStack lastMeal = ItemStack.EMPTY;
 
     private int wallTrend = 0;
     public float wallPitch = 0f;
@@ -882,13 +884,11 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
     }
 
     public double webRange() {
-        return OWPistePassives.has(this, OWPistePassives.SILK_REACH)
-                ? OWAttacksConstants.Tarantula.WEB_RANGE_SILK_REACH
-                : OWAttacksConstants.Tarantula.WEB_RANGE;
+        return OWAttacksConstants.Tarantula.WEB_RANGE;
     }
 
-    public double reelSpeedFactor() {
-        return OWPistePassives.has(this, OWPistePassives.FAST_SPOOL) ? OWAttacksConstants.Tarantula.REEL_FAST_SPOOL_FACTOR : 1.0;
+    public boolean hasStrongSilk() {
+        return OWPistePassives.has(this, OWPistePassives.STRONG_SILK);
     }
 
     public boolean canShootWeb() {
@@ -950,8 +950,12 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
             }
             if (eating > 0) return;
             ItemStack food = this.getInventory().getStackInSlot(FOOD_SLOT);
-            if (!food.isEmpty()) {
+            if (halfMealBanked && hasStrongSilk()) {
+                halfMealBanked = false;
+                this.entityData.set(WEB_LOADED, true);
+            } else if (!food.isEmpty()) {
                 consumeSilkFood(food);
+                halfMealBanked = hasStrongSilk();
                 this.entityData.set(WEB_LOADED, true);
             }
             this.entityData.set(EAT_ITEM, ItemStack.EMPTY);
@@ -959,8 +963,10 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
         if (!ready || isWebLoaded()) return;
         ItemStack food = this.getInventory().getStackInSlot(FOOD_SLOT);
-        if (food.isEmpty()) return;
-        this.entityData.set(EAT_ITEM, food.copyWithCount(1));
+        boolean banked = halfMealBanked && hasStrongSilk();
+        if (food.isEmpty() && !banked) return;
+        this.entityData.set(EAT_ITEM, food.isEmpty() ? lastMeal.copy() : food.copyWithCount(1));
+        if (!food.isEmpty()) lastMeal = food.copyWithCount(1);
         this.entityData.set(EAT_TIMER, OWAttacksConstants.Tarantula.EAT_TICKS);
     }
 
@@ -1201,9 +1207,13 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
 
     private void strikeWebTarget(@Nullable Entity target) {
         if (target instanceof LivingEntity living && living.isAlive()) {
-            living.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * OWAttacksConstants.Tarantula.WEB_DAMAGE_RATIO);
-            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, OWAttacksConstants.Tarantula.WEB_SLOWNESS_TICKS,
-                    OWAttacksConstants.Tarantula.WEB_SLOWNESS_AMPLIFIER), this);
+            wakeUp(living);
+            if (OWPistePassives.has(this, OWPistePassives.SILK_COCOON) && net.tiew.operationWild.entity.cocoon.TarantulaCocoons.canWrap(living)) {
+                net.tiew.operationWild.entity.cocoon.TarantulaCocoons.wrap(living);
+            } else {
+                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, OWAttacksConstants.Tarantula.WEB_SLOWNESS_TICKS,
+                        OWAttacksConstants.Tarantula.WEB_SLOWNESS_AMPLIFIER), this);
+            }
             Player carrier = getCarrier();
             if (carrier != null && living instanceof Mob mob && mob.isAlive() && isHostileOrNeutral(mob) && mob.canAttack(carrier)) {
                 mob.setTarget(carrier);
@@ -1211,9 +1221,16 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
             Vec3 hit = living.getBoundingBox().getCenter();
             this.level().playSound(null, hit.x, hit.y, hit.z, OWSounds.TARANTULA_WEB_STICK.get(), SoundSource.NEUTRAL, 1.0f, 1.2f);
             burst(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.COBWEB.defaultBlockState()), hit, 14, 0.25, 0.1);
-            burst(ParticleTypes.CRIT, hit, 8, 0.25, 0.25);
         }
         startRetract(OWAttacksConstants.Tarantula.WEB_IMPACT_HOLD_TICKS);
+    }
+
+    private static void wakeUp(LivingEntity living) {
+        if (living instanceof OWEntity beast) {
+            if (beast.isNapping()) beast.setNap(false);
+        } else if (living.isSleeping()) {
+            living.stopSleeping();
+        }
     }
 
     private void catchItem() {
@@ -1255,7 +1272,9 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
 
         carrier.fallDistance = 0f;
-        setVitalEnergy(getVitalEnergy() + OWAttacksConstants.Tarantula.ANCHOR_ENERGY_PER_TICK);
+        float drain = OWAttacksConstants.Tarantula.ANCHOR_ENERGY_PER_TICK;
+        if (hasStrongSilk()) drain *= OWAttacksConstants.Tarantula.STRONG_SILK_DRAIN_FACTOR;
+        setVitalEnergy(getVitalEnergy() + drain);
         if (getVitalEnergy() >= getVitalEnergyCapacity()) {
             setVitalEnergy(getVitalEnergyCapacity());
             canShowVitalEnergyLack = true;
@@ -1264,9 +1283,14 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
         }
         boolean blockGone = this.level().getBlockState(webAnchorBlock).isAir();
         boolean tooFar = ropePoint(carrier).distanceTo(webEnd()) > webRange() + OWAttacksConstants.Tarantula.ANCHOR_RELEASE_SLACK;
-        if (blockGone || tooFar || carrier.getVehicle() != null || ++anchorTicks > OWAttacksConstants.Tarantula.ANCHOR_MAX_TICKS) {
+        if (blockGone || tooFar || carrier.getVehicle() != null || ++anchorTicks > anchorMaxTicks()) {
             releaseWeb(true);
         }
+    }
+
+    private int anchorMaxTicks() {
+        int base = OWAttacksConstants.Tarantula.ANCHOR_MAX_TICKS;
+        return hasStrongSilk() ? base * OWAttacksConstants.Tarantula.STRONG_SILK_TIME_FACTOR : base;
     }
 
     public void releaseWeb(boolean playSound) {
@@ -1686,6 +1710,7 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putBoolean("webLoaded", this.isWebLoaded());
+        tag.putBoolean("halfMealBanked", this.halfMealBanked);
 
         Player carrier = getCarrier();
         if (carrier != null) {
@@ -1705,6 +1730,7 @@ public class TarantulaEntity extends OWEntity implements IOWEntity, IOWTamable, 
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
         this.entityData.set(WEB_LOADED, tag.getBoolean("webLoaded"));
+        this.halfMealBanked = tag.getBoolean("halfMealBanked");
         this.pendingCarrier = tag.hasUUID("wristCarrier") ? tag.getUUID("wristCarrier") : null;
         this.pendingCarrierSlot = tag.getInt("wristSlot") == SLOT_LEFT ? SLOT_LEFT : SLOT_RIGHT;
         this.pendingCarrierTicks = 0;

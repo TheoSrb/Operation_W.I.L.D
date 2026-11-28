@@ -83,6 +83,7 @@ public class OWTags {
         public static final TagKey<Item> LION_FOOD = tag("lion_food");
 
         public static final TagKey<Item> PEACOCK_FOOD = tag("peacock_food");
+        public static final TagKey<Item> GIRAFFE_FOOD = tag("giraffe_food");
 
         public static final TagKey<Item> CONDOR_FOOD = tag("condor_food");
 

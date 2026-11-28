@@ -434,6 +434,40 @@ public class OWAttacksInformation {
 
         ));
 
+        PROFILES.put(net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.class, new EntityProfile(
+
+                new AttackSlot(196, 140, "LMB",
+                        title("ow.attacks.giraffe.combo.title"),
+                        e -> desc("ow.attacks.giraffe.combo.desc",
+                                val("0.9"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(216, 140, "RMB",
+                        title("ow.attacks.giraffe.blessing.title"),
+                        e -> desc("ow.attacks.giraffe.blessing.desc",
+                                val((int) OWAttacksConstants.Giraffe.BLESSING_HEAL_PER_SECOND),
+                                val((int) OWAttacksConstants.Giraffe.BLESSING_VITAL_PER_SECOND),
+                                val(OWAttacksConstants.Giraffe.BLESSING_MAX_TICKS / 20),
+                                val((int) OWAttacksConstants.Giraffe.BLESSING_AIM_RANGE),
+                                val(OWAttacksConstants.Giraffe.BLESSING_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(236, 140, "X",
+                        title("ow.attacks.giraffe.sentinel.title"),
+                        e -> desc("ow.attacks.giraffe.sentinel.desc",
+                                val((int) OWAttacksConstants.Giraffe.SENTINEL_RADIUS),
+                                val(OWAttacksConstants.Giraffe.SENTINEL_DURATION_TICKS / 20),
+                                val((int) OWAttacksConstants.Giraffe.SENTINEL_HEAL_PER_SECOND),
+                                val((int) (OWAttacksConstants.Giraffe.SENTINEL_DAMAGE_REDUCTION * 100)),
+                                val(OWAttacksConstants.Giraffe.SENTINEL_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.giraffe.watchtower.title"),
+                        e -> desc("ow.attacks.giraffe.watchtower.desc"))
+
+        ));
+
         PROFILES.put(ColossalSquidEntity.class, new EntityProfile(
 
                 new AttackSlot(176, 0, "LMB",

@@ -107,6 +107,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.ANIMAL_SOUL.get());
 
         basicItem(OWItems.TIGER_SADDLE.get());
+        basicItem(OWItems.GIRAFFE_PLATFORM.get());
         basicItem(OWItems.KODIAK_SADDLE.get());
         basicItem(OWItems.BOA_SADDLE.get());
         basicItem(OWItems.PEACOCK_SADDLE.get());
@@ -173,6 +174,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         withExistingParent(OWItems.LION_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.PEACOCK_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.CONDOR_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
+        withExistingParent(OWItems.GIRAFFE_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.COLOSSAL_SQUID_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
 
 

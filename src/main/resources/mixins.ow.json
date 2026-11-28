@@ -17,12 +17,19 @@
     "MimicryRendererMixin",
     "MimicryShadowMixin",
     "MimicryInventoryPreviewMixin",
-    "MimicryPlayerPoseMixin"
+    "MimicryPlayerPoseMixin",
+    "GameRendererPlatformPickMixin"
   ],
   "mixins": [
     "VehicleMovedWronglyMixin",
     "FlyingVehicleFloatMixin",
     "MultiNoiseBiomeSourceMixin",
-    "MimicrySprintParticleMixin"
+    "MimicrySprintParticleMixin",
+    "LevelPlatformScopeMixin",
+    "EntityPlatformCollideMixin",
+    "PlatformPlayerMovementMixin",
+    "ServerLevelPlatformMixin",
+    "PlayerPlatformReachMixin",
+    "LevelTicksPlatformMixin"
   ]
 }

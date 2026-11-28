@@ -272,6 +272,21 @@ public class OWAttacksOverlay {
                 }
             }
 
+            if (attack.getId() == OWAttacksHandler.GIRAFFE_BLESSING_ID
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity blessingGiraffe) {
+                int blessingCooldown = blessingGiraffe.getBlessingCooldown();
+                if (blessingGiraffe.isBlessing()) {
+                    fillProgress = (float) blessingGiraffe.getBlessingTick() / OWAttacksConstants.Giraffe.BLESSING_MAX_TICKS;
+                    isGlowing = true;
+                } else if (blessingCooldown > 0) {
+                    fillProgress = 1.0f - (float) blessingCooldown / OWAttacksConstants.Giraffe.BLESSING_COOLDOWN_TICKS;
+                    isGlowing = false;
+                } else {
+                    fillProgress = 1.0f;
+                    isGlowing = blessingGiraffe.pickBlessingTarget(player) != null;
+                }
+            }
+
             if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked || glideBlocked || isTongueBlocked || isTalonsGrounded) {
                 fillProgress     = 0f;
                 isGlowing        = false;

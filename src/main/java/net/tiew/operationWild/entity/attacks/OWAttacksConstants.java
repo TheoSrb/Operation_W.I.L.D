@@ -1186,14 +1186,12 @@ public class OWAttacksConstants {
 
     public static class Tarantula {
         public static final double WEB_RANGE = 32.0;
-        public static final double WEB_RANGE_SILK_REACH = 40.0;
         public static final float WEB_ENERGY = 30f;
         public static final int WEB_COOLDOWN_TICKS = 8;
         public static final int EAT_TICKS = 22;
         public static final int EAT_SOUND_INTERVAL = 6;
         public static final int SELECT_FLASH_MS = 300;
         public static final int SELECT_ANIMATION_TICKS = 12;
-        public static final float WEB_DAMAGE_RATIO = 0.5f;
         public static final int WEB_SLOWNESS_TICKS = 60;
         public static final int WEB_SLOWNESS_AMPLIFIER = 1;
         public static final int WEB_WINDUP_TICKS = 4;
@@ -1223,7 +1221,6 @@ public class OWAttacksConstants {
         public static final double REEL_MIN_APPROACH = 0.35;
         public static final double REEL_LATERAL_KEEP = 0.97;
         public static final double REEL_GRAVITY_SHARE = 0.7;
-        public static final double REEL_FAST_SPOOL_FACTOR = 1.35;
         public static final double REEL_ARRIVE_DISTANCE = 1.3;
         public static final double REEL_HOLD_GAIN = 0.12;
         public static final double REEL_HOLD_DAMPING = 0.75;
@@ -1231,5 +1228,54 @@ public class OWAttacksConstants {
         public static final double DETACH_HOP_LIFT = 0.42;
         public static final double DETACH_HOP_PUSH = 0.18;
         public static final int PREDICTION_TIMEOUT_TICKS = 10;
+
+        public static final double COCOON_SIZE_PER_LAYER = 0.34;
+        public static final int COCOON_MIN_LAYERS = 1;
+        public static final int COCOON_MAX_LAYERS = 12;
+        public static final int COCOON_LOCK_TICKS = 100;
+        public static final int COCOON_DECAY_DELAY = 100;
+        public static final int COCOON_DECAY_INTERVAL = 30;
+        public static final double COCOON_MAX_SLOW = 0.75;
+        public static final int STRONG_SILK_TIME_FACTOR = 2;
+        public static final float STRONG_SILK_DRAIN_FACTOR = 0.5f;
+    }
+
+    public static class Giraffe {
+        public static final double BLESSING_AIM_RANGE = 24.0;
+        public static final double BLESSING_AIM_TOLERANCE = 1.5;
+        public static final double BLESSING_MIN_AIM_DISTANCE = 1.5;
+        public static final float BLESSING_START_ENERGY = 15f;
+        public static final float BLESSING_ENERGY_PER_SECOND = 30f;
+        public static final int BLESSING_MAX_TICKS = 60;
+        public static final int BLESSING_PULSE_TICKS = 5;
+        public static final int BLESSING_COOLDOWN_TICKS = 100;
+        public static final float BLESSING_HEAL_PER_SECOND = 4f;
+        public static final float BLESSING_VITAL_PER_SECOND = 15f;
+        public static final int BLESSING_RESISTANCE_TICKS = 60;
+        public static final int BLESSING_RESISTANCE_AMPLIFIER = 1;
+
+        public static final int SENTINEL_BLESSINGS_REQUIRED = 5;
+        public static final int SENTINEL_COOLDOWN_TICKS = 1200;
+        public static final float SENTINEL_ENERGY = 100f;
+        public static final int SENTINEL_CAST_TICKS = 40;
+        public static final int SENTINEL_IMPACT_TICK = 26;
+        public static final int SENTINEL_DURATION_TICKS = 240;
+        public static final long SENTINEL_DURATION_MS = (SENTINEL_CAST_TICKS - SENTINEL_IMPACT_TICK + SENTINEL_DURATION_TICKS) * 50L;
+        public static final double SENTINEL_RADIUS = 16.0;
+        public static final double SENTINEL_BREAK_DISTANCE = 24.0;
+        public static final float SENTINEL_HEAL_PER_SECOND = 2f;
+        public static final int SENTINEL_HEAL_INTERVAL = 10;
+        public static final float SENTINEL_DAMAGE_REDUCTION = 0.35f;
+        public static final int SENTINEL_SCAN_INTERVAL = 10;
+        public static final int SENTINEL_MAX_LINKS = 24;
+
+        public static final double AUTO_HEAL_RANGE = 20.0;
+        public static final float AUTO_BLESS_THRESHOLD = 0.6f;
+        public static final float AUTO_SENTINEL_GROUP_THRESHOLD = 0.6f;
+        public static final float AUTO_SENTINEL_SINGLE_THRESHOLD = 0.35f;
+        public static final int AUTO_SENTINEL_COOLDOWN_TICKS = 1200;
+
+        public static final double HERD_FLEE_RADIUS = 20.0;
+        public static final int HERD_FLEE_TICKS = 160;
     }
 }

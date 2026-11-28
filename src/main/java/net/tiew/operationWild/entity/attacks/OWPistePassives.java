@@ -31,8 +31,15 @@ public final class OWPistePassives {
     public static final int SLOW_FADE = 7;
     public static final int TAILWIND = 8;
     public static final int IRON_TALONS = 9;
-    public static final int SILK_REACH = 10;
-    public static final int FAST_SPOOL = 11;
+    public static final int SILK_COCOON = 10;
+    public static final int STRONG_SILK = 11;
+    public static final int GRAND_GUARDIAN = 12;
+    public static final int SHARED_BLESSING = 13;
+
+    public static final float GRAND_GUARDIAN_RADIUS_FACTOR = 1.5f;
+    public static final int GRAND_GUARDIAN_EXTRA_TICKS = 80;
+    public static final double SHARED_BLESSING_RADIUS = 4.0;
+    public static final float SHARED_BLESSING_FACTOR = 0.5f;
 
     public static final int TAILWIND_DELAY_TICKS = 100;
     public static final double TAILWIND_SPEED_FACTOR = 1.2;

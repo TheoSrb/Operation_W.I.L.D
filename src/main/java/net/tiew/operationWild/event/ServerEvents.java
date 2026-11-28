@@ -362,6 +362,28 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public static void onSentinelShieldedDamage(LivingIncomingDamageEvent event) {
+        LivingEntity victim = event.getEntity();
+        if (victim.level().isClientSide() || event.getAmount() <= 0f) return;
+        if (net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.findGuardian(victim) == null) return;
+        event.setAmount(event.getAmount() * (1f - net.tiew.operationWild.entity.attacks.OWAttacksConstants.Giraffe.SENTINEL_DAMAGE_REDUCTION));
+    }
+
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
+    public static void onSentinelFatalBlow(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event) {
+        LivingEntity victim = event.getEntity();
+        if (victim.level().isClientSide()) return;
+        float damage = event.getNewDamage();
+        if (damage <= 0f || damage < victim.getHealth()) return;
+        if (event.getSource().is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
+        net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity guardian =
+                net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.findGuardian(victim);
+        if (guardian == null) return;
+        event.setNewDamage(0f);
+        guardian.absorbFatalBlow(victim, damage);
+    }
+
+    @SubscribeEvent
     public static void onBossHitsTamedBeast(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof OWEntity beast) || !beast.isTame()) return;
         if (beast.level().isClientSide()) return;

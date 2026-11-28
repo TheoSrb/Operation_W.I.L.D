@@ -88,6 +88,8 @@ public class OWAttacksHandler {
     public static final int CONDOR_TALONS_ID = OWAttackIds.CONDOR_TALONS;
     public static final int CONDOR_STORM_ID = OWAttackIds.CONDOR_STORM;
     public static final int WEB_GRAPPLE_ID = OWAttackIds.WEB_GRAPPLE;
+    public static final int GIRAFFE_BLESSING_ID = OWAttackIds.GIRAFFE_BLESSING;
+    public static final int GIRAFFE_SENTINEL_ID = OWAttackIds.GIRAFFE_SENTINEL;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -204,6 +206,11 @@ public class OWAttacksHandler {
         registerComboMaxTimer(CondorEntity.class, 12);
         register(CondorEntity.class, CondorAttacks.TALONS);
         register(CondorEntity.class, CondorAttacks.STORM);
+
+        registerCardOrigin(net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.class, 196, 140);
+        registerComboMaxTimer(net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.class, 18);
+        register(net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.class, GiraffeAttacks.BLESSING);
+        register(net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity.class, GiraffeAttacks.SENTINEL);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -571,6 +578,35 @@ public class OWAttacksHandler {
                 entity -> entity instanceof PeacockEntity peacock ? peacock.getUltimateKillCount() : 0,
                 OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED
         ).withUltimateDuration(OWAttacksConstants.Peacock.SWEEP_DURATION_MS);
+    }
+
+    public static class GiraffeAttacks {
+
+        public static final OWAttack BLESSING = new OWAttack(
+                GIRAFFE_BLESSING_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Giraffe.BLESSING_START_ENERGY,
+                entity -> { },
+                0
+        );
+
+        public static final OWAttack SENTINEL = new OWAttack(
+                GIRAFFE_SENTINEL_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Giraffe.SENTINEL_ENERGY,
+                entity -> ((net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity) entity).activateSentinel(),
+                OWAttacksConstants.Giraffe.SENTINEL_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe
+                        && giraffe.getSentinelCharge() >= OWAttacksConstants.Giraffe.SENTINEL_BLESSINGS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe
+                        ? (float) giraffe.getSentinelCharge() / OWAttacksConstants.Giraffe.SENTINEL_BLESSINGS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe ? giraffe.getSentinelCharge() : 0,
+                OWAttacksConstants.Giraffe.SENTINEL_BLESSINGS_REQUIRED
+        ).withUltimateDuration(OWAttacksConstants.Giraffe.SENTINEL_DURATION_MS);
     }
 
     public static class CondorAttacks {

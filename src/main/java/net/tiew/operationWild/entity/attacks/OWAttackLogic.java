@@ -1301,6 +1301,32 @@ public class OWAttackLogic {
         recordAttackClick(attack.getId(), false);
     }
 
+    private static boolean giraffeBlessingHeld = false;
+
+    private static void handleGiraffeBlessing(OWAttack attack,
+                                              net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe,
+                                              Player player) {
+        if (!giraffe.canBless() || isCharging || giraffe.isAttackLocked() || playerHoldsUsableItem(player)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (giraffe.getVitalEnergy() > giraffe.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+            giraffe.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        net.minecraft.world.entity.LivingEntity target = giraffe.pickBlessingTarget(player);
+        if (target == null) {
+            player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BASS.value(), 0.8f, 0.5f);
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE_WITH_TARGET,
+                Float.intBitsToFloat(target.getId())));
+        giraffeBlessingHeld = true;
+        recordAttackClick(attack.getId(), false);
+    }
+
     private static boolean elephantSprayHeld = false;
 
     private static boolean peacockFeatherHeld = false;
@@ -2028,6 +2054,21 @@ public class OWAttackLogic {
                 if (event.getAction() == GLFW.GLFW_PRESS) {
                     handleCondorTalons(talons, condor, mc.player);
                     event.setCanceled(true);
+                }
+                return;
+            }
+        }
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffe) {
+            OWAttack blessing = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (blessing != null && blessing.getId() == OWAttacksHandler.GIRAFFE_BLESSING_ID) {
+                if (event.getAction() == GLFW.GLFW_PRESS) {
+                    handleGiraffeBlessing(blessing, giraffe, mc.player);
+                    event.setCanceled(true);
+                } else if (event.getAction() == GLFW.GLFW_RELEASE && giraffeBlessingHeld) {
+                    giraffeBlessingHeld = false;
+                    PacketDistributor.sendToServer(new OWAttackPacket(blessing.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
                 }
                 return;
             }

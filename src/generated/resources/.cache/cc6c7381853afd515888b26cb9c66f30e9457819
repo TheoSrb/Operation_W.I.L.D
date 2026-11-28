@@ -1,4 +1,4 @@
-// 1.21	2026-11-27T22:16:55.2846039	Tags for minecraft:item mod id ow
+// 1.21	2026-11-28T11:11:28.5493326	Tags for minecraft:item mod id ow
 b92abfac4c9de067fab29f9b4732a719cb806e4b data/c/tags/item/foods.json
 26a434c4a2555410c3c8b33b2779d316ee9507c0 data/c/tags/item/foods/cooked_meat.json
 d6a2720e7041cdea9ac61b45bccdf0538aa57b94 data/c/tags/item/foods/raw_meat.json
@@ -24,6 +24,7 @@ aeec5b44225a539ee6d62ddca8257a4708ede44e data/minecraft/tags/item/meat.json
 af1c0bbc470abac75606dc5f7c301f495d00ee2e data/ow/tags/item/condor_food.json
 46dbc842f9f9d1b14cafe87a04be0bbf78c0b582 data/ow/tags/item/crocodile_food.json
 976c3d06e89ace6bd56236675521381f556d2eba data/ow/tags/item/elephant_food.json
+bb8c1db3edd079a983b11a83189a660cfbd29510 data/ow/tags/item/giraffe_food.json
 a2a4afa51caee8037097bd69e8ec1e6236360cb5 data/ow/tags/item/gorilla_food.json
 dc69a30c9847f80cef10e0bb6c7fb8e5cdb6ac27 data/ow/tags/item/hippopotamus_food.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json

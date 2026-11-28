@@ -89,6 +89,16 @@
       }
     },
     {
+      "constant": "GIRAFFE_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé une Girafe !"
+      },
+      "id": "ow:watchtower",
+      "title": {
+        "fr_fr": "La Tour de Guet"
+      }
+    },
+    {
       "constant": "TIGER_SHARK_TAMED_ADVANCEMENT",
       "id": "ow:tiger_shark_advancement"
     },
@@ -9357,9 +9367,9 @@
             "biome": "minecraft:savanna",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.988,
-            "individuals_per_100_chunks": 3.457,
-            "pool_weight": 90,
+            "groups_per_100_chunks": 0.808,
+            "individuals_per_100_chunks": 2.828,
+            "pool_weight": 110,
             "species_weight": 8,
             "tier": "rare"
           },
@@ -9367,15 +9377,15 @@
             "biome": "minecraft:savanna_plateau",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.839,
-            "individuals_per_100_chunks": 2.935,
-            "pool_weight": 106,
+            "groups_per_100_chunks": 0.705,
+            "individuals_per_100_chunks": 2.469,
+            "pool_weight": 126,
             "species_weight": 8,
-            "tier": "rare"
+            "tier": "very_rare"
           }
         ],
-        "groups_per_100_chunks": 0.988,
-        "individuals_per_100_chunks": 3.457,
+        "groups_per_100_chunks": 0.808,
+        "individuals_per_100_chunks": 2.828,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -12701,9 +12711,9 @@
           {
             "desc": {
               "key": "ow.attacks.tarantula.web_grapple.desc",
-              "plain": "Clic droit ou gauche : la tarentule du bras tire sa toile à %s blocs. Bête : dégâts, lenteur. Objet : rapporté. Bloc : maintenez pour être tiré (2 toiles : au milieu), %s s max. Clic court : lâcher. Recharge %s s.",
+              "plain": "Clic droit/gauche : la tarentule du bras tire sa toile à %s blocs, contre 1 nourriture de son inventaire. Bête : ralentie. Objet : rapporté. Bloc : maintenez pour être tiré, %s s max. Clic court : lâcher. Recharge %s s.",
               "translations": {
-                "fr_fr": "Clic droit ou gauche : la tarentule du bras tire sa toile à %s blocs. Bête : dégâts, lenteur. Objet : rapporté. Bloc : maintenez pour être tiré (2 toiles : au milieu), %s s max. Clic court : lâcher. Recharge %s s."
+                "fr_fr": "Clic droit/gauche : la tarentule du bras tire sa toile à %s blocs, contre 1 nourriture de son inventaire. Bête : ralentie. Objet : rapporté. Bloc : maintenez pour être tiré, %s s max. Clic court : lâcher. Recharge %s s."
               }
             },
             "slug": "web_grapple",
@@ -12722,30 +12732,45 @@
         "ANCHOR_ENERGY_PER_TICK": 0.35,
         "ANCHOR_MAX_TICKS": 600,
         "ANCHOR_RELEASE_SLACK": 6.0,
+        "COCOON_DECAY_DELAY": 100,
+        "COCOON_DECAY_INTERVAL": 30,
+        "COCOON_LOCK_TICKS": 100,
+        "COCOON_MAX_LAYERS": 12,
+        "COCOON_MAX_SLOW": 0.75,
+        "COCOON_MIN_LAYERS": 1,
+        "COCOON_SIZE_PER_LAYER": 0.34,
         "DETACH_HOP_DISTANCE": 2.5,
         "DETACH_HOP_LIFT": 0.42,
         "DETACH_HOP_PUSH": 0.18,
+        "EAT_SOUND_INTERVAL": 6,
+        "EAT_TICKS": 22,
         "PREDICTION_TIMEOUT_TICKS": 10,
-        "REEL_ACCELERATION": 0.08,
-        "REEL_ARRIVE_DISTANCE": 1.5,
-        "REEL_FAST_SPOOL_FACTOR": 1.35,
-        "REEL_HOLD_GAIN": 0.4,
-        "REEL_MAX_SPEED": 1.15,
-        "REEL_START_SPEED": 0.45,
-        "REEL_STEER": 0.35,
+        "REEL_ARRIVE_DISTANCE": 1.3,
+        "REEL_GRAVITY_SHARE": 0.7,
+        "REEL_HOLD_DAMPING": 0.75,
+        "REEL_HOLD_GAIN": 0.12,
+        "REEL_LATERAL_KEEP": 0.97,
+        "REEL_MAX_SPEED": 0.85,
+        "REEL_MIN_APPROACH": 0.35,
+        "REEL_PULL": 0.075,
+        "REEL_RAMP_TICKS": 25,
+        "REEL_SLOW_DISTANCE": 4.0,
+        "REFUSE_TICKS": 18,
         "ROPE_AIR_KEEP": 0.95,
         "ROPE_HARD_SLACK": 0.3,
         "ROPE_MIN_LENGTH": 1.2,
-        "WEB_COOLDOWN_TICKS": 40,
-        "WEB_DAMAGE_RATIO": 0.5,
+        "SELECT_ANIMATION_TICKS": 12,
+        "SELECT_FLASH_MS": 300,
+        "STRONG_SILK_DRAIN_FACTOR": 0.5,
+        "STRONG_SILK_TIME_FACTOR": 2,
+        "WEB_COOLDOWN_TICKS": 8,
         "WEB_ENERGY": 30.0,
         "WEB_ENTITY_PICK_RADIUS": 0.35,
-        "WEB_EXTEND_MAX_TICKS": 6,
-        "WEB_EXTEND_SPEED": 4.0,
+        "WEB_EXTEND_MAX_TICKS": 9,
+        "WEB_EXTEND_SPEED": 5.0,
         "WEB_IMPACT_HOLD_TICKS": 2,
         "WEB_ITEM_PICK_RADIUS": 0.45,
-        "WEB_RANGE": 16.0,
-        "WEB_RANGE_SILK_REACH": 22.0,
+        "WEB_RANGE": 32.0,
         "WEB_RETRACT_MAX_TICKS": 8,
         "WEB_RETRACT_SPEED": 3.0,
         "WEB_SHOT_TICKS": 14,
@@ -12902,7 +12927,7 @@
           {
             "looping": true,
             "name": "ARM_WEB_HOLD",
-            "seconds": 1.0
+            "seconds": 2.0
           },
           {
             "looping": false,
@@ -12912,6 +12937,21 @@
           {
             "looping": false,
             "name": "ARM_JUMP_OFF",
+            "seconds": 0.6
+          },
+          {
+            "looping": false,
+            "name": "ARM_REFUSE",
+            "seconds": 0.9
+          },
+          {
+            "looping": false,
+            "name": "ARM_EAT",
+            "seconds": 1.1
+          },
+          {
+            "looping": false,
+            "name": "ARM_SELECT",
             "seconds": 0.6
           }
         ],
@@ -12927,6 +12967,7 @@
         "DEFAULT_SKIN_INDEX": 0,
         "ENTITY_COLOR": 5190697,
         "MAX_SOMNOLENCE": 70,
+        "SHOULDER_BLEND_STEP": 0.11111111,
         "SLOT_LEFT": 1,
         "SLOT_NONE": -1,
         "SLOT_RIGHT": 0,
@@ -12987,9 +13028,9 @@
         "created": "2026-11-27T22:16:09.5863952+01:00",
         "created_date": "2026-11-27",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TarantulaEntity.java",
-        "last_modified": "2026-11-27T22:16:09.5868971+01:00",
-        "last_modified_date": "2026-11-27",
-        "size_bytes": 54995
+        "last_modified": "2026-11-28T10:37:01.303536+01:00",
+        "last_modified_date": "2026-11-28",
+        "size_bytes": 73612
       },
       "id": "ow:tarantula",
       "loot": {
@@ -13381,41 +13422,41 @@
               {
                 "description": {
                   "key": "piste.attack.10.desc",
-                  "plain": "Le Grappin de Soie porte à 22 blocs au lieu de 16.",
+                  "plain": "Toile sur un ennemi : cocon qui le ralentit ; complet, il l'immobilise 5 s.",
                   "translations": {
-                    "fr_fr": "Le Grappin de Soie porte à 22 blocs au lieu de 16."
+                    "fr_fr": "Toile sur un ennemi : cocon qui le ralentit ; complet, il l'immobilise 5 s."
                   }
                 },
                 "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_0.png",
                 "id": 10,
                 "name": {
                   "key": "piste.attack.10.name",
-                  "plain": "Soie Longue",
+                  "plain": "Cocon de Soie",
                   "translations": {
-                    "fr_fr": "Soie Longue"
+                    "fr_fr": "Cocon de Soie"
                   }
                 }
               },
               {
                 "description": {
                   "key": "piste.attack.11.desc",
-                  "plain": "La toile vous tire 35 % plus vite.",
+                  "plain": "Toiles accrochées 2× plus longtemps ; une nourriture recharge deux toiles.",
                   "translations": {
-                    "fr_fr": "La toile vous tire 35 % plus vite."
+                    "fr_fr": "Toiles accrochées 2× plus longtemps ; une nourriture recharge deux toiles."
                   }
                 },
                 "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_1.png",
                 "id": 11,
                 "name": {
                   "key": "piste.attack.11.name",
-                  "plain": "Bobine Rapide",
+                  "plain": "Soie Renforcée",
                   "translations": {
-                    "fr_fr": "Bobine Rapide"
+                    "fr_fr": "Soie Renforcée"
                   }
                 }
               }
             ],
-            "required_level": 36,
+            "required_level": 40,
             "requires_all": false,
             "reward": 0,
             "x": 324,
@@ -13640,6 +13681,16 @@
           "constant": "TARANTULA_WEB_REEL",
           "id": "ow:tarantula_web_reel",
           "path": "tarantula_web_reel"
+        },
+        {
+          "constant": "TARANTULA_REFUSE",
+          "id": "ow:tarantula_refuse",
+          "path": "tarantula_refuse"
+        },
+        {
+          "constant": "TARANTULA_EAT",
+          "id": "ow:tarantula_eat",
+          "path": "tarantula_eat"
         }
       ],
       "spawn": {
@@ -13741,6 +13792,8 @@
         ]
       },
       "textures": [
+        "textures/entity/tarantula/cocoon.png",
+        "textures/entity/tarantula/cocoon_overlay.png",
         "textures/entity/tarantula/tarantula_chilean_rose.png",
         "textures/entity/tarantula/tarantula_default.png",
         "textures/entity/tarantula/tarantula_red_knee.png",
@@ -14801,9 +14854,9 @@
             "biome": "minecraft:savanna",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.704,
-            "individuals_per_100_chunks": 11.111,
-            "pool_weight": 90,
+            "groups_per_100_chunks": 3.03,
+            "individuals_per_100_chunks": 9.091,
+            "pool_weight": 110,
             "species_weight": 30,
             "tier": "uncommon"
           },
@@ -14811,15 +14864,15 @@
             "biome": "minecraft:savanna_plateau",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.145,
-            "individuals_per_100_chunks": 9.434,
-            "pool_weight": 106,
+            "groups_per_100_chunks": 2.646,
+            "individuals_per_100_chunks": 7.937,
+            "pool_weight": 126,
             "species_weight": 30,
-            "tier": "uncommon"
+            "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 3.704,
-        "individuals_per_100_chunks": 11.111,
+        "groups_per_100_chunks": 3.03,
+        "individuals_per_100_chunks": 9.091,
         "spawns_naturally": true,
         "tier": "uncommon"
       },
@@ -17128,6 +17181,1223 @@
         "PeacockCourtshipGoal",
         "PeacockFanDisplayGoal",
         "PeacockWildFeatherGoal"
+      ]
+    },
+    {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.giraffe.combo.desc",
+              "plain": "Faites ruer votre girafe toutes les %s s : %s dégâts par coup. Le troisième coup frappe des deux sabots.",
+              "translations": {
+                "fr_fr": "Faites ruer votre girafe toutes les %s s : %s dégâts par coup. Le troisième coup frappe des deux sabots."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.giraffe.combo.title",
+              "plain": "Ruades",
+              "translations": {
+                "fr_fr": "Ruades"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.giraffe.blessing.desc",
+              "plain": "Clic droit sur un allié visé : ses ossicones s'illuminent et une colonne de lumière le soigne de %s PV, lui rend %s d'énergie et lui donne Résistance II %s s. Portée %s blocs, recharge %s s.",
+              "translations": {
+                "fr_fr": "Clic droit sur un allié visé : ses ossicones s'illuminent et une colonne de lumière le soigne de %s PV, lui rend %s d'énergie et lui donne Résistance II %s s. Portée %s blocs, recharge %s s."
+              }
+            },
+            "slug": "blessing",
+            "title": {
+              "key": "ow.attacks.giraffe.blessing.title",
+              "plain": "Bénédiction des Ossicones",
+              "translations": {
+                "fr_fr": "Bénédiction des Ossicones"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.giraffe.sentinel.desc",
+              "plain": "La girafe se cabre et relie les alliés à %s blocs pendant %s s : %s PV/s, %s%% de dégâts en moins, malus purgés. Elle encaisse leurs coups mortels. Recharge %s s, armée par 5 Bénédictions.",
+              "translations": {
+                "fr_fr": "La girafe se cabre et relie les alliés à %s blocs pendant %s s : %s PV/s, %s%% de dégâts en moins, malus purgés. Elle encaisse leurs coups mortels. Recharge %s s, armée par 5 Bénédictions."
+              }
+            },
+            "slug": "sentinel",
+            "title": {
+              "key": "ow.attacks.giraffe.sentinel.title",
+              "plain": "Sentinelle Céleste",
+              "translations": {
+                "fr_fr": "Sentinelle Céleste"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.giraffe.watchtower.desc",
+              "plain": "Laissée libre, la girafe bénit seule les alliés blessés et lance la Sentinelle quand l'équipe vacille (option Soins automatiques).",
+              "translations": {
+                "fr_fr": "Laissée libre, la girafe bénit seule les alliés blessés et lance la Sentinelle quand l'équipe vacille (option Soins automatiques)."
+              }
+            },
+            "slug": "watchtower",
+            "title": {
+              "key": "ow.attacks.giraffe.watchtower.title",
+              "plain": "Vigie",
+              "translations": {
+                "fr_fr": "Vigie"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "AUTO_BLESS_THRESHOLD": 0.6,
+        "AUTO_HEAL_RANGE": 20.0,
+        "AUTO_SENTINEL_COOLDOWN_TICKS": 1200,
+        "AUTO_SENTINEL_GROUP_THRESHOLD": 0.6,
+        "AUTO_SENTINEL_SINGLE_THRESHOLD": 0.35,
+        "BLESSING_AIM_RANGE": 24.0,
+        "BLESSING_AIM_TOLERANCE": 1.5,
+        "BLESSING_ANIMATION_TICKS": 25,
+        "BLESSING_BEAM_TICKS": 24,
+        "BLESSING_COOLDOWN_TICKS": 160,
+        "BLESSING_ENERGY": 60.0,
+        "BLESSING_HEAL": 10.0,
+        "BLESSING_IMPACT_TICK": 12,
+        "BLESSING_MIN_AIM_DISTANCE": 1.5,
+        "BLESSING_RESISTANCE_AMPLIFIER": 1,
+        "BLESSING_RESISTANCE_TICKS": 200,
+        "BLESSING_VITAL_ENERGY": 40.0,
+        "HERD_FLEE_RADIUS": 20.0,
+        "HERD_FLEE_TICKS": 160,
+        "SENTINEL_BLESSINGS_REQUIRED": 5,
+        "SENTINEL_BREAK_DISTANCE": 24.0,
+        "SENTINEL_CAST_TICKS": 40,
+        "SENTINEL_COOLDOWN_TICKS": 1200,
+        "SENTINEL_DAMAGE_REDUCTION": 0.35,
+        "SENTINEL_DURATION_MS": 12700,
+        "SENTINEL_DURATION_TICKS": 240,
+        "SENTINEL_ENERGY": 100.0,
+        "SENTINEL_HEAL_INTERVAL": 10,
+        "SENTINEL_HEAL_PER_SECOND": 2.0,
+        "SENTINEL_IMPACT_TICK": 26,
+        "SENTINEL_MAX_LINKS": 24,
+        "SENTINEL_RADIUS": 16.0,
+        "SENTINEL_SCAN_INTERVAL": 10
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 6.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 40.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.8,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 60.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.16,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "class": "net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "GiraffeEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 4.5
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.3333
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.3333
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.75
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.75
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.4167
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.4167
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.6667
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 5.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.25
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 3.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.25
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          }
+        ],
+        "layers": [
+          "GiraffeLayer"
+        ],
+        "model": "GiraffeModel",
+        "renderer": "GiraffeRenderer"
+      },
+      "constants": {
+        "BASE_DAMAGE": 6.0,
+        "BASE_HEALTH": 60.0,
+        "BASE_SPEED": 0.16,
+        "DEFAULT_SKIN_INDEX": 1,
+        "ENTITY_COLOR": 14724987,
+        "FOOD_WANTED_MAX": 18,
+        "FOOD_WANTED_MIN": 12,
+        "MAX_SOMNOLENCE": 4200,
+        "NAP_TRANSITION_TICKS": 35,
+        "SOMNOLENCE_LOSS_INTERVAL": 3,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 8,
+        "TAMING_EXPERIENCE": 270.0
+      },
+      "crafting_uses": [
+        {
+          "type": "minecraft:campfire_cooking",
+          "id": "ow:cooked_giraffe_from_campfire_cooking",
+          "ingredients": [
+            "ow:raw_giraffe"
+          ],
+          "result": "ow:cooked_giraffe",
+          "result_count": 1,
+          "result_names": {
+            "fr_fr": "Girafe cuite"
+          }
+        },
+        {
+          "type": "minecraft:smelting",
+          "id": "ow:cooked_giraffe_from_smelting",
+          "ingredients": [
+            "ow:raw_giraffe"
+          ],
+          "result": "ow:cooked_giraffe",
+          "result_count": 1,
+          "result_names": {
+            "fr_fr": "Girafe cuite"
+          }
+        },
+        {
+          "type": "minecraft:smoking",
+          "id": "ow:cooked_giraffe_from_smoking",
+          "ingredients": [
+            "ow:raw_giraffe"
+          ],
+          "result": "ow:cooked_giraffe",
+          "result_count": 1,
+          "result_names": {
+            "fr_fr": "Girafe cuite"
+          }
+        }
+      ],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 0.7,
+          "energy_multiplier": 1.1,
+          "health_multiplier": 1.2,
+          "name": "HEALER",
+          "speed_multiplier": 1.0
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 34.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 1,
+        "diet": {
+          "name": "VEGETARIAN",
+          "saturation_multiplier": 0.75
+        },
+        "entity_color": 14724987,
+        "entity_color_hex": "#E0AF7B",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 20.0,
+        "initial_variant": 2,
+        "mounted_speed_blocks_per_second": 6.217143031529019,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 45.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": false,
+        "prefers_vegetables": true,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 160,
+        "taming_experience": 270.0,
+        "teleports_to_owner": false,
+        "temperament": "PASSIVE",
+        "theoretical_scale": 15.0,
+        "unresolved": [
+          "getRotationSpeed",
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 3.2
+      },
+      "history": {
+        "created": "2026-11-28T11:03:02.4749031+01:00",
+        "created_date": "2026-11-28",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GiraffeEntity.java",
+        "last_modified": "2026-11-28T11:03:02.476939+01:00",
+        "last_modified_date": "2026-11-28",
+        "size_bytes": 49653
+      },
+      "id": "ow:giraffe",
+      "loot": {
+        "drops": [
+          {
+            "item": "ow:raw_giraffe",
+            "looting_bonus": true,
+            "max": 4.0,
+            "min": 2.0,
+            "rolls": 1.0,
+            "smelts_when_burning": true
+          },
+          {
+            "item": "minecraft:leather",
+            "looting_bonus": true,
+            "max": 3.0,
+            "min": 1.0,
+            "rolls": 1.0
+          }
+        ],
+        "table": "ow:entities/giraffe",
+        "table_json": {
+          "type": "minecraft:entity",
+          "pools": [
+            {
+              "bonus_rolls": 0.0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "functions": [
+                    {
+                      "add": false,
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max": 4.0,
+                        "min": 2.0
+                      },
+                      "function": "minecraft:set_count"
+                    },
+                    {
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max": 1.0,
+                        "min": 0.0
+                      },
+                      "enchantment": "minecraft:looting",
+                      "function": "minecraft:enchanted_count_increase"
+                    },
+                    {
+                      "conditions": [
+                        {
+                          "condition": "minecraft:entity_properties",
+                          "entity": "this",
+                          "predicate": {
+                            "flags": {
+                              "is_on_fire": true
+                            }
+                          }
+                        }
+                      ],
+                      "function": "minecraft:furnace_smelt"
+                    }
+                  ],
+                  "name": "ow:raw_giraffe"
+                }
+              ],
+              "rolls": 1.0
+            },
+            {
+              "bonus_rolls": 0.0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "functions": [
+                    {
+                      "add": false,
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max": 3.0,
+                        "min": 1.0
+                      },
+                      "function": "minecraft:set_count"
+                    },
+                    {
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max": 1.0,
+                        "min": 0.0
+                      },
+                      "enchantment": "minecraft:looting",
+                      "function": "minecraft:enchanted_count_increase"
+                    }
+                  ],
+                  "name": "minecraft:leather"
+                }
+              ],
+              "rolls": 1.0
+            }
+          ]
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 2.7880000782012937,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 1.5,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 330.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": -0.0,
+        "run_speed_multiplier": 3.4,
+        "saddle_item": "ow:tiger_saddle",
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 1.0,
+        "walk_speed_multiplier": 1.6,
+        "water_speed_divider": 3.0
+      },
+      "names": {
+        "fr_fr": "Girafe"
+      },
+      "path": "giraffe",
+      "piste": {
+        "available": true,
+        "node_count": 35,
+        "nodes": [
+          {
+            "type": "START",
+            "children": [
+              1,
+              2
+            ],
+            "cost": 0,
+            "exclusive_fork": false,
+            "id": 0,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 33,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 0
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 27,
+            "required_level": 26,
+            "requires_all": false,
+            "reward": 68,
+            "x": 105,
+            "y": 30
+          },
+          {
+            "type": "STEP",
+            "children": [
+              33
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 31,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 140,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [
+              31
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 30,
+            "required_level": 13,
+            "requires_all": false,
+            "reward": 42,
+            "x": 202,
+            "y": 30
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 25,
+            "required_level": 32,
+            "requires_all": false,
+            "reward": 82,
+            "x": 60,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              25,
+              26,
+              27
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 20,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 82
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 26,
+            "required_level": 4,
+            "requires_all": false,
+            "reward": 30,
+            "x": 140,
+            "y": 82
+          },
+          {
+            "type": "STEP",
+            "children": [
+              20
+            ],
+            "cost": 18,
+            "exclusive_fork": false,
+            "id": 14,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 123
+          },
+          {
+            "type": "STEP",
+            "children": [
+              23
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 18,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [
+              29,
+              30
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 23,
+            "required_level": 9,
+            "requires_all": false,
+            "reward": 4,
+            "x": 202,
+            "y": 123
+          },
+          {
+            "type": "XP",
+            "children": [
+              32
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 29,
+            "required_level": 20,
+            "requires_all": false,
+            "reward": 55,
+            "x": 284,
+            "y": 123
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 12,
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 6,
+            "x": 60,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              12,
+              13,
+              14
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 7,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [
+              18,
+              19
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 13,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 3,
+            "x": 153,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              34
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 32,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 171
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 34,
+            "required_level": 16,
+            "requires_all": false,
+            "reward": 5,
+            "x": 324,
+            "y": 171
+          },
+          {
+            "type": "STEP",
+            "children": [
+              7
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 4,
+            "required_level": 38,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 19,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 8,
+            "exclusive_fork": false,
+            "id": 24,
+            "required_level": 6,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              24,
+              28
+            ],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 22,
+            "required_level": 11,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              32
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 28,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 284,
+            "y": 204
+          },
+          {
+            "type": "STEP",
+            "children": [
+              3,
+              4
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 1,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 250
+          },
+          {
+            "type": "COINS",
+            "children": [
+              6
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 3,
+            "required_level": 22,
+            "requires_all": false,
+            "reward": 5,
+            "x": 153,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              21,
+              22
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 16,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 250
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 70,
+            "exclusive_fork": false,
+            "id": 21,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.12.desc",
+                  "plain": "Sentinelle : rayon et portée des liens +50 %, durée +4 s.",
+                  "translations": {
+                    "fr_fr": "Sentinelle : rayon et portée des liens +50 %, durée +4 s."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/giraffe_upgrading_skill_0.png",
+                "id": 12,
+                "name": {
+                  "key": "piste.attack.12.name",
+                  "plain": "Grand Gardien",
+                  "translations": {
+                    "fr_fr": "Grand Gardien"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.13.desc",
+                  "plain": "Les alliés à 4 blocs de la cible reçoivent la moitié de la Bénédiction.",
+                  "translations": {
+                    "fr_fr": "Les alliés à 4 blocs de la cible reçoivent la moitié de la Bénédiction."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/giraffe_upgrading_skill_1.png",
+                "id": 13,
+                "name": {
+                  "key": "piste.attack.13.name",
+                  "plain": "Bénédiction Partagée",
+                  "translations": {
+                    "fr_fr": "Bénédiction Partagée"
+                  }
+                }
+              }
+            ],
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 0,
+            "x": 324,
+            "y": 250
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 6,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 153,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 11,
+            "required_level": 18,
+            "requires_all": false,
+            "reward": 0,
+            "x": 202,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              11,
+              15,
+              16
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 9,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 299
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 12,
+            "exclusive_fork": false,
+            "id": 15,
+            "required_level": 28,
+            "requires_all": false,
+            "reward": 6,
+            "x": 284,
+            "y": 299
+          },
+          {
+            "type": "STEP",
+            "children": [
+              5
+            ],
+            "cost": 25,
+            "exclusive_fork": false,
+            "id": 2,
+            "required_level": 44,
+            "requires_all": false,
+            "reward": 0,
+            "x": 105,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              8,
+              9,
+              10
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 5,
+            "required_level": 42,
+            "requires_all": false,
+            "reward": 7,
+            "x": 239,
+            "y": 334
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 8,
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 140,
+            "x": 324,
+            "y": 334
+          },
+          {
+            "type": "COINS",
+            "children": [
+              17
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 10,
+            "required_level": 48,
+            "requires_all": false,
+            "reward": 8,
+            "x": 239,
+            "y": 371
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 17,
+            "required_level": 50,
+            "requires_all": true,
+            "reward": 250,
+            "x": 239,
+            "y": 408
+          }
+        ],
+        "start_node": 0,
+        "total_cost": 414
+      },
+      "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:savanna",
+        "biomes": [
+          {
+            "biome": "minecraft:savanna",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 2.02,
+            "individuals_per_100_chunks": 6.061,
+            "pool_weight": 110,
+            "species_weight": 20,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:savanna_plateau",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.764,
+            "individuals_per_100_chunks": 5.291,
+            "pool_weight": 126,
+            "species_weight": 20,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 2.02,
+        "individuals_per_100_chunks": 6.061,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
+      "simple_class": "GiraffeEntity",
+      "size": {
+        "eye_height": 2.89,
+        "fixed": false,
+        "height": 3.4,
+        "theoretical_scale": 15.0,
+        "width": 1.6
+      },
+      "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_giraffe",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 4,
+        "min_count": 2,
+        "weight": 20
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_giraffe",
+          "biomes": [
+            "minecraft:savanna",
+            "minecraft:savanna_plateau"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 4,
+          "min_count": 2,
+          "weight": 20
+        }
+      ],
+      "taming": {
+        "advancement": "ow:watchtower",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 2,
+          "level_name": "wood",
+          "respects_mob_griefing": true
+        },
+        "experience": 270.0,
+        "feeding": {
+          "food_wanted_max": 18,
+          "food_wanted_min": 12,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tags": [
+          {
+            "constant": "GIRAFFE_FOOD",
+            "entries": [
+              "minecraft:acacia_leaves",
+              "minecraft:oak_leaves",
+              "minecraft:birch_leaves",
+              "minecraft:jungle_leaves",
+              "minecraft:dark_oak_leaves",
+              "minecraft:mangrove_leaves",
+              "minecraft:cherry_leaves",
+              "minecraft:apple",
+              "minecraft:sweet_berries",
+              "minecraft:glow_berries",
+              "ow:savage_berries"
+            ],
+            "id": "ow:giraffe_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": false,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1680.0,
+          "full_bar_awake_seconds": 630.0,
+          "loss_interval_ticks_asleep": 8,
+          "loss_interval_ticks_awake": 3,
+          "loss_per_second_asleep": 2.5,
+          "loss_per_second_awake": 6.666666666666667,
+          "max": 4200,
+          "max_max": 5040,
+          "max_min": 3360,
+          "spread_percent": 20
+        },
+        "tameable": true,
+        "valid_projectiles": [
+          "ow:tranquilizer_arrow",
+          "ow:tranquilizer_dart"
+        ]
+      },
+      "textures": [
+        "textures/entity/giraffe/giraffe_default.png",
+        "textures/entity/giraffe/giraffe_golden.png",
+        "textures/entity/giraffe/giraffe_reticulated.png",
+        "textures/entity/giraffe/giraffe_saddle.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 12,
+        "fire_immune": false,
+        "loot_table": "ow:entities/giraffe",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.giraffe",
+      "variants": [
+        {
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        },
+        {
+          "deprecated": false,
+          "id": 1,
+          "name": "RETICULATED",
+          "ordinal": 1
+        },
+        {
+          "deprecated": false,
+          "id": 2,
+          "name": "GOLDEN",
+          "ordinal": 2
+        }
+      ],
+      "wild_behaviors": [
+        "GiraffeAutoHealGoal",
+        "GiraffeHerdFleeGoal"
       ]
     },
     {
@@ -19714,6 +20984,8 @@
       "EARTHQUAKE": 14,
       "FEAST": 18,
       "FEATHER_VOLLEY": 32,
+      "GIRAFFE_BLESSING": 39,
+      "GIRAFFE_SENTINEL": 40,
       "HEAL_SNACK": 17,
       "HIPPO_ROLL": 22,
       "HUNTING_LEAP": 26,
@@ -20375,36 +21647,72 @@
         {
           "description": {
             "key": "piste.attack.10.desc",
-            "plain": "Le Grappin de Soie porte à 22 blocs au lieu de 16.",
+            "plain": "Toile sur un ennemi : cocon qui le ralentit ; complet, il l'immobilise 5 s.",
             "translations": {
-              "fr_fr": "Le Grappin de Soie porte à 22 blocs au lieu de 16."
+              "fr_fr": "Toile sur un ennemi : cocon qui le ralentit ; complet, il l'immobilise 5 s."
             }
           },
           "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_0.png",
           "id": 10,
           "name": {
             "key": "piste.attack.10.name",
-            "plain": "Soie Longue",
+            "plain": "Cocon de Soie",
             "translations": {
-              "fr_fr": "Soie Longue"
+              "fr_fr": "Cocon de Soie"
             }
           }
         },
         {
           "description": {
             "key": "piste.attack.11.desc",
-            "plain": "La toile vous tire 35 % plus vite.",
+            "plain": "Toiles accrochées 2× plus longtemps ; une nourriture recharge deux toiles.",
             "translations": {
-              "fr_fr": "La toile vous tire 35 % plus vite."
+              "fr_fr": "Toiles accrochées 2× plus longtemps ; une nourriture recharge deux toiles."
             }
           },
           "icon": "ow:textures/misc/attacks/tarantula_upgrading_skill_1.png",
           "id": 11,
           "name": {
             "key": "piste.attack.11.name",
-            "plain": "Bobine Rapide",
+            "plain": "Soie Renforcée",
             "translations": {
-              "fr_fr": "Bobine Rapide"
+              "fr_fr": "Soie Renforcée"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.12.desc",
+            "plain": "Sentinelle : rayon et portée des liens +50 %, durée +4 s.",
+            "translations": {
+              "fr_fr": "Sentinelle : rayon et portée des liens +50 %, durée +4 s."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/giraffe_upgrading_skill_0.png",
+          "id": 12,
+          "name": {
+            "key": "piste.attack.12.name",
+            "plain": "Grand Gardien",
+            "translations": {
+              "fr_fr": "Grand Gardien"
+            }
+          }
+        },
+        {
+          "description": {
+            "key": "piste.attack.13.desc",
+            "plain": "Les alliés à 4 blocs de la cible reçoivent la moitié de la Bénédiction.",
+            "translations": {
+              "fr_fr": "Les alliés à 4 blocs de la cible reçoivent la moitié de la Bénédiction."
+            }
+          },
+          "icon": "ow:textures/misc/attacks/giraffe_upgrading_skill_1.png",
+          "id": 13,
+          "name": {
+            "key": "piste.attack.13.name",
+            "plain": "Bénédiction Partagée",
+            "translations": {
+              "fr_fr": "Bénédiction Partagée"
             }
           }
         }
@@ -22035,6 +23343,19 @@
       "translation_key": "item.ow.condor_spawn_egg"
     },
     {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
+      "id": "ow:giraffe_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de girafe"
+      },
+      "path": "giraffe_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.giraffe_spawn_egg"
+    },
+    {
       "class": "BlockItem",
       "fire_resistant": false,
       "id": "ow:lavender",
@@ -22539,7 +23860,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1313
+      "fr_fr": 1328
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -25485,6 +26806,16 @@
       "path": "tarantula_web_reel"
     },
     {
+      "constant": "TARANTULA_REFUSE",
+      "id": "ow:tarantula_refuse",
+      "path": "tarantula_refuse"
+    },
+    {
+      "constant": "TARANTULA_EAT",
+      "id": "ow:tarantula_eat",
+      "path": "tarantula_eat"
+    },
+    {
       "constant": "PEACOCK_IDLE",
       "id": "ow:peacock_idle",
       "path": "peacock_idle"
@@ -26211,6 +27542,23 @@
           "ow:savage_berries"
         ],
         "id": "ow:peacock_food"
+      },
+      {
+        "constant": "GIRAFFE_FOOD",
+        "entries": [
+          "minecraft:acacia_leaves",
+          "minecraft:oak_leaves",
+          "minecraft:birch_leaves",
+          "minecraft:jungle_leaves",
+          "minecraft:dark_oak_leaves",
+          "minecraft:mangrove_leaves",
+          "minecraft:cherry_leaves",
+          "minecraft:apple",
+          "minecraft:sweet_berries",
+          "minecraft:glow_berries",
+          "ow:savage_berries"
+        ],
+        "id": "ow:giraffe_food"
       },
       {
         "constant": "CONDOR_FOOD",
@@ -31377,6 +32725,18 @@
           ]
         },
         {
+          "archetype": "HEALER",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:giraffe",
+          "path": "giraffe",
+          "probe_resolved": true,
+          "terrain_mask": 1,
+          "terrains": [
+            "TERRESTRIAL"
+          ]
+        },
+        {
           "archetype": "TANK",
           "danger": 1.0,
           "fights_in_arena": true,
@@ -32048,6 +33408,11 @@
           "carries_flag": true,
           "id": "ow:peacock",
           "model": "PeacockModel"
+        },
+        {
+          "carries_flag": true,
+          "id": "ow:giraffe",
+          "model": "GiraffeModel"
         },
         {
           "carries_flag": true,
@@ -36406,6 +37771,19 @@
         },
         {
           "danger": 1.0,
+          "id": "ow:giraffe",
+          "path": "giraffe",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
           "id": "ow:condor",
           "path": "condor",
           "value_by_level": {
@@ -36755,6 +38133,18 @@
         "max_count": 2,
         "min_count": 1,
         "weight": 12
+      },
+      {
+        "biome_modifier": "ow:spawn_giraffe",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:giraffe",
+        "max_count": 4,
+        "min_count": 2,
+        "weight": 20
       }
     ]
   }

@@ -41,6 +41,8 @@ IDs d'attaque déjà pris :
  36 → Condor CONDOR_TALONS   (Serres — clic droit EN VOL : saisit une créature moyenne, alliée ou ennemie ; re-clic lâche)
  37 → Condor CONDOR_STORM    (carte d'ultime provisoire, verrouillée : attaque à concevoir)
  38 → Tarentule WEB_GRAPPLE  (Grappin de Soie — clic droit = tarentule du bras droit, clic gauche = bras gauche ; maintenu = tirage, deux toiles tirées = milieu des ancres, clic court = lâche ; aiguillé en tête de OWAttackPacket.handle, paramètre value = bras)
+ 39 → Girafe GIRAFFE_BLESSING  (Bénédiction des ossicones — clic droit instantané sur l'allié visé : soin, énergie vitale rendue, Résistance II ; charge l'ultime)
+ 40 → Girafe GIRAFFE_SENTINEL  (Sentinelle céleste — ultime, touche X, 5 Bénédictions requises : liens de soin, -35 % de dégâts, ange gardien)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

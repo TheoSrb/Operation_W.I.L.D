@@ -176,6 +176,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "CrocodileEntity" -> entityScale = 18;
             case "PeacockEntity" -> entityScale = 20;
             case "CondorEntity" -> entityScale = 14;
+            case "GiraffeEntity" -> entityScale = 8;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
             case "RedPandaEntity" -> entityScale = 32;
@@ -272,6 +273,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         }
 
         if (entity.isVegetarian() && !this.menu.getSlot(FOOD_SLOT_INDEX).hasItem()) {
+            if (entity.requiresSaddleToRide()) guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + foodSlotFrameY() + 1, 6, 18, 16, 16);
             guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + foodSlotFrameY() + 1,
                     VEGETARIAN_ICON_U, VEGETARIAN_ICON_V, 16, 16);
         } else if (!entity.isVegetarian() && !entity.requiresSaddleToRide() && !this.menu.getSlot(FOOD_SLOT_INDEX).hasItem()) {
@@ -432,6 +434,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "ColossalSquidEntity":
                 return 240;
             case "TigerEntity":
+            case "GiraffeEntity":
                 return 240;
             case "BoaEntity":
                 return 224;

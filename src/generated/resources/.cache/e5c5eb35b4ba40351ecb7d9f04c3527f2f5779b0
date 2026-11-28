@@ -1,4 +1,4 @@
-// 1.21	2026-11-27T22:16:55.2835989	Advancements
+// 1.21	2026-11-28T11:11:28.5488308	Advancements
 5f4a990ce4ac0c73c205a14ee552ff4870dbf3c9 data/ow/advancement/abyssal_terror.json
 f6c2913288d4873232a96b7ab12ccd25760f41d3 data/ow/advancement/big_fuzzball.json
 0561a09af04e7411f4c10c0a5a46e3662ff0e489 data/ow/advancement/captain.json
@@ -18,4 +18,5 @@ ccb5f3fedc52136a3ebb3dd7bf132970e41bb2e2 data/ow/advancement/ow.json
 ac5353bdfc8080b6dda43ed4d5a455fdfee009bc data/ow/advancement/renowned_tamer.json
 5d027d5ec8831af29860cfe58dfced665012887f data/ow/advancement/river_giant.json
 4ea7f4e9b84f16ff114f49eb1bed406e52fc9bf1 data/ow/advancement/upgraded_arrows.json
+2f7a1ffae22f6b262247fca1aeff67070ad923fc data/ow/advancement/watchtower.json
 c550c6d780afab522adf860975274143ea2b11c8 data/ow/advancement/you_see_me.json

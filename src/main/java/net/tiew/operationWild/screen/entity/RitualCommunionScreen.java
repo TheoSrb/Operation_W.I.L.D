@@ -83,6 +83,7 @@ public class RitualCommunionScreen extends Screen {
             case "tiger" -> 0xC47037;
             case "boa" -> 0x838549;
             case "peacock" -> 0x464BC1;
+            case "giraffe" -> 0xE0AF7B;
             case "kodiak" -> 0x7D4A05;
             case "crocodile" -> 0x5E7242;
             case "orca" -> 0x3A4A5A;

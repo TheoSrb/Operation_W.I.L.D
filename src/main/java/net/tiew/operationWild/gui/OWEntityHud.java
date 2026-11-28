@@ -78,20 +78,9 @@ public class OWEntityHud {
 
     private static void renderTarantulaHUDs(GuiGraphics guiGraphics, Player rider, int screenWidth, int screenHeight) {
         OWEntity active = net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(rider);
-        if (!(active instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) || !active.isTame()) return;
-        companionTop = survivalTop(rider, screenHeight);
-        try {
+        if (active instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity && active.isTame()) {
             createHUD(guiGraphics, active, screenWidth, screenHeight);
-        } finally {
-            companionTop = -1;
         }
-    }
-
-    private static int survivalTop(Player player, int screenHeight) {
-        if (player.isCreative() || player.isSpectator()) return screenHeight - BASE_ROW_HEIGHT;
-        int height = BASE_ROW_HEIGHT + ROW_HEIGHT;
-        if (player.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) || player.getAirSupply() < player.getMaxAirSupply()) height += ROW_HEIGHT;
-        return screenHeight - height - GAUGE_OVERHANG;
     }
 
     public static void createHUD(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
@@ -172,6 +161,7 @@ public class OWEntityHud {
             case "ChameleonEntity": return 27;
             case "TarantulaEntity": return 21;
             case "CondorEntity": return 25;
+            case "GiraffeEntity": return 18;
             default: return 0;
         }
     }
@@ -197,7 +187,7 @@ public class OWEntityHud {
 
     public static void createHealthBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         int xPlacement = x / 2 + 10;
-        int yPlacement = companionTop >= 0 ? companionTop : y - 39;
+        int yPlacement = y - 39;
 
         guiGraphics.blit(HUD, xPlacement, yPlacement, 0, 0, 81, 9);
 
@@ -252,6 +242,8 @@ public class OWEntityHud {
             return new EntityIconData(189, 124, 18, 20, -(18 / 2), -11);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TarantulaEntity) {
             return new EntityIconData(206, 203, 14, 13, -(14 / 2), -6);
+        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity) {
+            return new EntityIconData(161, 124, 26, 20, -(26 / 2), -11);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.flying.CondorEntity) {
             return new EntityIconData(213, 146, 14, 18, -(14 / 2), -10);
         } else if (entity instanceof ColossalSquidEntity) {
@@ -260,10 +252,6 @@ public class OWEntityHud {
         return null;
     }
 
-    private static final int BASE_ROW_HEIGHT = 39;
-    private static final int ROW_HEIGHT = 10;
-    private static final int GAUGE_OVERHANG = 0;
-    private static int companionTop = -1;
 
     private static final long ENERGY_LACK_FLASH_MS = 1200L;
     private static long energyLackUntilMs = 0L;
@@ -271,7 +259,7 @@ public class OWEntityHud {
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         int xPlacement = x / 2 + 10;
-        int yPlacement = companionTop >= 0 ? companionTop : y - 39;
+        int yPlacement = y - 39;
         int gaugeX = xPlacement + 81 + 5;
 
         guiGraphics.blit(HUD, gaugeX, yPlacement, 0, 230, 8, 14);

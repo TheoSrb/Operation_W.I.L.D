@@ -1,4 +1,4 @@
-// 1.21	2026-11-27T22:16:55.2835989	Registries
+// 1.21	2026-11-28T11:11:28.5483293	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -16,6 +16,7 @@ fa68261fb44e0142c00cd993b710352687710ba7 data/ow/neoforge/biome_modifier/spawn_c
 d5967539413be54e67971a089ed254fb1d387dc8 data/ow/neoforge/biome_modifier/spawn_condor.json
 be65b51011b76798b6ced966691b31de5535daa2 data/ow/neoforge/biome_modifier/spawn_crocodile.json
 6c3024dae69f8f7a448aa509f12831af5cba76d3 data/ow/neoforge/biome_modifier/spawn_elephant.json
+7e6717519cbde870619913c4ed98b68aca951384 data/ow/neoforge/biome_modifier/spawn_giraffe.json
 ff70400962ebaa057b225efc91a205c07c7d75ba data/ow/neoforge/biome_modifier/spawn_gorilla.json
 28e45a6a33c35e441c2d139aa599d5a160a255a9 data/ow/neoforge/biome_modifier/spawn_gorilla_sparse.json
 c999ff5149af8e235127924e6b8d8f0eb3bc1b70 data/ow/neoforge/biome_modifier/spawn_hippopotamus.json

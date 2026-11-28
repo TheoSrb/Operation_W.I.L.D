@@ -131,7 +131,7 @@ import java.util.*;
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
-public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable, IOWWaypointEntity {
+public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable, IOWWaypointEntity, net.tiew.operationWild.entity.platform.IOWPlatformCarrier {
 
     private static final org.slf4j.Logger OW_LOGGER = com.mojang.logging.LogUtils.getLogger();
 
@@ -339,6 +339,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> SADDLED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> PLATFORM_EQUIPPED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> IS_RUNNING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> IS_ATTACKING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> IS_IN_FIGHT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -1584,6 +1585,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean causeFallDamage(float v, float v1, DamageSource damageSource) {
         if (glide.absorbsFall() || this.absorbsFallDamage()) return false;
+        if (this instanceof IOWCarriedCompanion companion && (companion.isCarried() || this.getVehicle() instanceof Player)) return false;
         int i = this.calculateFallDamage(v, v1);
         if (i <= 0) {
             return false;
@@ -5228,6 +5230,131 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.entityData.get(SADDLED);
     }
 
+    private net.tiew.operationWild.entity.platform.OWPlatform platform;
+
+    @Nullable
+    public net.tiew.operationWild.entity.platform.OWPlatformProfile platformProfile() {
+        return null;
+    }
+
+    @Nullable
+    public Item acceptPlatform() {
+        return null;
+    }
+
+    public boolean isPlatformItem(ItemStack stack) {
+        Item item = acceptPlatform();
+        return item != null && !stack.isEmpty() && stack.is(item);
+    }
+
+    public boolean hasPlatform() {
+        return this.entityData.get(PLATFORM_EQUIPPED);
+    }
+
+    @Nullable
+    @Override
+    public net.tiew.operationWild.entity.platform.OWPlatform getPlatform() {
+        if (!hasPlatform()) return null;
+        return ensurePlatform();
+    }
+
+    @Nullable
+    private net.tiew.operationWild.entity.platform.OWPlatform ensurePlatform() {
+        if (platform == null) {
+            net.tiew.operationWild.entity.platform.OWPlatformProfile profile = platformProfile();
+            if (profile == null) return null;
+            platform = new net.tiew.operationWild.entity.platform.OWPlatform(this, profile);
+        }
+        return platform;
+    }
+
+    public void setPlatformEquipped(boolean equipped, ItemStack stack) {
+        if (this.level().isClientSide()) return;
+        net.tiew.operationWild.entity.platform.OWPlatform owned = ensurePlatform();
+        if (owned == null) return;
+        this.entityData.set(PLATFORM_EQUIPPED, equipped);
+        if (equipped) {
+            owned.activate();
+            owned.load(stack.getOrDefault(net.tiew.operationWild.component.OWDataComponentTypes.PLATFORM_BLOCKS.get(),
+                    net.tiew.operationWild.entity.platform.OWPlatformBlocks.EMPTY));
+        } else {
+            owned.clear();
+            owned.deactivate();
+        }
+        net.tiew.operationWild.entity.platform.OWPlatformEvents.broadcast(this, owned.snapshot(false));
+    }
+
+    private void refreshPlatformFromInventory() {
+        if (platformProfile() == null) return;
+        ItemStack stack = this.itemStackHandler.getStackInSlot(0);
+        setPlatformEquipped(isPlatformItem(stack), stack);
+    }
+
+    @Override
+    public float platformScale() {
+        return this.getScale() * this.getScale();
+    }
+
+    @Override
+    public boolean canBuildOnPlatform(Player player) {
+        if (player.getAbilities().instabuild) return true;
+        UUID owner = this.getOwnerUUID();
+        if (owner == null) return false;
+        if (owner.equals(player.getUUID())) return true;
+        net.minecraft.server.MinecraftServer server = this.level().getServer();
+        if (server == null) return false;
+        net.tiew.operationWild.team.OWTribesSavedData tribes = net.tiew.operationWild.team.OWTribesSavedData.get(server);
+        net.tiew.operationWild.team.OWTeam ownerTribe = tribes.findTeamByMember(owner);
+        return ownerTribe != null && ownerTribe == tribes.findTeamByMember(player.getUUID());
+    }
+
+    @Override
+    public void onPlatformChanged() {
+        net.tiew.operationWild.entity.platform.OWPlatform owned = getPlatform();
+        if (owned == null || this.level().isClientSide()) return;
+        flushPlatform();
+        net.tiew.operationWild.entity.platform.OWPlatformEvents.broadcast(this, owned.snapshot(false));
+    }
+
+    @Override
+    public void flushPlatform() {
+        net.tiew.operationWild.entity.platform.OWPlatform owned = getPlatform();
+        if (owned == null || this.level().isClientSide()) return;
+        ItemStack stack = this.itemStackHandler.getStackInSlot(0);
+        if (isPlatformItem(stack)) {
+            stack.set(net.tiew.operationWild.component.OWDataComponentTypes.PLATFORM_BLOCKS.get(), owned.snapshot(true));
+        }
+    }
+
+    @Override
+    public void receivePlatformBlocks(net.tiew.operationWild.entity.platform.OWPlatformBlocks blocks) {
+        net.tiew.operationWild.entity.platform.OWPlatform owned = ensurePlatform();
+        if (owned != null) owned.load(blocks);
+    }
+
+    @Override
+    public net.minecraft.world.phys.AABB getBoundingBoxForCulling() {
+        net.tiew.operationWild.entity.platform.OWPlatform owned = getPlatform();
+        net.minecraft.world.phys.AABB box = super.getBoundingBoxForCulling();
+        return owned == null ? box : box.minmax(owned.worldBounds());
+    }
+
+    public ItemStack equippedSaddleStack() {
+        return this.itemStackHandler.getStackInSlot(0);
+    }
+
+    @Override
+    public void push(Entity entity) {
+        if (hasPlatform() && net.tiew.operationWild.entity.platform.OWPlatformPhysics.isStandingOn(entity, this)) return;
+        super.push(entity);
+    }
+
+    @Override
+    protected void doPush(Entity entity) {
+        if (hasPlatform() && net.tiew.operationWild.entity.platform.OWPlatformPhysics.isStandingOn(entity, this)) return;
+        super.doPush(entity);
+    }
+
     public java.util.List<OWSaddleShield> saddleShields() {
         return java.util.List.of();
     }
@@ -5939,6 +6066,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(IS_COMBO_PAUSED, false);
         builder.define(GET_COMBO_ATTACK, 0);
         builder.define(SADDLED, false);
+        builder.define(PLATFORM_EQUIPPED, false);
         builder.define(IS_FEMALE, false);
         builder.define(IS_RUNNING, false);
         builder.define(IS_PASSIVE, false);
@@ -5995,6 +6123,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();
+            flushPlatform();
             tag.put("ItemStackHandler", itemStackHandler.serializeNBT(provider));
         }
         if (level() != null && level().getServer() != null) {
@@ -6132,6 +6261,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (tag.contains("ItemStackHandler") && level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();
             itemStackHandler.deserializeNBT(provider, tag.getCompound("ItemStackHandler"));
+            refreshPlatformFromInventory();
         }
         if (tag.contains("itemStackHandlerSeaBug") && level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();

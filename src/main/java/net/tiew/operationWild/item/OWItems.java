@@ -107,6 +107,7 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> ANIMAL_SOUL = ITEMS.register("animal_soul", () -> new AnimalSoulItem(new Item.Properties().stacksTo(1).fireResistant()));
 
     public static final DeferredHolder<Item, Item> TIGER_SADDLE = ITEMS.register("tiger_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, Item> GIRAFFE_PLATFORM = ITEMS.register("giraffe_platform", () -> new net.tiew.operationWild.item.custom.OWPlatformItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> BOA_SADDLE = ITEMS.register("boa_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> PEACOCK_SADDLE = ITEMS.register("peacock_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> TIGER_SHARK_SADDLE = ITEMS.register("tiger_shark_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
@@ -212,6 +213,8 @@ public class OWItems {
             () -> new DeferredSpawnEggItem(OWEntityRegistry.PEACOCK, 0x286ec3, 0x3e7439, new Item.Properties()));
     public static final DeferredHolder<Item, Item> CONDOR_SPAWN_EGG = ITEMS.register("condor_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.CONDOR, 0x38364c, 0xacafb7, new Item.Properties()));
+    public static final DeferredHolder<Item, Item> GIRAFFE_SPAWN_EGG = ITEMS.register("giraffe_spawn_egg",
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.GIRAFFE, 0xe0af7b, 0x925942, new Item.Properties()));
 
 
     public static void register(IEventBus eventBus) { ITEMS.register(eventBus);}

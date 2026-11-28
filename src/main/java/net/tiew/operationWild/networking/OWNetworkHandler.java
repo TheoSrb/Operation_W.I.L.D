@@ -61,6 +61,7 @@ public class OWNetworkHandler {
         registrar.playToServer(StartRitualPacket.TYPE, StartRitualPacket.STREAM_CODEC, StartRitualPacket::handle);
         registrar.playToServer(OWPisteAdvancePacket.TYPE, OWPisteAdvancePacket.STREAM_CODEC, OWPisteAdvancePacket::handle);
         registrar.playToServer(ToggleWaypointPacket.TYPE, ToggleWaypointPacket.STREAM_CODEC, ToggleWaypointPacket::handle);
+        registrar.playToServer(PlatformActionPacket.TYPE, PlatformActionPacket.STREAM_CODEC, PlatformActionPacket::handle);
 
         // Tribu player-centric (refonte)
         registrar.playToServer(OpenTribeMenuPacket.TYPE, OpenTribeMenuPacket.STREAM_CODEC, OpenTribeMenuPacket::handle);
@@ -94,6 +95,9 @@ public class OWNetworkHandler {
         registrar.playToClient(BookNotificationPacket.TYPE, BookNotificationPacket.STREAM_CODEC, BookNotificationPacket::handle);
         registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
+        registrar.playToClient(net.tiew.operationWild.networking.packets.to_client.TarantulaCocoonPacket.TYPE,
+                net.tiew.operationWild.networking.packets.to_client.TarantulaCocoonPacket.STREAM_CODEC,
+                net.tiew.operationWild.networking.packets.to_client.TarantulaCocoonPacket::handle);
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
@@ -115,6 +119,7 @@ public class OWNetworkHandler {
         registrar.playToClient(OWXpGainPacket.TYPE, OWXpGainPacket.STREAM_CODEC, OWXpGainPacket::handle);
         registrar.playToClient(OWIndicationPacket.TYPE, OWIndicationPacket.STREAM_CODEC, OWIndicationPacket::handle);
         registrar.playToClient(SyncWaypointsPacket.TYPE, SyncWaypointsPacket.STREAM_CODEC, SyncWaypointsPacket::handle);
+        registrar.playToClient(PlatformSyncPacket.TYPE, PlatformSyncPacket.STREAM_CODEC, PlatformSyncPacket::handle);
 
         // Tribu player-centric (refonte)
         registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);

@@ -41,16 +41,23 @@ public class OWInventoryMenu extends AbstractContainerMenu {
 
         this.addSlot(new SlotItemHandler(dataInventory, 0, 6, 18) {
             public boolean mayPlace(ItemStack itemStack) {
-                return entity.requiresSaddleToRide() && itemStack.is(chooseSaddleWithEntity(entity)) && !this.hasItem();
+                return entity.requiresSaddleToRide() && (itemStack.is(chooseSaddleWithEntity(entity)) || entity.isPlatformItem(itemStack)) && !this.hasItem();
             }
             public boolean isActive() {
                 return entity.requiresSaddleToRide();
             }
 
+            public boolean mayPickup(Player player) {
+                entity.flushPlatform();
+                return super.mayPickup(player);
+            }
+
             public void setChanged() {
                 super.setChanged();
-                boolean saddled = !this.getItem().isEmpty() && this.getItem().is(chooseSaddleWithEntity(entity));
+                boolean platform = entity.isPlatformItem(this.getItem());
+                boolean saddled = !this.getItem().isEmpty() && (this.getItem().is(chooseSaddleWithEntity(entity)) || platform);
                 entity.setSaddle(saddled);
+                if (platform != entity.hasPlatform()) entity.setPlatformEquipped(platform, this.getItem());
                 entity.onSaddleEquipped(saddled ? this.getItem() : ItemStack.EMPTY);
                 entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
             }

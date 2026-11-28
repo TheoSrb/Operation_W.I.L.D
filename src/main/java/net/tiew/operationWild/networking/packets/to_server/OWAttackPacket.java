@@ -137,6 +137,13 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
+            if (packet.attackId() == OWAttackIds.GIRAFFE_BLESSING
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffeBlessing) {
+                if (packet.action() == ACTION_EXECUTE_WITH_TARGET) giraffeBlessing.requestBlessing(Float.floatToRawIntBits(packet.value()));
+                else if (packet.action() == ACTION_CHARGE_CANCEL) giraffeBlessing.releaseBlessingByRider();
+                return;
+            }
+
             if (packet.attackId() == OWAttackIds.MAELSTROM
                     && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squidMaelstrom) {
                 if (packet.action() == ACTION_EXECUTE) squidMaelstrom.startMaelstrom();
@@ -268,6 +275,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.DISTRESS_CALL ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionDistress
                                         && lionDistress.activateDistressCall();
+                        case OWAttackIds.GIRAFFE_SENTINEL ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GiraffeEntity giraffeSentinel
+                                        && giraffeSentinel.activateSentinel();
                         case OWAttackIds.ROYAL_SWEEP ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockSweep
                                         && peacockSweep.activateRoyalSweep();

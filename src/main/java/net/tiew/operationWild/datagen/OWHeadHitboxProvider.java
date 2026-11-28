@@ -66,6 +66,7 @@ public class OWHeadHitboxProvider implements DataProvider {
             Map.entry("crocodile", Options.DEFAULT.baby(1.5f, 0.6f)),
             Map.entry("hippopotamus", Options.DEFAULT.baby(1.5f, 0.5f)),
             Map.entry("peacock", Options.DEFAULT.baby(1.5f, 0.5f).exclude("crest")),
+            Map.entry("giraffe", Options.DEFAULT.baby(1.5f, 0.5f).exclude("left_ear", "right_ear")),
             Map.entry("orca", Options.DEFAULT.baby(1.5f, 0.6f).excludeCubes("head#0")),
             Map.entry("boa", Options.DEFAULT.cover("body_0").exclude("body_1")));
 

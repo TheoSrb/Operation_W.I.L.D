@@ -54,5 +54,7 @@ public class OWDataComponentTypes {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Long>> SYRINGE_RIFLE_LAST_SHOT = register("syringe_rifle_last_shot", builder -> builder.networkSynchronized(ByteBufCodecs.VAR_LONG));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Long>> SYRINGE_RIFLE_RELOAD_END = register("syringe_rifle_reload_end", builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<net.tiew.operationWild.entity.platform.OWPlatformBlocks>> PLATFORM_BLOCKS = register("platform_blocks", builder -> builder.persistent(net.tiew.operationWild.entity.platform.OWPlatformBlocks.CODEC).networkSynchronized(net.tiew.operationWild.entity.platform.OWPlatformBlocks.STREAM_CODEC).cacheEncoding());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SyringeData>> SYRINGE_DATA = register("syringe_data", builder -> builder.persistent(SyringeData.CODEC));
 }

@@ -40,11 +40,11 @@ public final class TarantulaWebController {
 
     private static final double GRAVITY_COMPENSATION = 0.0784;
     private static final int REEL_SOUND_INTERVAL = 5;
-    private static final float PEEK_SIDE = 0.62f;
-    private static final float PEEK_DOWN = -0.5f;
-    private static final float PEEK_FORWARD = -0.85f;
+    private static final float PEEK_SIDE = 0.98f;
+    private static final float PEEK_DOWN = -0.6f;
+    private static final float PEEK_FORWARD = -0.9f;
     private static final float PEEK_HIDE = 0.45f;
-    private static final float PEEK_YAW = 28f;
+    private static final float PEEK_YAW = 40f;
     private static final float PEEK_PITCH = 12f;
     private static final float PEEK_SCALE = 0.55f;
 
@@ -73,6 +73,18 @@ public final class TarantulaWebController {
         if (slot == TarantulaEntity.SLOT_NONE) return;
 
         TarantulaEntity tarantula = TarantulaEntity.carriedOn(player, slot);
+
+        if (event.getAction() == GLFW.GLFW_PRESS && slot == TarantulaEntity.SLOT_RIGHT && player.isShiftKeyDown()
+                && player.getMainHandItem().isEmpty() && player.getVehicle() == null
+                && (mc.hitResult == null || mc.hitResult.getType() != HitResult.Type.ENTITY)) {
+            TarantulaEntity leaving = net.tiew.operationWild.entity.OWCarriedCompanions.getCarried(player) instanceof TarantulaEntity selected ? selected : null;
+            if (leaving != null && !leaving.isWebAttached() && leaving.canPilotAttacks(player)) {
+                PacketDistributor.sendToServer(new OWAttackPacket(OWAttackIds.WEB_GRAPPLE, OWAttackPacket.ACTION_COMPANION_DISMOUNT, leaving.carrySlot()));
+                event.setCanceled(true);
+                return;
+            }
+        }
+
         if (tarantula == null || player.getVehicle() != null || !tarantula.canPilotAttacks(player)) return;
 
         if (event.getAction() == GLFW.GLFW_RELEASE) {
@@ -88,12 +100,6 @@ public final class TarantulaWebController {
 
         if (tarantula.isWebAttached()) {
             press(slot, true);
-            event.setCanceled(true);
-            return;
-        }
-
-        if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
-            PacketDistributor.sendToServer(new OWAttackPacket(OWAttackIds.WEB_GRAPPLE, OWAttackPacket.ACTION_COMPANION_DISMOUNT, slot));
             event.setCanceled(true);
             return;
         }
@@ -205,7 +211,6 @@ public final class TarantulaWebController {
             if (isHeld(slot)) {
                 target = target.add(anchor);
                 reeling++;
-                speedFactor = Math.max(speedFactor, tarantula.reelSpeedFactor());
             }
         }
 

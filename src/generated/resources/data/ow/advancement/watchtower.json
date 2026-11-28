@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_giraffe": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:giraffe"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.watchtower.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:giraffe_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.watchtower.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_giraffe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
